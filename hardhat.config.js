@@ -38,7 +38,7 @@ module.exports = {
             url: vars.get("CAMINO_URL", "https://api.camino.network/ext/bc/C/rpc"),
             accounts: vars.has("CAMINO_DEPLOYER_PRIVATE_KEY") ? [vars.get("CAMINO_DEPLOYER_PRIVATE_KEY")] : [],
         },
-        "base-sepolia": {
+        "base_sepolia": {
             url: vars.get("BASE_SEPOLIA_URL", "wss://base-sepolia.drpc.org"),
             accounts: vars.has("BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY")
                 ? [vars.get("BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY")]
@@ -53,7 +53,7 @@ module.exports = {
         apiKey: {
             columbus: "abc",
             camino: "abc",
-            "base-sepolia": vars.get("BASESCAN_API_KEY", "abc"),
+            "base_sepolia": vars.get("BASESCAN_API_KEY", "abc"),
             base: vars.get("BASESCAN_API_KEY", "abc"),
         },
         customChains: [
@@ -74,7 +74,7 @@ module.exports = {
                 },
             },
             {
-                network: "base-sepolia",
+                network: "base_sepolia",
                 chainId: 84532,
                 urls: {
                     apiURL: "https://api-sepolia.basescan.org/api",

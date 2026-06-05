@@ -18,8 +18,8 @@ function getAddressesForNetwork(hre) {
     } else if (hre.network.name === "localhost") {
         console.log("Running on localhost");
         addresses = require("../deployments/chain-31337/deployed_addresses.json");
-    } else if (hre.network.name === "base-sepolia") {
-        console.log("Running on base-sepolia");
+    } else if (hre.network.name === "base_sepolia") {
+        console.log("Running on base_sepolia");
         addresses = require("../deployments/chain-84532/deployed_addresses.json");
     } else if (hre.network.name === "base") {
         console.log("Running on base");
