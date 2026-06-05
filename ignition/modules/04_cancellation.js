@@ -17,6 +17,9 @@ function getAddressesForNetwork(hre) {
     } else if (hre.network.name === "base-sepolia") {
         console.log("Running on base-sepolia");
         addresses = require("../deployments/chain-84532/deployed_addresses.json");
+    } else if (hre.network.name === "base") {
+        console.log("Running on base");
+        addresses = require("../deployments/chain-8453/deployed_addresses.json");
     } else {
         throw new Error(`Unsupported network: ${hre.network.name}`);
     }
