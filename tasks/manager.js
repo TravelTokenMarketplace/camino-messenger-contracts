@@ -195,7 +195,15 @@ MANAGER_SCOPE.task("status", "Print status of deployed contracts").setAction(asy
     const feePercentage = (Number(feeBasisPoints) / 10000) * 100;
     console.log(`Developer Fee: ${feeBasisPoints}bp (${feePercentage}%)`);
     console.log(`Service Fee Token: ${await manager.getServiceFeeToken()}`);
-    console.log(`Prefund Amount: ${ethers.formatEther(await manager.getPrefundAmount())} CAM`);
+
+    let decimals = 18;
+    const serviceFeeTokenAddr = await manager.getServiceFeeToken();
+    if (serviceFeeTokenAddr !== ethers.ZeroAddress) {
+        const serviceFeeTokenContract = await ethers.getContractAt("ServiceFeeToken", serviceFeeTokenAddr);
+        decimals = await serviceFeeTokenContract.decimals();
+    }
+    const prefund = await manager.getPrefundAmount();
+    console.log(`Prefund Amount: ${ethers.formatUnits(prefund, decimals)} SFT`);
 });
 
 MANAGER_SCOPE.task("services:register", "Register services")
@@ -339,6 +347,49 @@ MANAGER_SCOPE.task("sft:mint", "Mint Service Fee Token")
         const txReceipt = await tx.wait();
         console.log("Tx:", txReceipt.hash);
     });
+
+MANAGER_SCOPE.task("prefund:set", "Set prefund amount on the manager contract")
+    .addParam("amount", "Prefund amount in token units (e.g. 100)")
+    .setAction(async (taskArgs, hre) => {
+        const manager = await getManager(hre);
+        let decimals = 18;
+        const serviceFeeTokenAddr = await manager.getServiceFeeToken();
+        if (serviceFeeTokenAddr !== ethers.ZeroAddress) {
+            const serviceFeeToken = await ethers.getContractAt("ServiceFeeToken", serviceFeeTokenAddr);
+            decimals = await serviceFeeToken.decimals();
+        }
+        const amountWei = ethers.parseUnits(taskArgs.amount, decimals);
+        console.log(`Setting prefund amount to ${taskArgs.amount} SFT (wei: ${amountWei.toString()})...`);
+        const tx = await manager.setPrefundAmount(amountWei);
+        const txReceipt = await tx.wait();
+        console.log("Tx:", txReceipt.hash);
+    });
+
+MANAGER_SCOPE.task("btoken:set", "Set Booking Token address on the manager contract")
+    .addParam("address", "Booking Token address")
+    .setAction(async (taskArgs, hre) => {
+        const manager = await getManager(hre);
+        console.log(`Setting Booking Token Address to ${taskArgs.address}...`);
+        const tx = await manager.setBookingTokenAddress(taskArgs.address);
+        const txReceipt = await tx.wait();
+        console.log("Tx:", txReceipt.hash);
+    });
+
+MANAGER_SCOPE.task("pause", "Pause CM Account Manager (stops account creation)").setAction(async (taskArgs, hre) => {
+    const manager = await getManager(hre);
+    console.log("Pausing CMAccountManager...");
+    const tx = await manager.pause();
+    const txReceipt = await tx.wait();
+    console.log("Tx:", txReceipt.hash);
+});
+
+MANAGER_SCOPE.task("unpause", "Unpause CM Account Manager").setAction(async (taskArgs, hre) => {
+    const manager = await getManager(hre);
+    console.log("Unpausing CMAccountManager...");
+    const tx = await manager.unpause();
+    const txReceipt = await tx.wait();
+    console.log("Tx:", txReceipt.hash);
+});
 
 BT_SCOPE.task("role:grant", "Grant role")
     .addParam("role", "Role to grant. Ex: MIN_EXPIRATION_ADMIN_ROLE")

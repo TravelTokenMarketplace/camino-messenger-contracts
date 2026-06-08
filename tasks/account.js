@@ -460,6 +460,13 @@ ACCOUNT_SCOPE.task("payment-token:list", "List supported payment tokens from CMA
         const supportedTokens = await cmAccount.getSupportedTokens();
         console.log("💵 Supported payment tokens:");
         console.log(supportedTokens);
+
+        try {
+            const offChainSupported = await cmAccount.offChainPaymentSupported();
+            console.log(`🔗 Off-chain payment supported: ${offChainSupported ? "✅" : "❌"}`);
+        } catch (e) {
+            console.log("Failed to fetch off-chain payment support info.");
+        }
     });
 
 ACCOUNT_SCOPE.task("bot:list", "List all bots from CMAccount")
@@ -471,7 +478,15 @@ ACCOUNT_SCOPE.task("bot:list", "List all bots from CMAccount")
     .setAction(async (taskArgs, hre) => {
         console.log("CMAccount:", taskArgs.cmAccount, "\n");
 
-        console.log("📢 A bot is an address that has been granted some special roles on the CMAccount.");
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        try {
+            const [limit, period] = await cmAccount.getGasMoneyWithdrawal();
+            console.log(`Gas limit: ${ethers.formatEther(limit)} CAM per ${period} seconds.`);
+        } catch (e) {
+            console.log("Failed to fetch gas limit settings.");
+        }
+
+        console.log("\n📢 A bot is an address that has been granted some special roles on the CMAccount.");
 
         const role1 = "CHEQUE_OPERATOR_ROLE";
         console.log("\n🤖", role1, "(Can sign cheques that are valid for the CMAccount)");
@@ -808,6 +823,311 @@ ACCOUNT_SCOPE.task("find", "Scan all CM Accounts for roles of a given address")
             console.log("❌ No CM Accounts found where this address holds a role.");
         } else {
             console.log(`✅ Search complete. Found matches in ${bold(foundCount)} CM Account(s).`);
+        }
+    });
+
+ACCOUNT_SCOPE.task("withdraw:erc20", "Withdraw ERC20 tokens from CMAccount")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("token", "ERC20 token address")
+    .addParam("recipient", "Recipient address")
+    .addParam("amount", "Amount to withdraw in human readable units")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+        console.log("Token:", taskArgs.token);
+        console.log("Recipient:", taskArgs.recipient);
+
+        try {
+            const tokenContract = await ethers.getContractAt("ServiceFeeToken", taskArgs.token);
+            const decimals = await tokenContract.decimals();
+            const amountWei = ethers.parseUnits(taskArgs.amount, decimals);
+            console.log(`Withdrawing ${taskArgs.amount} tokens (wei: ${amountWei.toString()})...`);
+
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            const tx = await cmAccount.connect(signer).transferERC20(taskArgs.token, taskArgs.recipient, amountWei);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("withdraw:erc721", "Withdraw ERC721 tokens from CMAccount")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("token", "ERC721 token address")
+    .addParam("recipient", "Recipient address")
+    .addParam("tokenId", "Token ID to withdraw")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+        console.log("Token:", taskArgs.token);
+        console.log("Recipient:", taskArgs.recipient);
+        console.log("Token ID:", taskArgs.tokenId);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            const tx = await cmAccount
+                .connect(signer)
+                .transferERC721(taskArgs.token, taskArgs.recipient, taskArgs.tokenId);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("bot:withdraw-gas", "Withdraw gas money for a bot from CMAccount")
+    .addParam("privateKey", "Private key of the bot")
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("amount", "Amount to withdraw in CAM (e.g. 0.5)")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const amountWei = ethers.parseEther(taskArgs.amount);
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Bot address: ${signer.address}`);
+            console.log(`Withdrawing ${taskArgs.amount} CAM (wei: ${amountWei.toString()})...`);
+            const tx = await cmAccount.connect(signer).withdrawGasMoney(amountWei);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("bot:set-gas-limit", "Set gas money withdrawal limit and period for bots")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("limit", "Withdrawal limit in CAM (e.g. 10)")
+    .addParam("period", "Withdrawal period in seconds (e.g. 86400 for 24h)")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const limitWei = ethers.parseEther(taskArgs.limit);
+            console.log(
+                `Setting gas limit to ${taskArgs.limit} CAM (wei: ${limitWei.toString()}) per ${taskArgs.period} seconds...`,
+            );
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            const tx = await cmAccount.connect(signer).setGasMoneyWithdrawal(limitWei, taskArgs.period);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("pubkey:add", "Add public key with address for off-chain encryption")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("pubkeyAddress", "Address of the public key")
+    .addParam("pubkeyData", "Public key data in hex format (must start with 0x)")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Adding public key for address ${taskArgs.pubkeyAddress}...`);
+            const tx = await cmAccount.connect(signer).addPublicKey(taskArgs.pubkeyAddress, taskArgs.pubkeyData);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("pubkey:remove", "Remove public key by address")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("pubkeyAddress", "Address of the public key to remove")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Removing public key for address ${taskArgs.pubkeyAddress}...`);
+            const tx = await cmAccount.connect(signer).removePublicKey(taskArgs.pubkeyAddress);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("pubkey:list", "List all public keys registered on CMAccount")
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const addresses = await cmAccount.getPublicKeysAddresses();
+            console.log("🔑 Registered Public Keys:");
+            for (const addr of addresses) {
+                const pubkeyData = await cmAccount.getPublicKey(addr);
+                console.log(`Address: ${addr}`);
+                console.log(`Data   : ${pubkeyData}\n`);
+            }
+            if (addresses.length === 0) {
+                console.log("No public keys registered.");
+            }
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("payment:set-offchain", "Set if off-chain payment is supported by CMAccount")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("supported", "true if supported, false otherwise", null, types.boolean)
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Setting off-chain payment support to: ${taskArgs.supported}`);
+            const tx = await cmAccount.connect(signer).setOffChainPaymentSupported(taskArgs.supported);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("service:remove-all", "Remove all supported services from CMAccount")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log("Removing all supported services from CMAccount...");
+            const tx = await cmAccount.connect(signer).removeAllServices();
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("service:set-fee", "Set the fee of a supported service on CMAccount")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("serviceName", "Name of the service")
+    .addParam("fee", "Fee of the service in aCAM")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Setting fee of service ${taskArgs.serviceName} to ${taskArgs.fee}...`);
+            const tx = await cmAccount.connect(signer).setServiceFee(taskArgs.serviceName, taskArgs.fee);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("service:set-restricted-rate", "Set the restricted rate property of a supported service")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("serviceName", "Name of the service")
+    .addParam("restrictedRate", "Restricted rate status (true/false)", null, types.boolean)
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Setting restricted rate of service ${taskArgs.serviceName} to ${taskArgs.restrictedRate}...`);
+            const tx = await cmAccount
+                .connect(signer)
+                .setServiceRestrictedRate(taskArgs.serviceName, taskArgs.restrictedRate);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
+        }
+    });
+
+ACCOUNT_SCOPE.task("service:set-capabilities", "Set all capabilities of a supported service")
+    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
+    .addOptionalParam(
+        "cmAccount",
+        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
+        process.env.CMACCOUNT_ADDRESS,
+    )
+    .addParam("serviceName", "Name of the service")
+    .addParam("capabilities", "Comma-separated capabilities")
+    .setAction(async (taskArgs, hre) => {
+        const cmAccount = await getCMAccount(taskArgs.cmAccount);
+        console.log("CMAccount:", taskArgs.cmAccount);
+
+        try {
+            const capabilities = taskArgs.capabilities ? taskArgs.capabilities.split(",") : [];
+            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
+            console.log(`Setting capabilities of service ${taskArgs.serviceName} to:`, capabilities);
+            const tx = await cmAccount.connect(signer).setServiceCapabilities(taskArgs.serviceName, capabilities);
+            const receipt = await tx.wait();
+            console.log("Tx:", receipt.hash);
+        } catch (error) {
+            handleTransactionError(error, cmAccount);
         }
     });
 
