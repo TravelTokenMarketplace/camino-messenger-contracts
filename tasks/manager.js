@@ -359,7 +359,7 @@ MANAGER_SCOPE.task("prefund:set", "Set prefund amount on the manager contract")
             decimals = await serviceFeeToken.decimals();
         }
         const amountWei = ethers.parseUnits(taskArgs.amount, decimals);
-        console.log(`Setting prefund amount to ${taskArgs.amount} SFT (wei: ${amountWei.toString()})...`);
+        console.log(`Setting prefund amount to ${taskArgs.amount} SFT (${amountWei.toString()} smallest units)...`);
         const tx = await manager.setPrefundAmount(amountWei);
         const txReceipt = await tx.wait();
         console.log("Tx:", txReceipt.hash);
