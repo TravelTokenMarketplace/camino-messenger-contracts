@@ -39,13 +39,13 @@ module.exports = {
             accounts: vars.has("CAMINO_DEPLOYER_PRIVATE_KEY") ? [vars.get("CAMINO_DEPLOYER_PRIVATE_KEY")] : [],
         },
         base_sepolia: {
-            url: vars.get("BASE_SEPOLIA_URL", "wss://base-sepolia.drpc.org"),
+            url: vars.get("BASE_SEPOLIA_URL", "https://base-sepolia.drpc.org"),
             accounts: vars.has("BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY")
                 ? [vars.get("BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY")]
                 : [],
         },
         base: {
-            url: vars.get("BASE_URL", "wss://base.drpc.org"),
+            url: vars.get("BASE_URL", "https://base.drpc.org"),
             accounts: vars.has("BASE_DEPLOYER_PRIVATE_KEY") ? [vars.get("BASE_DEPLOYER_PRIVATE_KEY")] : [],
         },
     },
