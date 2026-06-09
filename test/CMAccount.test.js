@@ -123,13 +123,13 @@ describe("CMAccount", function () {
         it("should register bots correctly", async function () {
             const { cmAccountManager, cmAccount } = await loadFixture(deployAndConfigureAllFixture);
 
-            const CHEQUE_OPERATOR_ROLE = await cmAccount.CHEQUE_OPERATOR_ROLE();
+            const MESSENGER_BOT_ROLE = await cmAccount.MESSENGER_BOT_ROLE();
             const botAddr = signers.chequeOperator.address;
 
-            // Grant CHEQUE_OPERATOR_ROLE
-            await expect(cmAccount.connect(signers.cmAccountAdmin).grantRole(CHEQUE_OPERATOR_ROLE, botAddr))
+            // Grant MESSENGER_BOT_ROLE
+            await expect(cmAccount.connect(signers.cmAccountAdmin).grantRole(MESSENGER_BOT_ROLE, botAddr))
                 .to.emit(cmAccount, "RoleGranted")
-                .withArgs(CHEQUE_OPERATOR_ROLE, botAddr, signers.cmAccountAdmin.address);
+                .withArgs(MESSENGER_BOT_ROLE, botAddr, signers.cmAccountAdmin.address);
 
             await expect(await cmAccount.isBotAllowed(botAddr)).to.be.true;
         });
@@ -278,7 +278,7 @@ describe("CMAccount", function () {
             expect(await cmAccount.isBotAllowed(bot.address)).to.be.true;
 
             // Check roles
-            expect(await cmAccount.hasRole(await cmAccount.CHEQUE_OPERATOR_ROLE(), bot.address)).to.be.true;
+            expect(await cmAccount.hasRole(await cmAccount.MESSENGER_BOT_ROLE(), bot.address)).to.be.true;
             expect(await cmAccount.hasRole(await cmAccount.BOOKING_OPERATOR_ROLE(), bot.address)).to.be.true;
             expect(await cmAccount.hasRole(await cmAccount.GAS_WITHDRAWER_ROLE(), bot.address)).to.be.true;
         });
