@@ -85,7 +85,7 @@ jobs:
             - name: Setup Go version
               uses: actions/setup-go@v4
               with:
-                  go-version: "1.23.6"
+                  go-version: "1.25.10"
 
             - name: Generate go-bindings
               run: |
