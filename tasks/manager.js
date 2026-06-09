@@ -199,7 +199,10 @@ MANAGER_SCOPE.task("status", "Print status of deployed contracts").setAction(asy
     let decimals = 18;
     const serviceFeeTokenAddr = await manager.getServiceFeeToken();
     if (serviceFeeTokenAddr !== ethers.ZeroAddress) {
-        const serviceFeeTokenContract = await ethers.getContractAt("ServiceFeeToken", serviceFeeTokenAddr);
+        const serviceFeeTokenContract = await ethers.getContractAt(
+            ["function decimals() view returns (uint8)"],
+            serviceFeeTokenAddr,
+        );
         decimals = await serviceFeeTokenContract.decimals();
     }
     const prefund = await manager.getPrefundAmount();
@@ -355,7 +358,10 @@ MANAGER_SCOPE.task("prefund:set", "Set prefund amount on the manager contract")
         let decimals = 18;
         const serviceFeeTokenAddr = await manager.getServiceFeeToken();
         if (serviceFeeTokenAddr !== ethers.ZeroAddress) {
-            const serviceFeeToken = await ethers.getContractAt("ServiceFeeToken", serviceFeeTokenAddr);
+            const serviceFeeToken = await ethers.getContractAt(
+                ["function decimals() view returns (uint8)"],
+                serviceFeeTokenAddr,
+            );
             decimals = await serviceFeeToken.decimals();
         }
         const amountWei = ethers.parseUnits(taskArgs.amount, decimals);

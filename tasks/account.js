@@ -843,7 +843,10 @@ ACCOUNT_SCOPE.task("withdraw:erc20", "Withdraw ERC20 tokens from CMAccount")
         console.log("Recipient:", taskArgs.recipient);
 
         try {
-            const tokenContract = await ethers.getContractAt("ServiceFeeToken", taskArgs.token);
+            const tokenContract = await ethers.getContractAt(
+                ["function decimals() view returns (uint8)"],
+                taskArgs.token,
+            );
             const decimals = await tokenContract.decimals();
             const amountWei = ethers.parseUnits(taskArgs.amount, decimals);
             console.log(`Withdrawing ${taskArgs.amount} tokens (wei: ${amountWei.toString()})...`);
