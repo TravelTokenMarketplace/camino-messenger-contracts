@@ -862,6 +862,678 @@ Returns the gas money withdrawal details for an account.
 function initialize(address manager, address bookingToken, address owner, address upgrader) external
 ```
 
+## BookingToken
+
+Booking Token contract represents a booking done on the Camino Messenger.
+
+Suppliers can mint Booking Tokens and reserve them for a distributor address to
+buy.
+
+Booking Tokens can have zero price, meaning that the payment will be done
+off-chain.
+
+When a token is minted with a reservation, it can not be transferred until the
+expiration timestamp is reached or the token is bought.
+
+### VERSION_MAJOR
+
+```solidity
+uint16 VERSION_MAJOR
+```
+
+### VERSION_MINOR
+
+```solidity
+uint16 VERSION_MINOR
+```
+
+### VERSION_PATCH
+
+```solidity
+uint16 VERSION_PATCH
+```
+
+### version
+
+```solidity
+function version() external pure virtual returns (uint16 major, uint16 minor, uint16 patch)
+```
+
+Returns the semantic version of the contract.
+
+- no version() func: Legacy version without Cancellation support
+- v1.0.0: Version with Cancellation support
+
+#### Return Values
+
+| Name  | Type   | Description                                   |
+| ----- | ------ | --------------------------------------------- |
+| major | uint16 | Major version (breaking changes)              |
+| minor | uint16 | Minor version (backwards-compatible features) |
+| patch | uint16 | Patch version (backwards-compatible fixes)    |
+
+### UPGRADER_ROLE
+
+```solidity
+bytes32 UPGRADER_ROLE
+```
+
+Upgrader role can upgrade the contract to a new implementation.
+
+### MIN_EXPIRATION_ADMIN_ROLE
+
+```solidity
+bytes32 MIN_EXPIRATION_ADMIN_ROLE
+```
+
+This role can set the mininum allowed expiration timestamp difference.
+
+### NATIVE_PAYMENT
+
+```solidity
+address NATIVE_PAYMENT
+```
+
+Tokens are directly transferred to the recipient.
+
+_Special address for native payments._
+
+### OFFCHAIN_PAYMENT
+
+```solidity
+address OFFCHAIN_PAYMENT
+```
+
+A third-party service is used to handle payments.
+
+_Special address for offchain payments. The enum for this
+is defined in the Camino Messenger Protocol's
+cmp.types.<version>.IsoCurrency enum (currency.proto file)._
+
+### BookingStatus
+
+```solidity
+enum BookingStatus {
+    UNSPECIFIED,
+    RESERVED,
+    RESERVATION_EXPIRED,
+    BOUGHT,
+    CANCELLED
+}
+```
+
+### TokenReservation
+
+```solidity
+struct TokenReservation {
+  address reservedFor;
+  address supplier;
+  uint256 expirationTimestamp;
+  uint256 price;
+  contract IERC20 paymentToken;
+  uint256 offchainPaymentCurrency;
+  bool cancellable;
+}
+```
+
+### BookingTokenStorage
+
+```solidity
+struct BookingTokenStorage {
+  address _manager;
+  uint256 _nextTokenId;
+  uint256 _minExpirationTimestampDiff;
+  mapping(uint256 => struct BookingToken.TokenReservation) _reservations;
+  mapping(uint256 => enum BookingToken.BookingStatus) _bookingStatus;
+}
+```
+
+### \_getBookingTokenStorage
+
+```solidity
+function _getBookingTokenStorage() internal pure returns (struct BookingToken.BookingTokenStorage $)
+```
+
+### TokenReserved
+
+```solidity
+event TokenReserved(uint256 tokenId, address reservedFor, address supplier, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable)
+```
+
+Event emitted when a token is reserved.
+
+#### Parameters
+
+| Name                    | Type            | Description           |
+| ----------------------- | --------------- | --------------------- |
+| tokenId                 | uint256         | token id              |
+| reservedFor             | address         | reserved for address  |
+| supplier                | address         | supplier address      |
+| expirationTimestamp     | uint256         | expiration timestamp  |
+| price                   | uint256         | price of the token    |
+| paymentToken            | contract IERC20 | payment token address |
+| offchainPaymentCurrency | uint256         |                       |
+| cancellable             | bool            |                       |
+
+### TokenBought
+
+```solidity
+event TokenBought(uint256 tokenId, address buyer)
+```
+
+Event emitted when a token is bought.
+
+#### Parameters
+
+| Name    | Type    | Description   |
+| ------- | ------- | ------------- |
+| tokenId | uint256 | token id      |
+| buyer   | address | buyer address |
+
+### TokenReservationExpired
+
+```solidity
+event TokenReservationExpired(uint256 tokenId)
+```
+
+Event emitted when a token is expired.
+
+#### Parameters
+
+| Name    | Type    | Description |
+| ------- | ------- | ----------- |
+| tokenId | uint256 | token id    |
+
+### ExpirationTimestampTooSoon
+
+```solidity
+error ExpirationTimestampTooSoon(uint256 expirationTimestamp, uint256 minExpirationTimestampDiff)
+```
+
+Error for expiration timestamp too soon. It must be at least
+`_minExpirationTimestampDiff` seconds in the future.
+
+### NotCMAccount
+
+```solidity
+error NotCMAccount(address account)
+```
+
+Address is not a CM Account.
+
+#### Parameters
+
+| Name    | Type    | Description     |
+| ------- | ------- | --------------- |
+| account | address | account address |
+
+### ReservationMismatch
+
+```solidity
+error ReservationMismatch(address reservedFor, address buyer)
+```
+
+ReservedFor and buyer mismatch.
+
+#### Parameters
+
+| Name        | Type    | Description          |
+| ----------- | ------- | -------------------- |
+| reservedFor | address | reserved for address |
+| buyer       | address | buyer address        |
+
+### ReservationExpired
+
+```solidity
+error ReservationExpired(uint256 tokenId, uint256 expirationTimestamp)
+```
+
+Reservation expired.
+
+#### Parameters
+
+| Name                | Type    | Description          |
+| ------------------- | ------- | -------------------- |
+| tokenId             | uint256 | token id             |
+| expirationTimestamp | uint256 | expiration timestamp |
+
+### IncorrectPrice
+
+```solidity
+error IncorrectPrice(uint256 price, uint256 reservationPrice)
+```
+
+Incorrect price.
+
+#### Parameters
+
+| Name             | Type    | Description        |
+| ---------------- | ------- | ------------------ |
+| price            | uint256 | price of the token |
+| reservationPrice | uint256 | reservation price  |
+
+### SupplierIsNotOwner
+
+```solidity
+error SupplierIsNotOwner(uint256 tokenId, address supplier)
+```
+
+Supplier is not the owner.
+
+#### Parameters
+
+| Name     | Type    | Description      |
+| -------- | ------- | ---------------- |
+| tokenId  | uint256 | token id         |
+| supplier | address | supplier address |
+
+### TokenIsReserved
+
+```solidity
+error TokenIsReserved(uint256 tokenId, address reservedFor)
+```
+
+Token is reserved and can not be transferred.
+
+#### Parameters
+
+| Name        | Type    | Description          |
+| ----------- | ------- | -------------------- |
+| tokenId     | uint256 | token id             |
+| reservedFor | address | reserved for address |
+
+### InsufficientAllowance
+
+```solidity
+error InsufficientAllowance(address sender, contract IERC20 paymentToken, uint256 price, uint256 allowance)
+```
+
+Insufficient allowance to transfer the ERC20 token to the supplier.
+
+#### Parameters
+
+| Name         | Type            | Description           |
+| ------------ | --------------- | --------------------- |
+| sender       | address         | msg.sender            |
+| paymentToken | contract IERC20 | payment token address |
+| price        | uint256         | price of the token    |
+| allowance    | uint256         | allowance amount      |
+
+### InvalidTokenStatus
+
+```solidity
+error InvalidTokenStatus(uint256 tokenId, enum BookingToken.BookingStatus status)
+```
+
+Invalid token status.
+
+#### Parameters
+
+| Name    | Type                            | Description |
+| ------- | ------------------------------- | ----------- |
+| tokenId | uint256                         | token id    |
+| status  | enum BookingToken.BookingStatus | status      |
+
+### UnexpectedOffchainPaymentCurrency
+
+```solidity
+error UnexpectedOffchainPaymentCurrency(uint256 offchainPaymentCurrency)
+```
+
+Unexpected offchain payment currency. Thrown when offchain payment currency is provided
+but payment token is not address(1).
+
+#### Parameters
+
+| Name                    | Type    | Description               |
+| ----------------------- | ------- | ------------------------- |
+| offchainPaymentCurrency | uint256 | offchain payment currency |
+
+### UnexpectedNativePayment
+
+```solidity
+error UnexpectedNativePayment(uint256 amount)
+```
+
+Error for when there is unexpected native payment.
+
+#### Parameters
+
+| Name   | Type    | Description           |
+| ------ | ------- | --------------------- |
+| amount | uint256 | The unexpected amount |
+
+### onlyCMAccount
+
+```solidity
+modifier onlyCMAccount(address account)
+```
+
+Only CMAccount modifier.
+
+### initialize
+
+```solidity
+function initialize(address manager, address defaultAdmin, address upgrader) public
+```
+
+### reinitializeV2
+
+```solidity
+function reinitializeV2(string newName, string newSymbol) public
+```
+
+This function allows reinitializing the contract to update the name and symbol
+
+_Only callable by DEFAULT_ADMIN_ROLE_
+
+#### Parameters
+
+| Name      | Type   | Description      |
+| --------- | ------ | ---------------- |
+| newName   | string | New token name   |
+| newSymbol | string | New token symbol |
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal virtual
+```
+
+Function to authorize an upgrade for UUPS proxy.
+
+### safeMintWithReservation
+
+```solidity
+function safeMintWithReservation(address reservedFor, string uri, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable) public virtual
+```
+
+Mints a new token with a reservation for a specific address.
+
+#### Parameters
+
+| Name                    | Type            | Description                                                           |
+| ----------------------- | --------------- | --------------------------------------------------------------------- |
+| reservedFor             | address         | The CM Account address that can buy the token                         |
+| uri                     | string          | The URI of the token                                                  |
+| expirationTimestamp     | uint256         | The expiration timestamp                                              |
+| price                   | uint256         | The price of the token                                                |
+| paymentToken            | contract IERC20 | The token used to pay for the reservation. If address(0) then native. |
+| offchainPaymentCurrency | uint256         | The offchain payment currency                                         |
+| cancellable             | bool            | The flag that represents whether the booking is cancellable           |
+
+### \_reserve
+
+```solidity
+function _reserve(uint256 tokenId, address reservedFor, address supplier, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable) internal virtual
+```
+
+Reserve a token for a specific address with an expiration timestamp
+
+### buyReservedToken
+
+```solidity
+function buyReservedToken(uint256 tokenId) public payable virtual
+```
+
+Buys a reserved token. The reservation must be for the message sender.
+
+Also the message sender should set allowance for the payment token to this
+contract to at least the reservation price. (only for ERC20 tokens)
+
+For native coin, the message sender should send the exact amount.
+
+Only CM Accounts can call this function
+
+#### Parameters
+
+| Name    | Type    | Description  |
+| ------- | ------- | ------------ |
+| tokenId | uint256 | The token id |
+
+### processPayment
+
+```solidity
+function processPayment(contract IERC20 paymentToken, uint256 paymentAmount, address recipient) internal virtual
+```
+
+### getBookingStatus
+
+```solidity
+function getBookingStatus(uint256 tokenId) public view virtual returns (enum BookingToken.BookingStatus)
+```
+
+Return booking status
+
+#### Parameters
+
+| Name    | Type    | Description  |
+| ------- | ------- | ------------ |
+| tokenId | uint256 | The token id |
+
+#### Return Values
+
+| Name | Type                            | Description        |
+| ---- | ------------------------------- | ------------------ |
+| [0]  | enum BookingToken.BookingStatus | The booking status |
+
+### getReservationPrice
+
+```solidity
+function getReservationPrice(uint256 tokenId) public view virtual returns (uint256 price, contract IERC20 paymentToken)
+```
+
+Returns the token reservation price for a specific token.
+
+#### Parameters
+
+| Name    | Type    | Description  |
+| ------- | ------- | ------------ |
+| tokenId | uint256 | The token id |
+
+### getReservationPaymentToken
+
+```solidity
+function getReservationPaymentToken(uint256 tokenId) external view returns (contract IERC20 paymentToken)
+```
+
+Retrieves the payment token for a given token.
+
+#### Parameters
+
+| Name    | Type    | Description                                    |
+| ------- | ------- | ---------------------------------------------- |
+| tokenId | uint256 | The token id to retrieve the payment token for |
+
+#### Return Values
+
+| Name         | Type            | Description       |
+| ------------ | --------------- | ----------------- |
+| paymentToken | contract IERC20 | The payment token |
+
+### isCancellable
+
+```solidity
+function isCancellable(uint256 tokenId) public view virtual returns (bool)
+```
+
+Returns if the token is cancellable
+
+#### Parameters
+
+| Name    | Type    | Description  |
+| ------- | ------- | ------------ |
+| tokenId | uint256 | The token id |
+
+### checkTransferable
+
+```solidity
+function checkTransferable(uint256 tokenId) internal virtual
+```
+
+Check if the token is transferable
+
+### recordExpiration
+
+```solidity
+function recordExpiration(uint256 tokenId) public virtual
+```
+
+Record expiration status if the token is expired
+
+#### Parameters
+
+| Name    | Type    | Description  |
+| ------- | ------- | ------------ |
+| tokenId | uint256 | The token id |
+
+### isCMAccount
+
+```solidity
+function isCMAccount(address account) public view virtual returns (bool)
+```
+
+Checks if an address is a CM Account.
+
+#### Parameters
+
+| Name    | Type    | Description          |
+| ------- | ------- | -------------------- |
+| account | address | The address to check |
+
+#### Return Values
+
+| Name | Type | Description                         |
+| ---- | ---- | ----------------------------------- |
+| [0]  | bool | true if the address is a CM Account |
+
+### requireCMAccount
+
+```solidity
+function requireCMAccount(address account) internal view virtual
+```
+
+Checks if the address is a CM Account and reverts if not.
+
+#### Parameters
+
+| Name    | Type    | Description          |
+| ------- | ------- | -------------------- |
+| account | address | The address to check |
+
+### setManagerAddress
+
+```solidity
+function setManagerAddress(address manager) public virtual
+```
+
+Sets for the manager address.
+
+#### Parameters
+
+| Name    | Type    | Description                |
+| ------- | ------- | -------------------------- |
+| manager | address | The address of the manager |
+
+### getManagerAddress
+
+```solidity
+function getManagerAddress() public view virtual returns (address)
+```
+
+Returns for the manager address.
+
+### setMinExpirationTimestampDiff
+
+```solidity
+function setMinExpirationTimestampDiff(uint256 minExpirationTimestampDiff) public virtual
+```
+
+Sets minimum expiration timestamp difference in seconds.
+
+#### Parameters
+
+| Name                       | Type    | Description                                        |
+| -------------------------- | ------- | -------------------------------------------------- |
+| minExpirationTimestampDiff | uint256 | Minimum expiration timestamp difference in seconds |
+
+### getMinExpirationTimestampDiff
+
+```solidity
+function getMinExpirationTimestampDiff() public view virtual returns (uint256)
+```
+
+Returns minimum expiration timestamp difference in seconds.
+
+### initiateCancellation
+
+```solidity
+function initiateCancellation(uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) external virtual
+```
+
+### acceptCancellation
+
+```solidity
+function acceptCancellation(uint256 tokenId, uint256 refundAmount) external virtual
+```
+
+### counterCancellation
+
+```solidity
+function counterCancellation(uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterReasonVersion) external virtual
+```
+
+### withdrawCancellation
+
+```solidity
+function withdrawCancellation(uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalReasonVersion) external virtual
+```
+
+### rejectCancellation
+
+```solidity
+function rejectCancellation(uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) external virtual
+```
+
+### finalizeCancellation
+
+```solidity
+function finalizeCancellation(uint256 tokenId, uint256 checkRefundAmount) external payable virtual
+```
+
+### transferFrom
+
+```solidity
+function transferFrom(address from, address to, uint256 tokenId) public virtual
+```
+
+Override transferFrom to check if token is reserved. It reverts if
+the token is reserved.
+
+### \_update
+
+```solidity
+function _update(address to, uint256 tokenId, address auth) internal returns (address)
+```
+
+### \_increaseBalance
+
+```solidity
+function _increaseBalance(address account, uint128 value) internal
+```
+
+### tokenURI
+
+```solidity
+function tokenURI(uint256 tokenId) public view returns (string)
+```
+
+### supportsInterface
+
+```solidity
+function supportsInterface(bytes4 interfaceId) public view returns (bool)
+```
+
 ## CancellationProposalStatus
 
 ```solidity
@@ -2415,6 +3087,22 @@ Returns all registered service **names**.
 | -------- | -------- | ---------------------------- |
 | services | string[] | All registered service names |
 
+## Dummy
+
+### getVersion
+
+```solidity
+function getVersion() public pure returns (string)
+```
+
+## NullUSD
+
+### constructor
+
+```solidity
+constructor() public
+```
+
 ## ServiceFeeToken
 
 This contract is deprecated and removed as part of Milestone 1 service fee removal.
@@ -2441,692 +3129,4 @@ function decimals() public pure returns (uint8)
 
 ```solidity
 function mint(address, uint256) public
-```
-
-## BookingToken
-
-Booking Token contract represents a booking done on the Camino Messenger.
-
-Suppliers can mint Booking Tokens and reserve them for a distributor address to
-buy.
-
-Booking Tokens can have zero price, meaning that the payment will be done
-off-chain.
-
-When a token is minted with a reservation, it can not be transferred until the
-expiration timestamp is reached or the token is bought.
-
-### VERSION_MAJOR
-
-```solidity
-uint16 VERSION_MAJOR
-```
-
-### VERSION_MINOR
-
-```solidity
-uint16 VERSION_MINOR
-```
-
-### VERSION_PATCH
-
-```solidity
-uint16 VERSION_PATCH
-```
-
-### version
-
-```solidity
-function version() external pure virtual returns (uint16 major, uint16 minor, uint16 patch)
-```
-
-Returns the semantic version of the contract.
-
-- no version() func: Legacy version without Cancellation support
-- v1.0.0: Version with Cancellation support
-
-#### Return Values
-
-| Name  | Type   | Description                                   |
-| ----- | ------ | --------------------------------------------- |
-| major | uint16 | Major version (breaking changes)              |
-| minor | uint16 | Minor version (backwards-compatible features) |
-| patch | uint16 | Patch version (backwards-compatible fixes)    |
-
-### UPGRADER_ROLE
-
-```solidity
-bytes32 UPGRADER_ROLE
-```
-
-Upgrader role can upgrade the contract to a new implementation.
-
-### MIN_EXPIRATION_ADMIN_ROLE
-
-```solidity
-bytes32 MIN_EXPIRATION_ADMIN_ROLE
-```
-
-This role can set the mininum allowed expiration timestamp difference.
-
-### NATIVE_PAYMENT
-
-```solidity
-address NATIVE_PAYMENT
-```
-
-Tokens are directly transferred to the recipient.
-
-_Special address for native payments._
-
-### OFFCHAIN_PAYMENT
-
-```solidity
-address OFFCHAIN_PAYMENT
-```
-
-A third-party service is used to handle payments.
-
-_Special address for offchain payments. The enum for this
-is defined in the Camino Messenger Protocol's
-cmp.types.<version>.IsoCurrency enum (currency.proto file)._
-
-### BookingStatus
-
-```solidity
-enum BookingStatus {
-    UNSPECIFIED,
-    RESERVED,
-    RESERVATION_EXPIRED,
-    BOUGHT,
-    CANCELLED
-}
-```
-
-### TokenReservation
-
-```solidity
-struct TokenReservation {
-  address reservedFor;
-  address supplier;
-  uint256 expirationTimestamp;
-  uint256 price;
-  contract IERC20 paymentToken;
-  uint256 offchainPaymentCurrency;
-  bool cancellable;
-}
-```
-
-### BookingTokenStorage
-
-```solidity
-struct BookingTokenStorage {
-  address _manager;
-  uint256 _nextTokenId;
-  uint256 _minExpirationTimestampDiff;
-  mapping(uint256 => struct BookingToken.TokenReservation) _reservations;
-  mapping(uint256 => enum BookingToken.BookingStatus) _bookingStatus;
-}
-```
-
-### \_getBookingTokenStorage
-
-```solidity
-function _getBookingTokenStorage() internal pure returns (struct BookingToken.BookingTokenStorage $)
-```
-
-### TokenReserved
-
-```solidity
-event TokenReserved(uint256 tokenId, address reservedFor, address supplier, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable)
-```
-
-Event emitted when a token is reserved.
-
-#### Parameters
-
-| Name                    | Type            | Description           |
-| ----------------------- | --------------- | --------------------- |
-| tokenId                 | uint256         | token id              |
-| reservedFor             | address         | reserved for address  |
-| supplier                | address         | supplier address      |
-| expirationTimestamp     | uint256         | expiration timestamp  |
-| price                   | uint256         | price of the token    |
-| paymentToken            | contract IERC20 | payment token address |
-| offchainPaymentCurrency | uint256         |                       |
-| cancellable             | bool            |                       |
-
-### TokenBought
-
-```solidity
-event TokenBought(uint256 tokenId, address buyer)
-```
-
-Event emitted when a token is bought.
-
-#### Parameters
-
-| Name    | Type    | Description   |
-| ------- | ------- | ------------- |
-| tokenId | uint256 | token id      |
-| buyer   | address | buyer address |
-
-### TokenReservationExpired
-
-```solidity
-event TokenReservationExpired(uint256 tokenId)
-```
-
-Event emitted when a token is expired.
-
-#### Parameters
-
-| Name    | Type    | Description |
-| ------- | ------- | ----------- |
-| tokenId | uint256 | token id    |
-
-### ExpirationTimestampTooSoon
-
-```solidity
-error ExpirationTimestampTooSoon(uint256 expirationTimestamp, uint256 minExpirationTimestampDiff)
-```
-
-Error for expiration timestamp too soon. It must be at least
-`_minExpirationTimestampDiff` seconds in the future.
-
-### NotCMAccount
-
-```solidity
-error NotCMAccount(address account)
-```
-
-Address is not a CM Account.
-
-#### Parameters
-
-| Name    | Type    | Description     |
-| ------- | ------- | --------------- |
-| account | address | account address |
-
-### ReservationMismatch
-
-```solidity
-error ReservationMismatch(address reservedFor, address buyer)
-```
-
-ReservedFor and buyer mismatch.
-
-#### Parameters
-
-| Name        | Type    | Description          |
-| ----------- | ------- | -------------------- |
-| reservedFor | address | reserved for address |
-| buyer       | address | buyer address        |
-
-### ReservationExpired
-
-```solidity
-error ReservationExpired(uint256 tokenId, uint256 expirationTimestamp)
-```
-
-Reservation expired.
-
-#### Parameters
-
-| Name                | Type    | Description          |
-| ------------------- | ------- | -------------------- |
-| tokenId             | uint256 | token id             |
-| expirationTimestamp | uint256 | expiration timestamp |
-
-### IncorrectPrice
-
-```solidity
-error IncorrectPrice(uint256 price, uint256 reservationPrice)
-```
-
-Incorrect price.
-
-#### Parameters
-
-| Name             | Type    | Description        |
-| ---------------- | ------- | ------------------ |
-| price            | uint256 | price of the token |
-| reservationPrice | uint256 | reservation price  |
-
-### SupplierIsNotOwner
-
-```solidity
-error SupplierIsNotOwner(uint256 tokenId, address supplier)
-```
-
-Supplier is not the owner.
-
-#### Parameters
-
-| Name     | Type    | Description      |
-| -------- | ------- | ---------------- |
-| tokenId  | uint256 | token id         |
-| supplier | address | supplier address |
-
-### TokenIsReserved
-
-```solidity
-error TokenIsReserved(uint256 tokenId, address reservedFor)
-```
-
-Token is reserved and can not be transferred.
-
-#### Parameters
-
-| Name        | Type    | Description          |
-| ----------- | ------- | -------------------- |
-| tokenId     | uint256 | token id             |
-| reservedFor | address | reserved for address |
-
-### InsufficientAllowance
-
-```solidity
-error InsufficientAllowance(address sender, contract IERC20 paymentToken, uint256 price, uint256 allowance)
-```
-
-Insufficient allowance to transfer the ERC20 token to the supplier.
-
-#### Parameters
-
-| Name         | Type            | Description           |
-| ------------ | --------------- | --------------------- |
-| sender       | address         | msg.sender            |
-| paymentToken | contract IERC20 | payment token address |
-| price        | uint256         | price of the token    |
-| allowance    | uint256         | allowance amount      |
-
-### InvalidTokenStatus
-
-```solidity
-error InvalidTokenStatus(uint256 tokenId, enum BookingToken.BookingStatus status)
-```
-
-Invalid token status.
-
-#### Parameters
-
-| Name    | Type                            | Description |
-| ------- | ------------------------------- | ----------- |
-| tokenId | uint256                         | token id    |
-| status  | enum BookingToken.BookingStatus | status      |
-
-### UnexpectedOffchainPaymentCurrency
-
-```solidity
-error UnexpectedOffchainPaymentCurrency(uint256 offchainPaymentCurrency)
-```
-
-Unexpected offchain payment currency. Thrown when offchain payment currency is provided
-but payment token is not address(1).
-
-#### Parameters
-
-| Name                    | Type    | Description               |
-| ----------------------- | ------- | ------------------------- |
-| offchainPaymentCurrency | uint256 | offchain payment currency |
-
-### UnexpectedNativePayment
-
-```solidity
-error UnexpectedNativePayment(uint256 amount)
-```
-
-Error for when there is unexpected native payment.
-
-#### Parameters
-
-| Name   | Type    | Description           |
-| ------ | ------- | --------------------- |
-| amount | uint256 | The unexpected amount |
-
-### onlyCMAccount
-
-```solidity
-modifier onlyCMAccount(address account)
-```
-
-Only CMAccount modifier.
-
-### initialize
-
-```solidity
-function initialize(address manager, address defaultAdmin, address upgrader) public
-```
-
-### reinitializeV2
-
-```solidity
-function reinitializeV2(string newName, string newSymbol) public
-```
-
-This function allows reinitializing the contract to update the name and symbol
-
-_Only callable by DEFAULT_ADMIN_ROLE_
-
-#### Parameters
-
-| Name      | Type   | Description      |
-| --------- | ------ | ---------------- |
-| newName   | string | New token name   |
-| newSymbol | string | New token symbol |
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal virtual
-```
-
-Function to authorize an upgrade for UUPS proxy.
-
-### safeMintWithReservation
-
-```solidity
-function safeMintWithReservation(address reservedFor, string uri, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable) public virtual
-```
-
-Mints a new token with a reservation for a specific address.
-
-#### Parameters
-
-| Name                    | Type            | Description                                                           |
-| ----------------------- | --------------- | --------------------------------------------------------------------- |
-| reservedFor             | address         | The CM Account address that can buy the token                         |
-| uri                     | string          | The URI of the token                                                  |
-| expirationTimestamp     | uint256         | The expiration timestamp                                              |
-| price                   | uint256         | The price of the token                                                |
-| paymentToken            | contract IERC20 | The token used to pay for the reservation. If address(0) then native. |
-| offchainPaymentCurrency | uint256         | The offchain payment currency                                         |
-| cancellable             | bool            | The flag that represents whether the booking is cancellable           |
-
-### \_reserve
-
-```solidity
-function _reserve(uint256 tokenId, address reservedFor, address supplier, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable) internal virtual
-```
-
-Reserve a token for a specific address with an expiration timestamp
-
-### buyReservedToken
-
-```solidity
-function buyReservedToken(uint256 tokenId) public payable virtual
-```
-
-Buys a reserved token. The reservation must be for the message sender.
-
-Also the message sender should set allowance for the payment token to this
-contract to at least the reservation price. (only for ERC20 tokens)
-
-For native coin, the message sender should send the exact amount.
-
-Only CM Accounts can call this function
-
-#### Parameters
-
-| Name    | Type    | Description  |
-| ------- | ------- | ------------ |
-| tokenId | uint256 | The token id |
-
-### processPayment
-
-```solidity
-function processPayment(contract IERC20 paymentToken, uint256 paymentAmount, address recipient) internal virtual
-```
-
-### getBookingStatus
-
-```solidity
-function getBookingStatus(uint256 tokenId) public view virtual returns (enum BookingToken.BookingStatus)
-```
-
-Return booking status
-
-#### Parameters
-
-| Name    | Type    | Description  |
-| ------- | ------- | ------------ |
-| tokenId | uint256 | The token id |
-
-#### Return Values
-
-| Name | Type                            | Description        |
-| ---- | ------------------------------- | ------------------ |
-| [0]  | enum BookingToken.BookingStatus | The booking status |
-
-### getReservationPrice
-
-```solidity
-function getReservationPrice(uint256 tokenId) public view virtual returns (uint256 price, contract IERC20 paymentToken)
-```
-
-Returns the token reservation price for a specific token.
-
-#### Parameters
-
-| Name    | Type    | Description  |
-| ------- | ------- | ------------ |
-| tokenId | uint256 | The token id |
-
-### getReservationPaymentToken
-
-```solidity
-function getReservationPaymentToken(uint256 tokenId) external view returns (contract IERC20 paymentToken)
-```
-
-Retrieves the payment token for a given token.
-
-#### Parameters
-
-| Name    | Type    | Description                                    |
-| ------- | ------- | ---------------------------------------------- |
-| tokenId | uint256 | The token id to retrieve the payment token for |
-
-#### Return Values
-
-| Name         | Type            | Description       |
-| ------------ | --------------- | ----------------- |
-| paymentToken | contract IERC20 | The payment token |
-
-### isCancellable
-
-```solidity
-function isCancellable(uint256 tokenId) public view virtual returns (bool)
-```
-
-Returns if the token is cancellable
-
-#### Parameters
-
-| Name    | Type    | Description  |
-| ------- | ------- | ------------ |
-| tokenId | uint256 | The token id |
-
-### checkTransferable
-
-```solidity
-function checkTransferable(uint256 tokenId) internal virtual
-```
-
-Check if the token is transferable
-
-### recordExpiration
-
-```solidity
-function recordExpiration(uint256 tokenId) public virtual
-```
-
-Record expiration status if the token is expired
-
-#### Parameters
-
-| Name    | Type    | Description  |
-| ------- | ------- | ------------ |
-| tokenId | uint256 | The token id |
-
-### isCMAccount
-
-```solidity
-function isCMAccount(address account) public view virtual returns (bool)
-```
-
-Checks if an address is a CM Account.
-
-#### Parameters
-
-| Name    | Type    | Description          |
-| ------- | ------- | -------------------- |
-| account | address | The address to check |
-
-#### Return Values
-
-| Name | Type | Description                         |
-| ---- | ---- | ----------------------------------- |
-| [0]  | bool | true if the address is a CM Account |
-
-### requireCMAccount
-
-```solidity
-function requireCMAccount(address account) internal view virtual
-```
-
-Checks if the address is a CM Account and reverts if not.
-
-#### Parameters
-
-| Name    | Type    | Description          |
-| ------- | ------- | -------------------- |
-| account | address | The address to check |
-
-### setManagerAddress
-
-```solidity
-function setManagerAddress(address manager) public virtual
-```
-
-Sets for the manager address.
-
-#### Parameters
-
-| Name    | Type    | Description                |
-| ------- | ------- | -------------------------- |
-| manager | address | The address of the manager |
-
-### getManagerAddress
-
-```solidity
-function getManagerAddress() public view virtual returns (address)
-```
-
-Returns for the manager address.
-
-### setMinExpirationTimestampDiff
-
-```solidity
-function setMinExpirationTimestampDiff(uint256 minExpirationTimestampDiff) public virtual
-```
-
-Sets minimum expiration timestamp difference in seconds.
-
-#### Parameters
-
-| Name                       | Type    | Description                                        |
-| -------------------------- | ------- | -------------------------------------------------- |
-| minExpirationTimestampDiff | uint256 | Minimum expiration timestamp difference in seconds |
-
-### getMinExpirationTimestampDiff
-
-```solidity
-function getMinExpirationTimestampDiff() public view virtual returns (uint256)
-```
-
-Returns minimum expiration timestamp difference in seconds.
-
-### initiateCancellation
-
-```solidity
-function initiateCancellation(uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) external virtual
-```
-
-### acceptCancellation
-
-```solidity
-function acceptCancellation(uint256 tokenId, uint256 refundAmount) external virtual
-```
-
-### counterCancellation
-
-```solidity
-function counterCancellation(uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterReasonVersion) external virtual
-```
-
-### withdrawCancellation
-
-```solidity
-function withdrawCancellation(uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalReasonVersion) external virtual
-```
-
-### rejectCancellation
-
-```solidity
-function rejectCancellation(uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) external virtual
-```
-
-### finalizeCancellation
-
-```solidity
-function finalizeCancellation(uint256 tokenId, uint256 checkRefundAmount) external payable virtual
-```
-
-### transferFrom
-
-```solidity
-function transferFrom(address from, address to, uint256 tokenId) public virtual
-```
-
-Override transferFrom to check if token is reserved. It reverts if
-the token is reserved.
-
-### \_update
-
-```solidity
-function _update(address to, uint256 tokenId, address auth) internal returns (address)
-```
-
-### \_increaseBalance
-
-```solidity
-function _increaseBalance(address account, uint128 value) internal
-```
-
-### tokenURI
-
-```solidity
-function tokenURI(uint256 tokenId) public view returns (string)
-```
-
-### supportsInterface
-
-```solidity
-function supportsInterface(bytes4 interfaceId) public view returns (bool)
-```
-
-## Dummy
-
-### getVersion
-
-```solidity
-function getVersion() public pure returns (string)
-```
-
-## NullUSD
-
-### constructor
-
-```solidity
-constructor() public
 ```
