@@ -4,8 +4,6 @@
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { ethers, upgrades } = require("hardhat");
 
-
-
 async function setupSigners() {
     const [
         managerAdmin,
@@ -258,14 +256,8 @@ async function deployBookingTokenWithNullUSDFixture() {
     // Set up signers
     await setupSigners();
 
-    const {
-        cmAccountManager,
-        supplierCMAccount,
-        distributorCMAccount,
-        bookingToken,
-        nullUSD,
-        nullUSDDecimals,
-    } = await loadFixture(deployBookingTokenFixture);
+    const { cmAccountManager, supplierCMAccount, distributorCMAccount, bookingToken, nullUSD, nullUSDDecimals } =
+        await loadFixture(deployBookingTokenFixture);
 
     // Fund NullUSD to the CM accounts
     const fundAmount = ethers.parseEther("1000");
@@ -286,14 +278,8 @@ async function deployCancellationSupportFixture() {
     // Set up signers
     await setupSigners();
 
-    const {
-        cmAccountManager,
-        supplierCMAccount,
-        distributorCMAccount,
-        bookingToken,
-        nullUSD,
-        nullUSDDecimals,
-    } = await loadFixture(deployBookingTokenWithNullUSDFixture);
+    const { cmAccountManager, supplierCMAccount, distributorCMAccount, bookingToken, nullUSD, nullUSDDecimals } =
+        await loadFixture(deployBookingTokenWithNullUSDFixture);
 
     // Set accounts
     const otherBookingOperator = signers.otherAccount1;

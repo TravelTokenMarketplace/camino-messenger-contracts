@@ -471,8 +471,6 @@ contract CMAccount is
         }
     }
 
-
-
     // RESTRICTED RATE
 
     /**

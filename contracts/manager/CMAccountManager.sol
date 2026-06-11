@@ -80,8 +80,6 @@ contract CMAccountManager is
      */
     bytes32 public constant VERSIONER_ROLE = keccak256("VERSIONER_ROLE");
 
-
-
     /**
      * @notice Service registry admin role can add and remove services to the service
      * registry mapping. Implemented by {ServiceRegistry} contract.
@@ -93,8 +91,6 @@ contract CMAccountManager is
      * an enumerable list of CM Accounts.
      */
     bytes32 public constant CMACCOUNT_ROLE = keccak256("CMACCOUNT_ROLE");
-
-
 
     /***************************************************
      *                   STORAGE                       *
@@ -153,16 +149,12 @@ contract CMAccountManager is
      */
     event CMAccountImplementationUpdated(address indexed oldImplementation, address indexed newImplementation);
 
-
-
     /**
      * @notice Booking token address updated event.
      * @param oldBookingToken The old booking token address
      * @param newBookingToken The new booking token address
      */
     event BookingTokenAddressUpdated(address indexed oldBookingToken, address indexed newBookingToken);
-
-
 
     /***************************************************
      *                    ERRORS                       *
@@ -180,15 +172,11 @@ contract CMAccountManager is
      */
     error CMAccountInvalidAdmin(address admin);
 
-
-
     /**
      * @notice Invalid booking token address.
      * @param bookingToken The booking token address
      */
     error InvalidBookingTokenAddress(address bookingToken);
-
-
 
     /***************************************************
      *                    FUNCS                        *
@@ -319,8 +307,6 @@ contract CMAccountManager is
         return $._cmAccountInfo[account].isCMAccount;
     }
 
-
-
     /***************************************************
      *             ACCOUNT IMPLEMENTATION              *
      ***************************************************/
@@ -352,8 +338,6 @@ contract CMAccountManager is
         $._latestAccountImplementation = newImplementation;
     }
 
-
-
     /***************************************************
      *                  BOOKING TOKEN                  *
      ***************************************************/
@@ -383,8 +367,6 @@ contract CMAccountManager is
         CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
         $._bookingToken = token;
     }
-
-
 
     /***************************************************
      *               SERVICE REGISTRY                  *

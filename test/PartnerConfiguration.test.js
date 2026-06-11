@@ -51,16 +51,12 @@ describe("PartnerConfiguration", function () {
             const restrictedRate = false;
             const capabilities = [];
 
-            await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
-            )
+            await expect(cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities))
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
 
             // Should revert if the same service is added again
-            await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
-            )
+            await expect(cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities))
                 .to.be.revertedWithCustomError(cmAccount, "ServiceAlreadyExists")
                 .withArgs(serviceHash);
         });
@@ -99,9 +95,7 @@ describe("PartnerConfiguration", function () {
             const restrictedRate = false;
             const capabilities = [];
 
-            await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
-            )
+            await expect(cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities))
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
 
@@ -250,9 +244,7 @@ describe("PartnerConfiguration", function () {
             const capabilities = [];
 
             // Try to add a service with otherAccount2
-            await expect(
-                cmAccount.connect(signers.otherAccount2).addService(serviceName, restrictedRate, capabilities),
-            )
+            await expect(cmAccount.connect(signers.otherAccount2).addService(serviceName, restrictedRate, capabilities))
                 .to.be.revertedWithCustomError(cmAccount, "AccessControlUnauthorizedAccount")
                 .withArgs(signers.otherAccount2.address, SERVICE_ADMIN_ROLE);
         });
@@ -330,8 +322,6 @@ describe("PartnerConfiguration", function () {
 
             // TEST SETTERS
             // with new values for each service field
-
-
 
             const newRestrictedRate1 = true;
             const newRestrictedRate2 = false;
@@ -450,8 +440,6 @@ describe("PartnerConfiguration", function () {
 
             // TEST GETTERS with hashes
 
-
-
             // Get specific restricted rate for a service name
             expect(await cmAccount["getServiceRestrictedRate(bytes32)"](services.serviceHash1)).to.be.equal(
                 newRestrictedRate1,
@@ -532,9 +520,7 @@ describe("PartnerConfiguration", function () {
             const restrictedRate = false;
             const capabilities = [];
 
-            await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
-            )
+            await expect(cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities))
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
 
@@ -583,9 +569,7 @@ describe("PartnerConfiguration", function () {
             const restrictedRate = false;
             const capabilities = [];
 
-            await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
-            )
+            await expect(cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities))
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
 

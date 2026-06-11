@@ -161,12 +161,6 @@ event WantedServiceAdded(string serviceName)
 event WantedServiceRemoved(string serviceName)
 ```
 
-### ServiceFeeUpdated
-
-```solidity
-event ServiceFeeUpdated(string serviceName, uint256 fee)
-```
-
 ### ServiceRestrictedRateUpdated
 
 ```solidity
@@ -412,7 +406,7 @@ This function reverts if `to` is the zero address.
 ### addService
 
 ```solidity
-function addService(string serviceName, uint256 fee, bool restrictedRate, string[] capabilities) public
+function addService(string serviceName, bool restrictedRate, string[] capabilities) public
 ```
 
 Adds a service to the account as a supported service.
@@ -432,7 +426,6 @@ definitions._
 | Name           | Type     | Description                                               |
 | -------------- | -------- | --------------------------------------------------------- |
 | serviceName    | string   | Service name to add to the account as a supported service |
-| fee            | uint256  | Fee of the service in aCAM (wei in ETH terminology)       |
 | restrictedRate | bool     |                                                           |
 | capabilities   | string[] | Capabilities of the service (if any, optional)            |
 
@@ -452,14 +445,6 @@ function removeAllServices() public
 
 Remove all supported services from the account.
 This function retrieves all currently supported service names and removes them one by one.
-
-### setServiceFee
-
-```solidity
-function setServiceFee(string serviceName, uint256 fee) public
-```
-
-Set the fee of a service by name
 
 ### setServiceRestrictedRate
 
@@ -501,13 +486,19 @@ function getSupportedServices() public view returns (string[] serviceNames, stru
 
 Get all supported services. Return a list of service names and a list of service objects.
 
-### getServiceFee
+### isServiceSupported
 
 ```solidity
-function getServiceFee(string serviceName) public view returns (uint256 fee)
+function isServiceSupported(string serviceName) public view returns (bool)
 ```
 
-Get service fee by name. Overloading the getServiceFee function.
+Check if a service is registered and supported.
+
+#### Parameters
+
+| Name        | Type   | Description           |
+| ----------- | ------ | --------------------- |
+| serviceName | string | Service name to check |
 
 ### getServiceRestrictedRate
 
@@ -869,6 +860,1587 @@ Returns the gas money withdrawal details for an account.
 
 ```solidity
 function initialize(address manager, address bookingToken, address owner, address upgrader) external
+```
+
+## CancellationProposalStatus
+
+```solidity
+enum CancellationProposalStatus {
+    NO_PROPOSAL,
+    PENDING,
+    REJECTED,
+    WITHDRAWN,
+    FINALIZED
+}
+```
+
+## BookingTokenCancellable
+
+### Proposal
+
+```solidity
+struct Proposal {
+  uint256 refundAmount;
+  address initialProposer;
+  uint32 timesCountered;
+  bool ownerAccepted;
+  bool supplierAccepted;
+  address currentProposer;
+  uint32 timesRejected;
+  enum CancellationProposalStatus status;
+  uint16 cancellationReason;
+  uint16 cancellationVersion;
+  uint16 rejectionReason;
+  uint16 rejectionVersion;
+  uint16 counterReason;
+  uint16 counterVersion;
+  uint16 withdrawalReason;
+  uint16 withdrawalVersion;
+}
+```
+
+### BookingTokenCancellableStorage
+
+```solidity
+struct BookingTokenCancellableStorage {
+  mapping(uint256 => struct BookingTokenCancellable.Proposal) _proposals;
+}
+```
+
+### CancellationPending
+
+```solidity
+event CancellationPending(uint256 tokenId, address initialProposer, address currentProposer, uint256 refundAmount, bool ownerAccepted, bool supplierAccepted, uint32 timesCountered, uint32 timesRejected)
+```
+
+### CancellationReasons
+
+```solidity
+event CancellationReasons(uint256 tokenId, uint16 cancellationReason, uint16 cancellationReasonVersion, uint16 rejectionReason, uint16 rejectionVersion, uint16 counterReason, uint16 counterVersion, uint16 withdrawalReason, uint16 withdrawalVersion)
+```
+
+### CancellationWithdrawn
+
+```solidity
+event CancellationWithdrawn(uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalVersion)
+```
+
+### CancellationRejected
+
+```solidity
+event CancellationRejected(uint256 tokenId, uint16 rejectionReason, uint16 rejectionVersion)
+```
+
+### CancellationFinalized
+
+```solidity
+event CancellationFinalized(uint256 tokenId)
+```
+
+### NotOwnerOrSupplier
+
+```solidity
+error NotOwnerOrSupplier()
+```
+
+### CancellationProposalExists
+
+```solidity
+error CancellationProposalExists(uint256 tokenId)
+```
+
+### IncorrectRefundAmount
+
+```solidity
+error IncorrectRefundAmount(uint256 tokenId, uint256 existing, uint256 checked)
+```
+
+### InvalidCancellationProposalStatus
+
+```solidity
+error InvalidCancellationProposalStatus(uint256 tokenId, enum CancellationProposalStatus status)
+```
+
+### OnlySupplierCanFinalizeCancellation
+
+```solidity
+error OnlySupplierCanFinalizeCancellation(uint256 tokenId)
+```
+
+### OwnerNotAcceptedCancellation
+
+```solidity
+error OwnerNotAcceptedCancellation(uint256 tokenId)
+```
+
+### ProposerCanNotRejectCancellation
+
+```solidity
+error ProposerCanNotRejectCancellation(uint256 tokenId)
+```
+
+### OnlyCurrentProposerCanWithdrawCancellation
+
+```solidity
+error OnlyCurrentProposerCanWithdrawCancellation(uint256 tokenId)
+```
+
+### requireOwnerOrSupplier
+
+```solidity
+function requireOwnerOrSupplier(address owner, address supplier) internal view
+```
+
+### onlyOwnerOrSupplier
+
+```solidity
+modifier onlyOwnerOrSupplier(address owner, address supplier)
+```
+
+### \_getCancellationProposalStatusAndCurrentProposer
+
+```solidity
+function _getCancellationProposalStatusAndCurrentProposer(uint256 tokenId) internal view returns (enum CancellationProposalStatus status, address currentProposer)
+```
+
+### getCancellationProposal
+
+```solidity
+function getCancellationProposal(uint256 tokenId) external view returns (enum CancellationProposalStatus, uint256 refundAmount, address initialProposer, address currentProposer, bool ownerAccepted, bool supplierAccepted, uint32 timesCountered, uint32 timesRejected)
+```
+
+### getCancellationReasons
+
+```solidity
+function getCancellationReasons(uint256 tokenId) external view returns (uint16 cancellationReason, uint16 cancellationVersion, uint16 rejectionReason, uint16 rejectionVersion, uint16 counterReason, uint16 counterVersion, uint16 withdrawalReason, uint16 withdrawalVersion)
+```
+
+### \_initiateCancellation
+
+```solidity
+function _initiateCancellation(address owner, address supplier, uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) internal virtual
+```
+
+### \_acceptCancellation
+
+```solidity
+function _acceptCancellation(address owner, address supplier, uint256 tokenId, uint256 checkRefundAmount) internal virtual
+```
+
+Used by the owner or supplier to accept a cancellation proposal that
+is initiated or countered by the other party
+
+#### Parameters
+
+| Name              | Type    | Description                                              |
+| ----------------- | ------- | -------------------------------------------------------- |
+| owner             | address | Owner of the token                                       |
+| supplier          | address | Supplier of the token                                    |
+| tokenId           | uint256 | Token ID                                                 |
+| checkRefundAmount | uint256 | Refund amount to check against, to prevent front-running |
+
+### \_counterCancellation
+
+```solidity
+function _counterCancellation(address owner, address supplier, uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterVersion) internal virtual
+```
+
+### \_withdrawCancellation
+
+```solidity
+function _withdrawCancellation(address owner, address supplier, uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalVersion) internal virtual
+```
+
+### \_rejectCancellation
+
+```solidity
+function _rejectCancellation(address owner, address supplier, uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) internal virtual
+```
+
+### \_finalizeCancellation
+
+```solidity
+function _finalizeCancellation(address supplier, uint256 tokenId, uint256 checkRefundAmount) internal virtual returns (uint256 refundAmount)
+```
+
+## BookingTokenOperator
+
+Booking token operator contract is used by the {CMAccount} contract to mint
+and buy booking tokens.
+
+We made this a library so that we can use it in the {CMAccount} contract without
+increasing the size of the contract.
+
+### NATIVE_PAYMENT
+
+```solidity
+address NATIVE_PAYMENT
+```
+
+Tokens are directly transferred to the recipient.
+
+_Special address for native payments._
+
+### OFFCHAIN_PAYMENT
+
+```solidity
+address OFFCHAIN_PAYMENT
+```
+
+A third-party service is used to handle payments.
+
+_Special address for offchain payments._
+
+### UnexpectedPrice
+
+```solidity
+error UnexpectedPrice(uint256 tokenId, uint256 actualPrice, uint256 expectedPrice)
+```
+
+### UnexpectedPaymentToken
+
+```solidity
+error UnexpectedPaymentToken(uint256 tokenId, contract IERC20 actualPaymentToken, contract IERC20 expectedPaymentToken)
+```
+
+### mintBookingToken
+
+```solidity
+function mintBookingToken(address bookingToken, address reservedFor, string uri, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable) public
+```
+
+_Mints a booking token with offchain payment currency and cancellable support._
+
+#### Parameters
+
+| Name                    | Type            | Description                                                                  |
+| ----------------------- | --------------- | ---------------------------------------------------------------------------- |
+| bookingToken            | address         | booking token contract address                                               |
+| reservedFor             | address         | address of the CM Account that can buy the token (generally the distributor) |
+| uri                     | string          | URI of the token                                                             |
+| expirationTimestamp     | uint256         | expiration timestamp of the token in seconds                                 |
+| price                   | uint256         | price of the token                                                           |
+| paymentToken            | contract IERC20 | payment token address                                                        |
+| offchainPaymentCurrency | uint256         | payment token address                                                        |
+| cancellable             | bool            | cancellable flag                                                             |
+
+### buyBookingToken
+
+```solidity
+function buyBookingToken(address bookingToken, uint256 tokenId, uint256 expectedPrice, contract IERC20 expectedPaymentToken) public
+```
+
+_Buys a booking token with the specified price and payment token in the
+reservation._
+
+#### Parameters
+
+| Name                 | Type            | Description                    |
+| -------------------- | --------------- | ------------------------------ |
+| bookingToken         | address         | booking token contract address |
+| tokenId              | uint256         | token id                       |
+| expectedPrice        | uint256         |                                |
+| expectedPaymentToken | contract IERC20 |                                |
+
+### recordExpiration
+
+```solidity
+function recordExpiration(address bookingToken, uint256 tokenId) public
+```
+
+Record the expiration of a booking token.
+
+#### Parameters
+
+| Name         | Type    | Description                    |
+| ------------ | ------- | ------------------------------ |
+| bookingToken | address | booking token contract address |
+| tokenId      | uint256 | token id                       |
+
+### initiateCancellation
+
+```solidity
+function initiateCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) external
+```
+
+Initiates a cancellation proposal for a bought token.
+
+#### Parameters
+
+| Name                      | Type    | Description                    |
+| ------------------------- | ------- | ------------------------------ |
+| bookingToken              | address | booking token contract address |
+| tokenId                   | uint256 | token id                       |
+| refundAmount              | uint256 | proposed refund amount         |
+| cancellationReason        | uint16  | cancellation reason            |
+| cancellationReasonVersion | uint16  | cancellation reason version    |
+
+### acceptCancellation
+
+```solidity
+function acceptCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount) external
+```
+
+Sets accepted by the owner or supplier flag for a cancellation proposal for a bought token.
+
+#### Parameters
+
+| Name         | Type    | Description                                                          |
+| ------------ | ------- | -------------------------------------------------------------------- |
+| bookingToken | address |                                                                      |
+| tokenId      | uint256 | The token id to accept the cancellation for                          |
+| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
+
+### counterCancellation
+
+```solidity
+function counterCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterReasonVersion) public
+```
+
+Counters a cancellation proposal.
+
+#### Parameters
+
+| Name                 | Type    | Description                    |
+| -------------------- | ------- | ------------------------------ |
+| bookingToken         | address | booking token contract address |
+| tokenId              | uint256 | token id                       |
+| refundAmount         | uint256 | proposed refund amount         |
+| counterReason        | uint16  |                                |
+| counterReasonVersion | uint16  |                                |
+
+### withdrawCancellation
+
+```solidity
+function withdrawCancellation(address bookingToken, uint256 tokenId, uint16 reason, uint16 reasonVersion) public
+```
+
+Withdraws a cancellation proposal.
+
+#### Parameters
+
+| Name          | Type    | Description                                       |
+| ------------- | ------- | ------------------------------------------------- |
+| bookingToken  | address | booking token contract address                    |
+| tokenId       | uint256 | token id for which to withdraw the proposal       |
+| reason        | uint16  | The reason for withdrawing the proposal           |
+| reasonVersion | uint16  | The version of the withdrawal reason from the CMP |
+
+### rejectCancellation
+
+```solidity
+function rejectCancellation(address bookingToken, uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) external
+```
+
+Reject a cancellation proposal for a bought token.
+
+#### Parameters
+
+| Name                   | Type    | Description                                       |
+| ---------------------- | ------- | ------------------------------------------------- |
+| bookingToken           | address | booking token contract address                    |
+| tokenId                | uint256 | The token id to reject the cancellation for       |
+| rejectionReason        | uint16  | The reason for rejecting the cancellation         |
+| rejectionReasonVersion | uint16  | Version of the rejection reason enum from the CMP |
+
+### finalizeCancellation
+
+```solidity
+function finalizeCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount) public
+```
+
+Finalizes a cancellation proposal by transferring the refund amount
+to the Booking Token contract.
+
+#### Parameters
+
+| Name         | Type    | Description                                                          |
+| ------------ | ------- | -------------------------------------------------------------------- |
+| bookingToken | address | BookingToken contract address                                        |
+| tokenId      | uint256 | The token id for which to finalize the proposal                      |
+| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
+
+## IBookingToken
+
+### safeMintWithReservation
+
+```solidity
+function safeMintWithReservation(address reservedFor, string uri, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool isCancellable) external
+```
+
+### buyReservedToken
+
+```solidity
+function buyReservedToken(uint256 tokenId) external payable
+```
+
+### getReservationPrice
+
+```solidity
+function getReservationPrice(uint256 tokenId) external view returns (uint256 price, contract IERC20 paymentToken)
+```
+
+### getReservationPaymentToken
+
+```solidity
+function getReservationPaymentToken(uint256 tokenId) external view returns (contract IERC20 paymentToken)
+```
+
+### recordExpiration
+
+```solidity
+function recordExpiration(uint256 tokenId) external
+```
+
+Record expiration status if the token is expired
+
+#### Parameters
+
+| Name    | Type    | Description                       |
+| ------- | ------- | --------------------------------- |
+| tokenId | uint256 | The token id to record as expired |
+
+### initiateCancellation
+
+```solidity
+function initiateCancellation(uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) external
+```
+
+Initiates a cancellation for a bought token.
+
+#### Parameters
+
+| Name                      | Type    | Description                                   |
+| ------------------------- | ------- | --------------------------------------------- |
+| tokenId                   | uint256 | The token id to initiate the cancellation for |
+| refundAmount              | uint256 | The proposed refund amount in wei             |
+| cancellationReason        | uint16  | The reason for cancellation                   |
+| cancellationReasonVersion | uint16  | The version of the cancellation reason        |
+
+### acceptCancellation
+
+```solidity
+function acceptCancellation(uint256 tokenId, uint256 refundAmount) external
+```
+
+Sets accepted by the owner or supplier flag for a cancellation proposal for a bought token.
+
+#### Parameters
+
+| Name         | Type    | Description                                                          |
+| ------------ | ------- | -------------------------------------------------------------------- |
+| tokenId      | uint256 | The token id to accept the cancellation for                          |
+| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
+
+### rejectCancellation
+
+```solidity
+function rejectCancellation(uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) external
+```
+
+Reject a cancellation proposal for a bought token.
+
+#### Parameters
+
+| Name                   | Type    | Description                                 |
+| ---------------------- | ------- | ------------------------------------------- |
+| tokenId                | uint256 | The token id to reject the cancellation for |
+| rejectionReason        | uint16  | The reason for rejection                    |
+| rejectionReasonVersion | uint16  | The version of the rejection reason         |
+
+### counterCancellation
+
+```solidity
+function counterCancellation(uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterReasonVersion) external
+```
+
+Counters a cancellation proposal with a new proposal.
+
+#### Parameters
+
+| Name                 | Type    | Description                                                          |
+| -------------------- | ------- | -------------------------------------------------------------------- |
+| tokenId              | uint256 | The token id to counter the cancellation for                         |
+| refundAmount         | uint256 | The refund amount to check, this is to prevent front-running attacks |
+| counterReason        | uint16  | The reason for the counter                                           |
+| counterReasonVersion | uint16  | The version of the counter reason                                    |
+
+### withdrawCancellation
+
+```solidity
+function withdrawCancellation(uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalReasonVersion) external
+```
+
+Withdraws an active cancellation proposal. Only the current proposer of the proposal can withdraw.
+
+#### Parameters
+
+| Name                    | Type    | Description                                     |
+| ----------------------- | ------- | ----------------------------------------------- |
+| tokenId                 | uint256 | The token id for which to withdraw the proposal |
+| withdrawalReason        | uint16  | The reason for withdrawing the proposal         |
+| withdrawalReasonVersion | uint16  | The version of the withdrawal reason            |
+
+### finalizeCancellation
+
+```solidity
+function finalizeCancellation(uint256 tokenId, uint256 refundAmount) external payable
+```
+
+Finalizes a cancellation proposal. Only the supplier of the token can finalize.
+
+#### Parameters
+
+| Name         | Type    | Description                                                          |
+| ------------ | ------- | -------------------------------------------------------------------- |
+| tokenId      | uint256 | The token id for which to finalize the proposal                      |
+| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
+
+## CMAccountManager
+
+This contract manages the creation of the Camino Messenger accounts by
+deploying {ERC1967Proxy} proxies that point to the{CMAccount} implementation
+address.
+
+Create CM Account: Users who want to create an account should call
+`createCMAccount(address admin, address upgrader)` function with addresses of
+the accounts admin and upgrader roles and they also need to approve the service
+fee token with the amount of prefund.
+
+When the manager contract is paused, account creation is stopped.
+
+Developer Fee: This contracts also keeps the info about the developer wallet
+and fee basis points. Which are used during the cheque cash in to pay for the
+developer fee.
+
+Service Registry: {CMAccountManager} also acts as a registry for the services
+that {CMAccount} contracts add as a supported or wanted service. Registry
+works by hashing (keccak256) the service name (string) and creating a mapping
+as keccak256(serviceName) => serviceName. And provides functions that
+{CMAccount} function uses to register services. The {CMAccount} only keeps
+the hashes (byte32) of the registered services.
+
+### PAUSER_ROLE
+
+```solidity
+bytes32 PAUSER_ROLE
+```
+
+Pauser role can pause the contract. Currently this only affects the
+creation of CM Accounts. When paused, account creation is stopped.
+
+### UPGRADER_ROLE
+
+```solidity
+bytes32 UPGRADER_ROLE
+```
+
+Upgrader role can upgrade the contract to a new implementation.
+
+### VERSIONER_ROLE
+
+```solidity
+bytes32 VERSIONER_ROLE
+```
+
+Versioner role can set new {CMAccount} implementation address. When a
+new implementation address is set, it is used for the new {CMAccount}
+creations.
+
+The old {CMAccount} contracts are not affected by this. Owners of those
+should do the upgrade manually by calling the `upgradeToAndCall(address)`
+function on the account.
+
+### SERVICE_REGISTRY_ADMIN_ROLE
+
+```solidity
+bytes32 SERVICE_REGISTRY_ADMIN_ROLE
+```
+
+Service registry admin role can add and remove services to the service
+registry mapping. Implemented by {ServiceRegistry} contract.
+
+### CMACCOUNT_ROLE
+
+```solidity
+bytes32 CMACCOUNT_ROLE
+```
+
+This role is granted to the created CM Accounts. It is used to keep
+an enumerable list of CM Accounts.
+
+### CMAccountInfo
+
+CMAccount info struct, to keep track of created CM Accounts and their
+creators.
+
+```solidity
+struct CMAccountInfo {
+    bool isCMAccount;
+    address creator;
+}
+```
+
+### CMAccountManagerStorage
+
+```solidity
+struct CMAccountManagerStorage {
+  address _latestAccountImplementation;
+  address _bookingToken;
+  mapping(address => struct CMAccountManager.CMAccountInfo) _cmAccountInfo;
+}
+```
+
+### CMAccountCreated
+
+```solidity
+event CMAccountCreated(address account)
+```
+
+CM Account created event.
+
+#### Parameters
+
+| Name    | Type    | Description                      |
+| ------- | ------- | -------------------------------- |
+| account | address | The address of the new CMAccount |
+
+### CMAccountImplementationUpdated
+
+```solidity
+event CMAccountImplementationUpdated(address oldImplementation, address newImplementation)
+```
+
+CM Account implementation address updated event.
+
+#### Parameters
+
+| Name              | Type    | Description                    |
+| ----------------- | ------- | ------------------------------ |
+| oldImplementation | address | The old implementation address |
+| newImplementation | address | The new implementation address |
+
+### BookingTokenAddressUpdated
+
+```solidity
+event BookingTokenAddressUpdated(address oldBookingToken, address newBookingToken)
+```
+
+Booking token address updated event.
+
+#### Parameters
+
+| Name            | Type    | Description                   |
+| --------------- | ------- | ----------------------------- |
+| oldBookingToken | address | The old booking token address |
+| newBookingToken | address | The new booking token address |
+
+### CMAccountInvalidImplementation
+
+```solidity
+error CMAccountInvalidImplementation(address implementation)
+```
+
+The implementation of the CMAccount is invalid.
+
+#### Parameters
+
+| Name           | Type    | Description                                 |
+| -------------- | ------- | ------------------------------------------- |
+| implementation | address | The implementation address of the CMAccount |
+
+### CMAccountInvalidAdmin
+
+```solidity
+error CMAccountInvalidAdmin(address admin)
+```
+
+The admin address is invalid.
+
+#### Parameters
+
+| Name  | Type    | Description       |
+| ----- | ------- | ----------------- |
+| admin | address | The admin address |
+
+### InvalidBookingTokenAddress
+
+```solidity
+error InvalidBookingTokenAddress(address bookingToken)
+```
+
+Invalid booking token address.
+
+#### Parameters
+
+| Name         | Type    | Description               |
+| ------------ | ------- | ------------------------- |
+| bookingToken | address | The booking token address |
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address defaultAdmin, address pauser, address upgrader, address versioner) public
+```
+
+### pause
+
+```solidity
+function pause() public
+```
+
+Pauses the CMAccountManager contract. Currently this only affects the
+creation of CMAccount. When paused, account creation is stopped.
+
+### unpause
+
+```solidity
+function unpause() public
+```
+
+Unpauses the CMAccountManager contract.
+
+### \_authorizeUpgrade
+
+```solidity
+function _authorizeUpgrade(address newImplementation) internal
+```
+
+Authorization for the CMAccountManager contract upgrade.
+
+### createCMAccount
+
+```solidity
+function createCMAccount(address admin, address upgrader) external payable returns (address)
+```
+
+Creates CMAccount by deploying a ERC1967Proxy with the CMAccount
+implementation from the manager.
+
+Because this function is deploying a contract, it reverts if the caller is
+not KYC or KYB verified. (For EOAs only)
+
+Caller must approve the pre-fund amount before calling this function.
+
+_Emits a {CMAccountCreated} event._
+
+### \_setCMAccountInfo
+
+```solidity
+function _setCMAccountInfo(address account, struct CMAccountManager.CMAccountInfo info) internal
+```
+
+### getCMAccountCreator
+
+```solidity
+function getCMAccountCreator(address account) public view returns (address)
+```
+
+Returns the given account's creator.
+
+#### Parameters
+
+| Name    | Type    | Description         |
+| ------- | ------- | ------------------- |
+| account | address | The account address |
+
+### isCMAccount
+
+```solidity
+function isCMAccount(address account) public view returns (bool)
+```
+
+Check if an address is CMAccount created by the manager.
+
+#### Parameters
+
+| Name    | Type    | Description                  |
+| ------- | ------- | ---------------------------- |
+| account | address | The account address to check |
+
+### getAccountImplementation
+
+```solidity
+function getAccountImplementation() public view returns (address)
+```
+
+Returns the CMAccount implementation address.
+
+### setAccountImplementation
+
+```solidity
+function setAccountImplementation(address newImplementation) public
+```
+
+Set a new CMAccount implementation address.
+
+#### Parameters
+
+| Name              | Type    | Description                    |
+| ----------------- | ------- | ------------------------------ |
+| newImplementation | address | The new implementation address |
+
+### \_setAccountImplementation
+
+```solidity
+function _setAccountImplementation(address newImplementation) internal
+```
+
+### getBookingTokenAddress
+
+```solidity
+function getBookingTokenAddress() public view returns (address)
+```
+
+Returns the booking token address.
+
+### setBookingTokenAddress
+
+```solidity
+function setBookingTokenAddress(address token) public
+```
+
+Sets booking token address.
+
+### \_setBookingTokenAddress
+
+```solidity
+function _setBookingTokenAddress(address token) internal
+```
+
+### registerService
+
+```solidity
+function registerService(string serviceName) public
+```
+
+Registers a given service name. CM Accounts can only register services
+if they are also registered in the service registry on the manager contract.
+
+#### Parameters
+
+| Name        | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| serviceName | string | Name of the service |
+
+### unregisterService
+
+```solidity
+function unregisterService(string serviceName) public
+```
+
+Unregisters a given service name. CM Accounts will not be able to register
+the service anymore.
+
+#### Parameters
+
+| Name        | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| serviceName | string | Name of the service |
+
+## ICMAccountManager
+
+### getAccountImplementation
+
+```solidity
+function getAccountImplementation() external view returns (address)
+```
+
+### isCMAccount
+
+```solidity
+function isCMAccount(address account) external view returns (bool)
+```
+
+### getRegisteredServiceHashByName
+
+```solidity
+function getRegisteredServiceHashByName(string serviceName) external view returns (bytes32 serviceHash)
+```
+
+### getServiceHashByName
+
+```solidity
+function getServiceHashByName(string serviceName) external view returns (bytes32 serviceHash)
+```
+
+### getRegisteredServiceNameByHash
+
+```solidity
+function getRegisteredServiceNameByHash(bytes32 serviceHash) external view returns (string serviceName)
+```
+
+### getServiceNameByHash
+
+```solidity
+function getServiceNameByHash(bytes32 serviceHash) external view returns (string serviceName)
+```
+
+## CMAccountManagerTest
+
+### getVersion
+
+```solidity
+function getVersion() public pure returns (string)
+```
+
+## PartnerConfiguration
+
+Partner Configuration is used by the {CMAccount} contract to register
+supported and wanted services by the partner.
+
+### Service
+
+Struct for storing supported service details for suppliers
+
+```solidity
+struct Service {
+    bool _restrictedRate;
+    string[] _capabilities;
+}
+```
+
+### PaymentInfo
+
+```solidity
+struct PaymentInfo {
+  bool _supportsOffChainPayment;
+  struct EnumerableSet.AddressSet _supportedTokens;
+}
+```
+
+### PartnerConfigurationStorage
+
+```solidity
+struct PartnerConfigurationStorage {
+  struct EnumerableSet.Bytes32Set _servicesHashSet;
+  mapping(bytes32 => struct PartnerConfiguration.Service) _supportedServices;
+  struct PartnerConfiguration.PaymentInfo _paymentInfo;
+  struct EnumerableSet.AddressSet _publicKeyAddressesSet;
+  mapping(address => bytes) _publicKeys;
+  struct EnumerableSet.Bytes32Set _wantedServicesHashSet;
+}
+```
+
+### ServiceAlreadyExists
+
+```solidity
+error ServiceAlreadyExists(bytes32 serviceHash)
+```
+
+### ServiceDoesNotExist
+
+```solidity
+error ServiceDoesNotExist(bytes32 serviceHash)
+```
+
+### WantedServiceAlreadyExists
+
+```solidity
+error WantedServiceAlreadyExists(bytes32 serviceHash)
+```
+
+### WantedServiceDoesNotExist
+
+```solidity
+error WantedServiceDoesNotExist(bytes32 serviceHash)
+```
+
+### PaymentTokenAlreadyExists
+
+```solidity
+error PaymentTokenAlreadyExists(address token)
+```
+
+### PaymentTokenDoesNotExist
+
+```solidity
+error PaymentTokenDoesNotExist(address token)
+```
+
+### PublicKeyAlreadyExists
+
+```solidity
+error PublicKeyAlreadyExists(address pubKeyAddress)
+```
+
+### PublicKeyDoesNotExist
+
+```solidity
+error PublicKeyDoesNotExist(address pubKeyAddress)
+```
+
+### InvalidPublicKeyUseType
+
+```solidity
+error InvalidPublicKeyUseType(uint8 use)
+```
+
+### PaymentTokenAdded
+
+```solidity
+event PaymentTokenAdded(address token)
+```
+
+### PaymentTokenRemoved
+
+```solidity
+event PaymentTokenRemoved(address token)
+```
+
+### OffChainPaymentSupportUpdated
+
+```solidity
+event OffChainPaymentSupportUpdated(bool supportsOffChainPayment)
+```
+
+### PublicKeyAdded
+
+```solidity
+event PublicKeyAdded(address pubKeyAddress)
+```
+
+### PublicKeyRemoved
+
+```solidity
+event PublicKeyRemoved(address pubKeyAddress)
+```
+
+### \_\_PartnerConfiguration_init
+
+```solidity
+function __PartnerConfiguration_init() internal
+```
+
+### \_\_PartnerConfiguration_init_unchained
+
+```solidity
+function __PartnerConfiguration_init_unchained() internal
+```
+
+### \_addService
+
+```solidity
+function _addService(bytes32 serviceHash, string[] capabilities, bool restrictedRate) internal virtual
+```
+
+Adds a supported Service object for a given hash.
+
+#### Parameters
+
+| Name           | Type     | Description                                   |
+| -------------- | -------- | --------------------------------------------- |
+| serviceHash    | bytes32  | Hash of the service                           |
+| capabilities   | string[] | Capabilities for the service                  |
+| restrictedRate | bool     | If the service is restricted to pre-agreement |
+
+### \_removeService
+
+```solidity
+function _removeService(bytes32 serviceHash) internal virtual
+```
+
+Removes a supported Service object for a given hash.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### \_setServiceRestrictedRate
+
+```solidity
+function _setServiceRestrictedRate(bytes32 serviceHash, bool restrictedRate) internal virtual
+```
+
+Sets the Service restricted rate for a given hash.
+
+#### Parameters
+
+| Name           | Type    | Description         |
+| -------------- | ------- | ------------------- |
+| serviceHash    | bytes32 | Hash of the service |
+| restrictedRate | bool    | Restricted rate     |
+
+### \_setServiceCapabilities
+
+```solidity
+function _setServiceCapabilities(bytes32 serviceHash, string[] capabilities) internal virtual
+```
+
+Sets the Service capabilities for a given hash.
+
+#### Parameters
+
+| Name         | Type     | Description         |
+| ------------ | -------- | ------------------- |
+| serviceHash  | bytes32  | Hash of the service |
+| capabilities | string[] | Capabilities        |
+
+### \_addServiceCapability
+
+```solidity
+function _addServiceCapability(bytes32 serviceHash, string capability) internal virtual
+```
+
+Adds a capability to the service.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+| capability  | string  | Capability          |
+
+### \_removeServiceCapability
+
+```solidity
+function _removeServiceCapability(bytes32 serviceHash, string capability) internal virtual
+```
+
+Removes a capability from the service.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+| capability  | string  | Capability          |
+
+### getAllServiceHashes
+
+```solidity
+function getAllServiceHashes() public view returns (bytes32[] serviceHashes)
+```
+
+Returns all supported service hashes.
+
+### getService
+
+```solidity
+function getService(bytes32 serviceHash) public view virtual returns (struct PartnerConfiguration.Service service)
+```
+
+Returns the Service object for a given hash. Service object contains fee and capabilities.
+
+`serviceHash` is keccak256 hash of the pkg + service name as:
+
+```text
+           ┌────────────── pkg ─────────────┐ ┌───── service name ─────┐
+keccak256("cmp.services.accommodation.v1alpha.AccommodationSearchService")
+```
+
+_These services are coming from the Camino Messenger Protocol's protobuf
+definitions._
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### \_isServiceSupported
+
+```solidity
+function _isServiceSupported(bytes32 serviceHash) internal view returns (bool)
+```
+
+Checks if the service is supported.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### getServiceRestrictedRate
+
+```solidity
+function getServiceRestrictedRate(bytes32 serviceHash) public view virtual returns (bool restrictedRate)
+```
+
+Returns the restricted rate for a given service hash.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### getServiceCapabilities
+
+```solidity
+function getServiceCapabilities(bytes32 serviceHash) public view virtual returns (string[] capabilities)
+```
+
+Returns the capabilities for a given service hash.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### \_addWantedService
+
+```solidity
+function _addWantedService(bytes32 serviceHash) internal virtual
+```
+
+Adds a wanted service hash to the wanted services set.
+
+Reverts if the service already exists.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### \_removeWantedService
+
+```solidity
+function _removeWantedService(bytes32 serviceHash) internal virtual
+```
+
+Removes a wanted service hash from the wanted services set.
+
+Reverts if the service does not exist.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### getWantedServiceHashes
+
+```solidity
+function getWantedServiceHashes() public view virtual returns (bytes32[] serviceHashes)
+```
+
+Returns all wanted service hashes.
+
+#### Return Values
+
+| Name          | Type      | Description           |
+| ------------- | --------- | --------------------- |
+| serviceHashes | bytes32[] | Wanted service hashes |
+
+### \_addSupportedToken
+
+```solidity
+function _addSupportedToken(address _token) internal virtual
+```
+
+Adds a supported payment token.
+
+#### Parameters
+
+| Name    | Type    | Description                       |
+| ------- | ------- | --------------------------------- |
+| \_token | address | Payment token address to be added |
+
+### \_removeSupportedToken
+
+```solidity
+function _removeSupportedToken(address _token) internal virtual
+```
+
+Removes a supported payment token.
+
+#### Parameters
+
+| Name    | Type    | Description                         |
+| ------- | ------- | ----------------------------------- |
+| \_token | address | Payment token address to be removed |
+
+### getSupportedTokens
+
+```solidity
+function getSupportedTokens() public view virtual returns (address[] tokens)
+```
+
+Returns supported token addresses.
+
+#### Return Values
+
+| Name   | Type      | Description               |
+| ------ | --------- | ------------------------- |
+| tokens | address[] | Supported token addresses |
+
+### \_setOffChainPaymentSupported
+
+```solidity
+function _setOffChainPaymentSupported(bool _supportsOffChainPayment) internal virtual
+```
+
+Sets the off-chain payment support is supported.
+
+### offChainPaymentSupported
+
+```solidity
+function offChainPaymentSupported() public view virtual returns (bool)
+```
+
+Returns true if off-chain payment is supported for the given service.
+
+### \_addPublicKey
+
+```solidity
+function _addPublicKey(address pubKeyAddress, bytes publicKeyData) internal virtual
+```
+
+Adds public key with an address. Reverts if the public key already
+exists.
+
+Beware: This functions does not check if the public key is actually for the
+given address.
+
+### \_removePublicKey
+
+```solidity
+function _removePublicKey(address pubKeyAddress) internal virtual
+```
+
+Removes the public key for a given address
+
+Reverts if the public key does not exist
+
+### getPublicKeysAddresses
+
+```solidity
+function getPublicKeysAddresses() public view virtual returns (address[] pubKeyAddresses)
+```
+
+Returns the addresses of all public keys. These can then be used to
+retrieve the public keys the `getPublicKey(address)` function.
+
+### getPublicKey
+
+```solidity
+function getPublicKey(address pubKeyAddress) public view virtual returns (bytes data)
+```
+
+Returns the public key for a given address.
+
+Reverts if the public key does not exist
+
+#### Parameters
+
+| Name          | Type    | Description               |
+| ------------- | ------- | ------------------------- |
+| pubKeyAddress | address | Address of the public key |
+
+## ServiceRegistry
+
+Service registry is used by the {CMAccountManager} contract to register
+services by hashing (keccak256) the service name (string) and creating a mapping
+as keccak256(serviceName) => serviceName.
+
+### ServiceRegistryStorage
+
+```solidity
+struct ServiceRegistryStorage {
+  struct EnumerableSet.Bytes32Set _servicesHashSet;
+  mapping(bytes32 => string) _serviceNameByHash;
+  mapping(string => bytes32) _hashByServiceName;
+}
+```
+
+### ServiceRegistered
+
+```solidity
+event ServiceRegistered(string serviceName, bytes32 serviceHash)
+```
+
+### ServiceUnregistered
+
+```solidity
+event ServiceUnregistered(string serviceName, bytes32 serviceHash)
+```
+
+### ServiceAlreadyRegistered
+
+```solidity
+error ServiceAlreadyRegistered(string serviceName)
+```
+
+### ServiceNotRegistered
+
+```solidity
+error ServiceNotRegistered()
+```
+
+### \_\_ServiceRegistry_init
+
+```solidity
+function __ServiceRegistry_init() internal
+```
+
+### \_\_ServiceRegistry_init_unchained
+
+```solidity
+function __ServiceRegistry_init_unchained() internal
+```
+
+### \_registerServiceName
+
+```solidity
+function _registerServiceName(string serviceName) internal virtual
+```
+
+Adds a new service by its name. This function calculates the hash of the
+service name and adds it to the registry
+
+{serviceName} is the pkg + service name as:
+
+```text
+ ┌────────────── pkg ─────────────┐ ┌───── service name ─────┐
+"cmp.services.accommodation.v1alpha.AccommodationSearchService"
+```
+
+_These services are coming from the Camino Messenger Protocol's protobuf
+definitions._
+
+#### Parameters
+
+| Name        | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| serviceName | string | Name of the service |
+
+### \_unregisterServiceName
+
+```solidity
+function _unregisterServiceName(string serviceName) internal virtual
+```
+
+Removes a service by its name. This function calculates the hash of the
+service name and removes it from the registry.
+
+#### Parameters
+
+| Name        | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| serviceName | string | Name of the service |
+
+### getRegisteredServiceNameByHash
+
+```solidity
+function getRegisteredServiceNameByHash(bytes32 serviceHash) public view returns (string serviceName)
+```
+
+Returns the name of a registered service by its hash.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### getServiceNameByHash
+
+```solidity
+function getServiceNameByHash(bytes32 serviceHash) public view returns (string serviceName)
+```
+
+Returns the name of a service by its hash. Even if the service is unregistered at the moment.
+
+#### Parameters
+
+| Name        | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| serviceHash | bytes32 | Hash of the service |
+
+### getRegisteredServiceHashByName
+
+```solidity
+function getRegisteredServiceHashByName(string serviceName) public view returns (bytes32 serviceHash)
+```
+
+Returns the hash of a service by its name.
+
+#### Parameters
+
+| Name        | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| serviceName | string | Name of the service |
+
+### getServiceHashByName
+
+```solidity
+function getServiceHashByName(string serviceName) public view returns (bytes32 serviceHash)
+```
+
+Returns the hash of a service by its name. Even if the service is unregistered at the moment.
+
+#### Parameters
+
+| Name        | Type   | Description         |
+| ----------- | ------ | ------------------- |
+| serviceName | string | Name of the service |
+
+### getAllRegisteredServiceHashes
+
+```solidity
+function getAllRegisteredServiceHashes() public view returns (bytes32[] services)
+```
+
+Returns all registered service **hashes**.
+
+#### Return Values
+
+| Name     | Type      | Description                   |
+| -------- | --------- | ----------------------------- |
+| services | bytes32[] | All registered service hashes |
+
+### getAllRegisteredServiceNames
+
+```solidity
+function getAllRegisteredServiceNames() public view returns (string[] services)
+```
+
+Returns all registered service **names**.
+
+#### Return Values
+
+| Name     | Type     | Description                  |
+| -------- | -------- | ---------------------------- |
+| services | string[] | All registered service names |
+
+## ServiceFeeToken
+
+This contract is deprecated and removed as part of Milestone 1 service fee removal.
+
+### name
+
+```solidity
+function name() public pure returns (string)
+```
+
+### symbol
+
+```solidity
+function symbol() public pure returns (string)
+```
+
+### decimals
+
+```solidity
+function decimals() public pure returns (uint8)
+```
+
+### mint
+
+```solidity
+function mint(address, uint256) public
 ```
 
 ## BookingToken
@@ -1543,1821 +3115,6 @@ function tokenURI(uint256 tokenId) public view returns (string)
 function supportsInterface(bytes4 interfaceId) public view returns (bool)
 ```
 
-## CancellationProposalStatus
-
-```solidity
-enum CancellationProposalStatus {
-    NO_PROPOSAL,
-    PENDING,
-    REJECTED,
-    WITHDRAWN,
-    FINALIZED
-}
-```
-
-## BookingTokenCancellable
-
-### Proposal
-
-```solidity
-struct Proposal {
-  uint256 refundAmount;
-  address initialProposer;
-  uint32 timesCountered;
-  bool ownerAccepted;
-  bool supplierAccepted;
-  address currentProposer;
-  uint32 timesRejected;
-  enum CancellationProposalStatus status;
-  uint16 cancellationReason;
-  uint16 cancellationVersion;
-  uint16 rejectionReason;
-  uint16 rejectionVersion;
-  uint16 counterReason;
-  uint16 counterVersion;
-  uint16 withdrawalReason;
-  uint16 withdrawalVersion;
-}
-```
-
-### BookingTokenCancellableStorage
-
-```solidity
-struct BookingTokenCancellableStorage {
-  mapping(uint256 => struct BookingTokenCancellable.Proposal) _proposals;
-}
-```
-
-### CancellationPending
-
-```solidity
-event CancellationPending(uint256 tokenId, address initialProposer, address currentProposer, uint256 refundAmount, bool ownerAccepted, bool supplierAccepted, uint32 timesCountered, uint32 timesRejected)
-```
-
-### CancellationReasons
-
-```solidity
-event CancellationReasons(uint256 tokenId, uint16 cancellationReason, uint16 cancellationReasonVersion, uint16 rejectionReason, uint16 rejectionVersion, uint16 counterReason, uint16 counterVersion, uint16 withdrawalReason, uint16 withdrawalVersion)
-```
-
-### CancellationWithdrawn
-
-```solidity
-event CancellationWithdrawn(uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalVersion)
-```
-
-### CancellationRejected
-
-```solidity
-event CancellationRejected(uint256 tokenId, uint16 rejectionReason, uint16 rejectionVersion)
-```
-
-### CancellationFinalized
-
-```solidity
-event CancellationFinalized(uint256 tokenId)
-```
-
-### NotOwnerOrSupplier
-
-```solidity
-error NotOwnerOrSupplier()
-```
-
-### CancellationProposalExists
-
-```solidity
-error CancellationProposalExists(uint256 tokenId)
-```
-
-### IncorrectRefundAmount
-
-```solidity
-error IncorrectRefundAmount(uint256 tokenId, uint256 existing, uint256 checked)
-```
-
-### InvalidCancellationProposalStatus
-
-```solidity
-error InvalidCancellationProposalStatus(uint256 tokenId, enum CancellationProposalStatus status)
-```
-
-### OnlySupplierCanFinalizeCancellation
-
-```solidity
-error OnlySupplierCanFinalizeCancellation(uint256 tokenId)
-```
-
-### OwnerNotAcceptedCancellation
-
-```solidity
-error OwnerNotAcceptedCancellation(uint256 tokenId)
-```
-
-### ProposerCanNotRejectCancellation
-
-```solidity
-error ProposerCanNotRejectCancellation(uint256 tokenId)
-```
-
-### OnlyCurrentProposerCanWithdrawCancellation
-
-```solidity
-error OnlyCurrentProposerCanWithdrawCancellation(uint256 tokenId)
-```
-
-### requireOwnerOrSupplier
-
-```solidity
-function requireOwnerOrSupplier(address owner, address supplier) internal view
-```
-
-### onlyOwnerOrSupplier
-
-```solidity
-modifier onlyOwnerOrSupplier(address owner, address supplier)
-```
-
-### \_getCancellationProposalStatusAndCurrentProposer
-
-```solidity
-function _getCancellationProposalStatusAndCurrentProposer(uint256 tokenId) internal view returns (enum CancellationProposalStatus status, address currentProposer)
-```
-
-### getCancellationProposal
-
-```solidity
-function getCancellationProposal(uint256 tokenId) external view returns (enum CancellationProposalStatus, uint256 refundAmount, address initialProposer, address currentProposer, bool ownerAccepted, bool supplierAccepted, uint32 timesCountered, uint32 timesRejected)
-```
-
-### getCancellationReasons
-
-```solidity
-function getCancellationReasons(uint256 tokenId) external view returns (uint16 cancellationReason, uint16 cancellationVersion, uint16 rejectionReason, uint16 rejectionVersion, uint16 counterReason, uint16 counterVersion, uint16 withdrawalReason, uint16 withdrawalVersion)
-```
-
-### \_initiateCancellation
-
-```solidity
-function _initiateCancellation(address owner, address supplier, uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) internal virtual
-```
-
-### \_acceptCancellation
-
-```solidity
-function _acceptCancellation(address owner, address supplier, uint256 tokenId, uint256 checkRefundAmount) internal virtual
-```
-
-Used by the owner or supplier to accept a cancellation proposal that
-is initiated or countered by the other party
-
-#### Parameters
-
-| Name              | Type    | Description                                              |
-| ----------------- | ------- | -------------------------------------------------------- |
-| owner             | address | Owner of the token                                       |
-| supplier          | address | Supplier of the token                                    |
-| tokenId           | uint256 | Token ID                                                 |
-| checkRefundAmount | uint256 | Refund amount to check against, to prevent front-running |
-
-### \_counterCancellation
-
-```solidity
-function _counterCancellation(address owner, address supplier, uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterVersion) internal virtual
-```
-
-### \_withdrawCancellation
-
-```solidity
-function _withdrawCancellation(address owner, address supplier, uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalVersion) internal virtual
-```
-
-### \_rejectCancellation
-
-```solidity
-function _rejectCancellation(address owner, address supplier, uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) internal virtual
-```
-
-### \_finalizeCancellation
-
-```solidity
-function _finalizeCancellation(address supplier, uint256 tokenId, uint256 checkRefundAmount) internal virtual returns (uint256 refundAmount)
-```
-
-## BookingTokenOperator
-
-Booking token operator contract is used by the {CMAccount} contract to mint
-and buy booking tokens.
-
-We made this a library so that we can use it in the {CMAccount} contract without
-increasing the size of the contract.
-
-### NATIVE_PAYMENT
-
-```solidity
-address NATIVE_PAYMENT
-```
-
-Tokens are directly transferred to the recipient.
-
-_Special address for native payments._
-
-### OFFCHAIN_PAYMENT
-
-```solidity
-address OFFCHAIN_PAYMENT
-```
-
-A third-party service is used to handle payments.
-
-_Special address for offchain payments._
-
-### UnexpectedPrice
-
-```solidity
-error UnexpectedPrice(uint256 tokenId, uint256 actualPrice, uint256 expectedPrice)
-```
-
-### UnexpectedPaymentToken
-
-```solidity
-error UnexpectedPaymentToken(uint256 tokenId, contract IERC20 actualPaymentToken, contract IERC20 expectedPaymentToken)
-```
-
-### mintBookingToken
-
-```solidity
-function mintBookingToken(address bookingToken, address reservedFor, string uri, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool cancellable) public
-```
-
-_Mints a booking token with offchain payment currency and cancellable support._
-
-#### Parameters
-
-| Name                    | Type            | Description                                                                  |
-| ----------------------- | --------------- | ---------------------------------------------------------------------------- |
-| bookingToken            | address         | booking token contract address                                               |
-| reservedFor             | address         | address of the CM Account that can buy the token (generally the distributor) |
-| uri                     | string          | URI of the token                                                             |
-| expirationTimestamp     | uint256         | expiration timestamp of the token in seconds                                 |
-| price                   | uint256         | price of the token                                                           |
-| paymentToken            | contract IERC20 | payment token address                                                        |
-| offchainPaymentCurrency | uint256         | payment token address                                                        |
-| cancellable             | bool            | cancellable flag                                                             |
-
-### buyBookingToken
-
-```solidity
-function buyBookingToken(address bookingToken, uint256 tokenId, uint256 expectedPrice, contract IERC20 expectedPaymentToken) public
-```
-
-_Buys a booking token with the specified price and payment token in the
-reservation._
-
-#### Parameters
-
-| Name                 | Type            | Description                    |
-| -------------------- | --------------- | ------------------------------ |
-| bookingToken         | address         | booking token contract address |
-| tokenId              | uint256         | token id                       |
-| expectedPrice        | uint256         |                                |
-| expectedPaymentToken | contract IERC20 |                                |
-
-### recordExpiration
-
-```solidity
-function recordExpiration(address bookingToken, uint256 tokenId) public
-```
-
-Record the expiration of a booking token.
-
-#### Parameters
-
-| Name         | Type    | Description                    |
-| ------------ | ------- | ------------------------------ |
-| bookingToken | address | booking token contract address |
-| tokenId      | uint256 | token id                       |
-
-### initiateCancellation
-
-```solidity
-function initiateCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) external
-```
-
-Initiates a cancellation proposal for a bought token.
-
-#### Parameters
-
-| Name                      | Type    | Description                    |
-| ------------------------- | ------- | ------------------------------ |
-| bookingToken              | address | booking token contract address |
-| tokenId                   | uint256 | token id                       |
-| refundAmount              | uint256 | proposed refund amount         |
-| cancellationReason        | uint16  | cancellation reason            |
-| cancellationReasonVersion | uint16  | cancellation reason version    |
-
-### acceptCancellation
-
-```solidity
-function acceptCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount) external
-```
-
-Sets accepted by the owner or supplier flag for a cancellation proposal for a bought token.
-
-#### Parameters
-
-| Name         | Type    | Description                                                          |
-| ------------ | ------- | -------------------------------------------------------------------- |
-| bookingToken | address |                                                                      |
-| tokenId      | uint256 | The token id to accept the cancellation for                          |
-| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
-
-### counterCancellation
-
-```solidity
-function counterCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterReasonVersion) public
-```
-
-Counters a cancellation proposal.
-
-#### Parameters
-
-| Name                 | Type    | Description                    |
-| -------------------- | ------- | ------------------------------ |
-| bookingToken         | address | booking token contract address |
-| tokenId              | uint256 | token id                       |
-| refundAmount         | uint256 | proposed refund amount         |
-| counterReason        | uint16  |                                |
-| counterReasonVersion | uint16  |                                |
-
-### withdrawCancellation
-
-```solidity
-function withdrawCancellation(address bookingToken, uint256 tokenId, uint16 reason, uint16 reasonVersion) public
-```
-
-Withdraws a cancellation proposal.
-
-#### Parameters
-
-| Name          | Type    | Description                                       |
-| ------------- | ------- | ------------------------------------------------- |
-| bookingToken  | address | booking token contract address                    |
-| tokenId       | uint256 | token id for which to withdraw the proposal       |
-| reason        | uint16  | The reason for withdrawing the proposal           |
-| reasonVersion | uint16  | The version of the withdrawal reason from the CMP |
-
-### rejectCancellation
-
-```solidity
-function rejectCancellation(address bookingToken, uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) external
-```
-
-Reject a cancellation proposal for a bought token.
-
-#### Parameters
-
-| Name                   | Type    | Description                                       |
-| ---------------------- | ------- | ------------------------------------------------- |
-| bookingToken           | address | booking token contract address                    |
-| tokenId                | uint256 | The token id to reject the cancellation for       |
-| rejectionReason        | uint16  | The reason for rejecting the cancellation         |
-| rejectionReasonVersion | uint16  | Version of the rejection reason enum from the CMP |
-
-### finalizeCancellation
-
-```solidity
-function finalizeCancellation(address bookingToken, uint256 tokenId, uint256 refundAmount) public
-```
-
-Finalizes a cancellation proposal by transferring the refund amount
-to the Booking Token contract.
-
-#### Parameters
-
-| Name         | Type    | Description                                                          |
-| ------------ | ------- | -------------------------------------------------------------------- |
-| bookingToken | address | BookingToken contract address                                        |
-| tokenId      | uint256 | The token id for which to finalize the proposal                      |
-| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
-
-## IBookingToken
-
-### safeMintWithReservation
-
-```solidity
-function safeMintWithReservation(address reservedFor, string uri, uint256 expirationTimestamp, uint256 price, contract IERC20 paymentToken, uint256 offchainPaymentCurrency, bool isCancellable) external
-```
-
-### buyReservedToken
-
-```solidity
-function buyReservedToken(uint256 tokenId) external payable
-```
-
-### getReservationPrice
-
-```solidity
-function getReservationPrice(uint256 tokenId) external view returns (uint256 price, contract IERC20 paymentToken)
-```
-
-### getReservationPaymentToken
-
-```solidity
-function getReservationPaymentToken(uint256 tokenId) external view returns (contract IERC20 paymentToken)
-```
-
-### recordExpiration
-
-```solidity
-function recordExpiration(uint256 tokenId) external
-```
-
-Record expiration status if the token is expired
-
-#### Parameters
-
-| Name    | Type    | Description                       |
-| ------- | ------- | --------------------------------- |
-| tokenId | uint256 | The token id to record as expired |
-
-### initiateCancellation
-
-```solidity
-function initiateCancellation(uint256 tokenId, uint256 refundAmount, uint16 cancellationReason, uint16 cancellationReasonVersion) external
-```
-
-Initiates a cancellation for a bought token.
-
-#### Parameters
-
-| Name                      | Type    | Description                                   |
-| ------------------------- | ------- | --------------------------------------------- |
-| tokenId                   | uint256 | The token id to initiate the cancellation for |
-| refundAmount              | uint256 | The proposed refund amount in wei             |
-| cancellationReason        | uint16  | The reason for cancellation                   |
-| cancellationReasonVersion | uint16  | The version of the cancellation reason        |
-
-### acceptCancellation
-
-```solidity
-function acceptCancellation(uint256 tokenId, uint256 refundAmount) external
-```
-
-Sets accepted by the owner or supplier flag for a cancellation proposal for a bought token.
-
-#### Parameters
-
-| Name         | Type    | Description                                                          |
-| ------------ | ------- | -------------------------------------------------------------------- |
-| tokenId      | uint256 | The token id to accept the cancellation for                          |
-| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
-
-### rejectCancellation
-
-```solidity
-function rejectCancellation(uint256 tokenId, uint16 rejectionReason, uint16 rejectionReasonVersion) external
-```
-
-Reject a cancellation proposal for a bought token.
-
-#### Parameters
-
-| Name                   | Type    | Description                                 |
-| ---------------------- | ------- | ------------------------------------------- |
-| tokenId                | uint256 | The token id to reject the cancellation for |
-| rejectionReason        | uint16  | The reason for rejection                    |
-| rejectionReasonVersion | uint16  | The version of the rejection reason         |
-
-### counterCancellation
-
-```solidity
-function counterCancellation(uint256 tokenId, uint256 refundAmount, uint16 counterReason, uint16 counterReasonVersion) external
-```
-
-Counters a cancellation proposal with a new proposal.
-
-#### Parameters
-
-| Name                 | Type    | Description                                                          |
-| -------------------- | ------- | -------------------------------------------------------------------- |
-| tokenId              | uint256 | The token id to counter the cancellation for                         |
-| refundAmount         | uint256 | The refund amount to check, this is to prevent front-running attacks |
-| counterReason        | uint16  | The reason for the counter                                           |
-| counterReasonVersion | uint16  | The version of the counter reason                                    |
-
-### withdrawCancellation
-
-```solidity
-function withdrawCancellation(uint256 tokenId, uint16 withdrawalReason, uint16 withdrawalReasonVersion) external
-```
-
-Withdraws an active cancellation proposal. Only the current proposer of the proposal can withdraw.
-
-#### Parameters
-
-| Name                    | Type    | Description                                     |
-| ----------------------- | ------- | ----------------------------------------------- |
-| tokenId                 | uint256 | The token id for which to withdraw the proposal |
-| withdrawalReason        | uint16  | The reason for withdrawing the proposal         |
-| withdrawalReasonVersion | uint16  | The version of the withdrawal reason            |
-
-### finalizeCancellation
-
-```solidity
-function finalizeCancellation(uint256 tokenId, uint256 refundAmount) external payable
-```
-
-Finalizes a cancellation proposal. Only the supplier of the token can finalize.
-
-#### Parameters
-
-| Name         | Type    | Description                                                          |
-| ------------ | ------- | -------------------------------------------------------------------- |
-| tokenId      | uint256 | The token id for which to finalize the proposal                      |
-| refundAmount | uint256 | The refund amount to check, this is to prevent front-running attacks |
-
-## CMAccountManager
-
-This contract manages the creation of the Camino Messenger accounts by
-deploying {ERC1967Proxy} proxies that point to the{CMAccount} implementation
-address.
-
-Create CM Account: Users who want to create an account should call
-`createCMAccount(address admin, address upgrader)` function with addresses of
-the accounts admin and upgrader roles and they also need to approve the service
-fee token with the amount of prefund.
-
-When the manager contract is paused, account creation is stopped.
-
-Developer Fee: This contracts also keeps the info about the developer wallet
-and fee basis points. Which are used during the cheque cash in to pay for the
-developer fee.
-
-Service Registry: {CMAccountManager} also acts as a registry for the services
-that {CMAccount} contracts add as a supported or wanted service. Registry
-works by hashing (keccak256) the service name (string) and creating a mapping
-as keccak256(serviceName) => serviceName. And provides functions that
-{CMAccount} function uses to register services. The {CMAccount} only keeps
-the hashes (byte32) of the registered services.
-
-### PAUSER_ROLE
-
-```solidity
-bytes32 PAUSER_ROLE
-```
-
-Pauser role can pause the contract. Currently this only affects the
-creation of CM Accounts. When paused, account creation is stopped.
-
-### UPGRADER_ROLE
-
-```solidity
-bytes32 UPGRADER_ROLE
-```
-
-Upgrader role can upgrade the contract to a new implementation.
-
-### VERSIONER_ROLE
-
-```solidity
-bytes32 VERSIONER_ROLE
-```
-
-Versioner role can set new {CMAccount} implementation address. When a
-new implementation address is set, it is used for the new {CMAccount}
-creations.
-
-The old {CMAccount} contracts are not affected by this. Owners of those
-should do the upgrade manually by calling the `upgradeToAndCall(address)`
-function on the account.
-
-### FEE_ADMIN_ROLE
-
-```solidity
-bytes32 FEE_ADMIN_ROLE
-```
-
-Fee admin role can set the developer fee basis points which used for
-calculating the developer fee that is cut from the cheque payments.
-
-### DEVELOPER_WALLET_ADMIN_ROLE
-
-```solidity
-bytes32 DEVELOPER_WALLET_ADMIN_ROLE
-```
-
-Developer wallet admin role can set the developer wallet address
-which is used to receive the developer fee.
-
-### PREFUND_ADMIN_ROLE
-
-```solidity
-bytes32 PREFUND_ADMIN_ROLE
-```
-
-Prefund admin role can set the mandatory prefund amount for {CMAccount}
-contracts.
-
-### SERVICE_REGISTRY_ADMIN_ROLE
-
-```solidity
-bytes32 SERVICE_REGISTRY_ADMIN_ROLE
-```
-
-Service registry admin role can add and remove services to the service
-registry mapping. Implemented by {ServiceRegistry} contract.
-
-### CMACCOUNT_ROLE
-
-```solidity
-bytes32 CMACCOUNT_ROLE
-```
-
-This role is granted to the created CM Accounts. It is used to keep
-an enumerable list of CM Accounts.
-
-### SERVICE_FEE_TOKEN_ADMIN_ROLE
-
-```solidity
-bytes32 SERVICE_FEE_TOKEN_ADMIN_ROLE
-```
-
-This role is able to set the service fee token address.
-
-### CMAccountInfo
-
-CMAccount info struct, to keep track of created CM Accounts and their
-creators.
-
-```solidity
-struct CMAccountInfo {
-    bool isCMAccount;
-    address creator;
-}
-```
-
-### CMAccountManagerStorage
-
-```solidity
-struct CMAccountManagerStorage {
-  address _latestAccountImplementation;
-  uint256 _prefundAmount;
-  address _developerWallet;
-  uint256 _developerFeeBp;
-  address _bookingToken;
-  mapping(address => struct CMAccountManager.CMAccountInfo) _cmAccountInfo;
-  address _serviceFeeToken;
-}
-```
-
-### CMAccountCreated
-
-```solidity
-event CMAccountCreated(address account)
-```
-
-CM Account created event.
-
-#### Parameters
-
-| Name    | Type    | Description                      |
-| ------- | ------- | -------------------------------- |
-| account | address | The address of the new CMAccount |
-
-### CMAccountImplementationUpdated
-
-```solidity
-event CMAccountImplementationUpdated(address oldImplementation, address newImplementation)
-```
-
-CM Account implementation address updated event.
-
-#### Parameters
-
-| Name              | Type    | Description                    |
-| ----------------- | ------- | ------------------------------ |
-| oldImplementation | address | The old implementation address |
-| newImplementation | address | The new implementation address |
-
-### DeveloperWalletUpdated
-
-```solidity
-event DeveloperWalletUpdated(address oldDeveloperWallet, address newDeveloperWallet)
-```
-
-Developer wallet address updated event.
-
-#### Parameters
-
-| Name               | Type    | Description                      |
-| ------------------ | ------- | -------------------------------- |
-| oldDeveloperWallet | address | The old developer wallet address |
-| newDeveloperWallet | address | The new developer wallet address |
-
-### DeveloperFeeBpUpdated
-
-```solidity
-event DeveloperFeeBpUpdated(uint256 oldDeveloperFeeBp, uint256 newDeveloperFeeBp)
-```
-
-Developer fee basis points updated event.
-
-#### Parameters
-
-| Name              | Type    | Description                        |
-| ----------------- | ------- | ---------------------------------- |
-| oldDeveloperFeeBp | uint256 | The old developer fee basis points |
-| newDeveloperFeeBp | uint256 | The new developer fee basis points |
-
-### BookingTokenAddressUpdated
-
-```solidity
-event BookingTokenAddressUpdated(address oldBookingToken, address newBookingToken)
-```
-
-Booking token address updated event.
-
-#### Parameters
-
-| Name            | Type    | Description                   |
-| --------------- | ------- | ----------------------------- |
-| oldBookingToken | address | The old booking token address |
-| newBookingToken | address | The new booking token address |
-
-### ServiceFeeTokenUpdated
-
-```solidity
-event ServiceFeeTokenUpdated(address oldServiceFeeToken, address newServiceFeeToken)
-```
-
-Service fee token address updated event.
-
-#### Parameters
-
-| Name               | Type    | Description                       |
-| ------------------ | ------- | --------------------------------- |
-| oldServiceFeeToken | address | The old service fee token address |
-| newServiceFeeToken | address | The new service fee token address |
-
-### PrefundAmountUpdated
-
-```solidity
-event PrefundAmountUpdated(uint256 oldPrefundAmount, uint256 newPrefundAmount)
-```
-
-Prefund amount updated event.
-
-#### Parameters
-
-| Name             | Type    | Description            |
-| ---------------- | ------- | ---------------------- |
-| oldPrefundAmount | uint256 | The old prefund amount |
-| newPrefundAmount | uint256 | The new prefund amount |
-
-### CMAccountInvalidImplementation
-
-```solidity
-error CMAccountInvalidImplementation(address implementation)
-```
-
-The implementation of the CMAccount is invalid.
-
-#### Parameters
-
-| Name           | Type    | Description                                 |
-| -------------- | ------- | ------------------------------------------- |
-| implementation | address | The implementation address of the CMAccount |
-
-### CMAccountInvalidAdmin
-
-```solidity
-error CMAccountInvalidAdmin(address admin)
-```
-
-The admin address is invalid.
-
-#### Parameters
-
-| Name  | Type    | Description       |
-| ----- | ------- | ----------------- |
-| admin | address | The admin address |
-
-### InvalidDeveloperWallet
-
-```solidity
-error InvalidDeveloperWallet(address developerWallet)
-```
-
-Invalid developer address.
-
-#### Parameters
-
-| Name            | Type    | Description                  |
-| --------------- | ------- | ---------------------------- |
-| developerWallet | address | The developer wallet address |
-
-### InvalidBookingTokenAddress
-
-```solidity
-error InvalidBookingTokenAddress(address bookingToken)
-```
-
-Invalid booking token address.
-
-#### Parameters
-
-| Name         | Type    | Description               |
-| ------------ | ------- | ------------------------- |
-| bookingToken | address | The booking token address |
-
-### InvalidServiceFeeToken
-
-```solidity
-error InvalidServiceFeeToken(address serviceFeeToken)
-```
-
-Invalid service fee token error.
-
-#### Parameters
-
-| Name            | Type    | Description                   |
-| --------------- | ------- | ----------------------------- |
-| serviceFeeToken | address | The service fee token address |
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address defaultAdmin, address pauser, address upgrader, address versioner, address developerWallet, uint256 developerFeeBp) public
-```
-
-### pause
-
-```solidity
-function pause() public
-```
-
-Pauses the CMAccountManager contract. Currently this only affects the
-creation of CMAccount. When paused, account creation is stopped.
-
-### unpause
-
-```solidity
-function unpause() public
-```
-
-Unpauses the CMAccountManager contract.
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-Authorization for the CMAccountManager contract upgrade.
-
-### createCMAccount
-
-```solidity
-function createCMAccount(address admin, address upgrader) external payable returns (address)
-```
-
-Creates CMAccount by deploying a ERC1967Proxy with the CMAccount
-implementation from the manager.
-
-Because this function is deploying a contract, it reverts if the caller is
-not KYC or KYB verified. (For EOAs only)
-
-Caller must approve the pre-fund amount before calling this function.
-
-_Emits a {CMAccountCreated} event._
-
-### \_transferServiceFeePrefund
-
-```solidity
-function _transferServiceFeePrefund(address account) internal
-```
-
-Transfers the service fee prefund amount to the CMAccount
-
-_This function is called when a CMAccount is created. The msg.sender
-should approve the allowance of the service fee token to the
-CMAccountManager._
-
-#### Parameters
-
-| Name    | Type    | Description           |
-| ------- | ------- | --------------------- |
-| account | address | The CMAccount address |
-
-### \_setCMAccountInfo
-
-```solidity
-function _setCMAccountInfo(address account, struct CMAccountManager.CMAccountInfo info) internal
-```
-
-### getCMAccountCreator
-
-```solidity
-function getCMAccountCreator(address account) public view returns (address)
-```
-
-Returns the given account's creator.
-
-#### Parameters
-
-| Name    | Type    | Description         |
-| ------- | ------- | ------------------- |
-| account | address | The account address |
-
-### isCMAccount
-
-```solidity
-function isCMAccount(address account) public view returns (bool)
-```
-
-Check if an address is CMAccount created by the manager.
-
-#### Parameters
-
-| Name    | Type    | Description                  |
-| ------- | ------- | ---------------------------- |
-| account | address | The account address to check |
-
-### getServiceFeeToken
-
-```solidity
-function getServiceFeeToken() public view returns (address)
-```
-
-Returns the service fee token address.
-
-### setServiceFeeToken
-
-```solidity
-function setServiceFeeToken(address serviceFeeToken) public
-```
-
-Sets the service fee token address.
-
-#### Parameters
-
-| Name            | Type    | Description                   |
-| --------------- | ------- | ----------------------------- |
-| serviceFeeToken | address | The service fee token address |
-
-### \_setServiceFeeToken
-
-```solidity
-function _setServiceFeeToken(address serviceFeeToken) internal
-```
-
-### getAccountImplementation
-
-```solidity
-function getAccountImplementation() public view returns (address)
-```
-
-Returns the CMAccount implementation address.
-
-### setAccountImplementation
-
-```solidity
-function setAccountImplementation(address newImplementation) public
-```
-
-Set a new CMAccount implementation address.
-
-#### Parameters
-
-| Name              | Type    | Description                    |
-| ----------------- | ------- | ------------------------------ |
-| newImplementation | address | The new implementation address |
-
-### \_setAccountImplementation
-
-```solidity
-function _setAccountImplementation(address newImplementation) internal
-```
-
-### getPrefundAmount
-
-```solidity
-function getPrefundAmount() public view returns (uint256)
-```
-
-Returns the prefund amount.
-
-### setPrefundAmount
-
-```solidity
-function setPrefundAmount(uint256 newPrefundAmount) public
-```
-
-Sets the prefund amount.
-
-### getBookingTokenAddress
-
-```solidity
-function getBookingTokenAddress() public view returns (address)
-```
-
-Returns the booking token address.
-
-### setBookingTokenAddress
-
-```solidity
-function setBookingTokenAddress(address token) public
-```
-
-Sets booking token address.
-
-### \_setBookingTokenAddress
-
-```solidity
-function _setBookingTokenAddress(address token) internal
-```
-
-### getDeveloperWallet
-
-```solidity
-function getDeveloperWallet() public view returns (address developerWallet)
-```
-
-Returns developer wallet address.
-
-### setDeveloperWallet
-
-```solidity
-function setDeveloperWallet(address developerWallet) public
-```
-
-Sets developer wallet address.
-
-### getDeveloperFeeBp
-
-```solidity
-function getDeveloperFeeBp() public view returns (uint256 developerFeeBp)
-```
-
-Returns developer fee in basis points.
-
-### setDeveloperFeeBp
-
-```solidity
-function setDeveloperFeeBp(uint256 bp) public
-```
-
-Sets developer fee in basis points.
-
-A basis point (bp) is one hundredth of 1 percentage point.
-
-1 bp = 0.01%, 1/10,000⁠, or 0.0001.
-10 bp = 0.1%, 1/1,000⁠, or 0.001.
-100 bp = 1%, ⁠1/100⁠, or 0.01.
-
-### registerService
-
-```solidity
-function registerService(string serviceName) public
-```
-
-Registers a given service name. CM Accounts can only register services
-if they are also registered in the service registry on the manager contract.
-
-#### Parameters
-
-| Name        | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| serviceName | string | Name of the service |
-
-### unregisterService
-
-```solidity
-function unregisterService(string serviceName) public
-```
-
-Unregisters a given service name. CM Accounts will not be able to register
-the service anymore.
-
-#### Parameters
-
-| Name        | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| serviceName | string | Name of the service |
-
-## ICMAccountManager
-
-### getAccountImplementation
-
-```solidity
-function getAccountImplementation() external view returns (address)
-```
-
-### getDeveloperFeeBp
-
-```solidity
-function getDeveloperFeeBp() external view returns (uint256)
-```
-
-### getDeveloperWallet
-
-```solidity
-function getDeveloperWallet() external view returns (address)
-```
-
-### isCMAccount
-
-```solidity
-function isCMAccount(address account) external view returns (bool)
-```
-
-### getRegisteredServiceHashByName
-
-```solidity
-function getRegisteredServiceHashByName(string serviceName) external view returns (bytes32 serviceHash)
-```
-
-### getServiceHashByName
-
-```solidity
-function getServiceHashByName(string serviceName) external view returns (bytes32 serviceHash)
-```
-
-### getRegisteredServiceNameByHash
-
-```solidity
-function getRegisteredServiceNameByHash(bytes32 serviceHash) external view returns (string serviceName)
-```
-
-### getServiceNameByHash
-
-```solidity
-function getServiceNameByHash(bytes32 serviceHash) external view returns (string serviceName)
-```
-
-### getServiceFeeToken
-
-```solidity
-function getServiceFeeToken() external view returns (address)
-```
-
-## CMAccountManagerTest
-
-### getVersion
-
-```solidity
-function getVersion() public pure returns (string)
-```
-
-## PartnerConfiguration
-
-Partner Configuration is used by the {CMAccount} contract to register
-supported and wanted services by the partner.
-
-### Service
-
-Struct for storing supported service details for suppliers
-
-```solidity
-struct Service {
-    uint256 _fee;
-    bool _restrictedRate;
-    string[] _capabilities;
-}
-```
-
-### PaymentInfo
-
-```solidity
-struct PaymentInfo {
-  bool _supportsOffChainPayment;
-  struct EnumerableSet.AddressSet _supportedTokens;
-}
-```
-
-### PartnerConfigurationStorage
-
-```solidity
-struct PartnerConfigurationStorage {
-  struct EnumerableSet.Bytes32Set _servicesHashSet;
-  mapping(bytes32 => struct PartnerConfiguration.Service) _supportedServices;
-  struct PartnerConfiguration.PaymentInfo _paymentInfo;
-  struct EnumerableSet.AddressSet _publicKeyAddressesSet;
-  mapping(address => bytes) _publicKeys;
-  struct EnumerableSet.Bytes32Set _wantedServicesHashSet;
-}
-```
-
-### ServiceAlreadyExists
-
-```solidity
-error ServiceAlreadyExists(bytes32 serviceHash)
-```
-
-### ServiceDoesNotExist
-
-```solidity
-error ServiceDoesNotExist(bytes32 serviceHash)
-```
-
-### WantedServiceAlreadyExists
-
-```solidity
-error WantedServiceAlreadyExists(bytes32 serviceHash)
-```
-
-### WantedServiceDoesNotExist
-
-```solidity
-error WantedServiceDoesNotExist(bytes32 serviceHash)
-```
-
-### PaymentTokenAlreadyExists
-
-```solidity
-error PaymentTokenAlreadyExists(address token)
-```
-
-### PaymentTokenDoesNotExist
-
-```solidity
-error PaymentTokenDoesNotExist(address token)
-```
-
-### PublicKeyAlreadyExists
-
-```solidity
-error PublicKeyAlreadyExists(address pubKeyAddress)
-```
-
-### PublicKeyDoesNotExist
-
-```solidity
-error PublicKeyDoesNotExist(address pubKeyAddress)
-```
-
-### InvalidPublicKeyUseType
-
-```solidity
-error InvalidPublicKeyUseType(uint8 use)
-```
-
-### PaymentTokenAdded
-
-```solidity
-event PaymentTokenAdded(address token)
-```
-
-### PaymentTokenRemoved
-
-```solidity
-event PaymentTokenRemoved(address token)
-```
-
-### OffChainPaymentSupportUpdated
-
-```solidity
-event OffChainPaymentSupportUpdated(bool supportsOffChainPayment)
-```
-
-### PublicKeyAdded
-
-```solidity
-event PublicKeyAdded(address pubKeyAddress)
-```
-
-### PublicKeyRemoved
-
-```solidity
-event PublicKeyRemoved(address pubKeyAddress)
-```
-
-### \_\_PartnerConfiguration_init
-
-```solidity
-function __PartnerConfiguration_init() internal
-```
-
-### \_\_PartnerConfiguration_init_unchained
-
-```solidity
-function __PartnerConfiguration_init_unchained() internal
-```
-
-### \_addService
-
-```solidity
-function _addService(bytes32 serviceHash, uint256 fee, string[] capabilities, bool restrictedRate) internal virtual
-```
-
-Adds a supported Service object for a given hash.
-
-#### Parameters
-
-| Name           | Type     | Description                                   |
-| -------------- | -------- | --------------------------------------------- |
-| serviceHash    | bytes32  | Hash of the service                           |
-| fee            | uint256  | Fee for the service                           |
-| capabilities   | string[] | Capabilities for the service                  |
-| restrictedRate | bool     | If the service is restricted to pre-agreement |
-
-### \_removeService
-
-```solidity
-function _removeService(bytes32 serviceHash) internal virtual
-```
-
-Removes a supported Service object for a given hash.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### \_setServiceFee
-
-```solidity
-function _setServiceFee(bytes32 serviceHash, uint256 fee) internal virtual
-```
-
-Sets the Service fee for a given hash.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-| fee         | uint256 | Fee                 |
-
-### \_setServiceRestrictedRate
-
-```solidity
-function _setServiceRestrictedRate(bytes32 serviceHash, bool restrictedRate) internal virtual
-```
-
-Sets the Service restricted rate for a given hash.
-
-#### Parameters
-
-| Name           | Type    | Description         |
-| -------------- | ------- | ------------------- |
-| serviceHash    | bytes32 | Hash of the service |
-| restrictedRate | bool    | Restricted rate     |
-
-### \_setServiceCapabilities
-
-```solidity
-function _setServiceCapabilities(bytes32 serviceHash, string[] capabilities) internal virtual
-```
-
-Sets the Service capabilities for a given hash.
-
-#### Parameters
-
-| Name         | Type     | Description         |
-| ------------ | -------- | ------------------- |
-| serviceHash  | bytes32  | Hash of the service |
-| capabilities | string[] | Capabilities        |
-
-### \_addServiceCapability
-
-```solidity
-function _addServiceCapability(bytes32 serviceHash, string capability) internal virtual
-```
-
-Adds a capability to the service.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-| capability  | string  | Capability          |
-
-### \_removeServiceCapability
-
-```solidity
-function _removeServiceCapability(bytes32 serviceHash, string capability) internal virtual
-```
-
-Removes a capability from the service.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-| capability  | string  | Capability          |
-
-### getAllServiceHashes
-
-```solidity
-function getAllServiceHashes() public view returns (bytes32[] serviceHashes)
-```
-
-Returns all supported service hashes.
-
-### getService
-
-```solidity
-function getService(bytes32 serviceHash) public view virtual returns (struct PartnerConfiguration.Service service)
-```
-
-Returns the Service object for a given hash. Service object contains fee and capabilities.
-
-`serviceHash` is keccak256 hash of the pkg + service name as:
-
-```text
-           ┌────────────── pkg ─────────────┐ ┌───── service name ─────┐
-keccak256("cmp.services.accommodation.v1alpha.AccommodationSearchService")
-```
-
-_These services are coming from the Camino Messenger Protocol's protobuf
-definitions._
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### getServiceFee
-
-```solidity
-function getServiceFee(bytes32 serviceHash) public view virtual returns (uint256 fee)
-```
-
-Returns the fee for a given service hash.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### getServiceRestrictedRate
-
-```solidity
-function getServiceRestrictedRate(bytes32 serviceHash) public view virtual returns (bool restrictedRate)
-```
-
-Returns the restricted rate for a given service hash.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### getServiceCapabilities
-
-```solidity
-function getServiceCapabilities(bytes32 serviceHash) public view virtual returns (string[] capabilities)
-```
-
-Returns the capabilities for a given service hash.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### \_addWantedService
-
-```solidity
-function _addWantedService(bytes32 serviceHash) internal virtual
-```
-
-Adds a wanted service hash to the wanted services set.
-
-Reverts if the service already exists.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### \_removeWantedService
-
-```solidity
-function _removeWantedService(bytes32 serviceHash) internal virtual
-```
-
-Removes a wanted service hash from the wanted services set.
-
-Reverts if the service does not exist.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### getWantedServiceHashes
-
-```solidity
-function getWantedServiceHashes() public view virtual returns (bytes32[] serviceHashes)
-```
-
-Returns all wanted service hashes.
-
-#### Return Values
-
-| Name          | Type      | Description           |
-| ------------- | --------- | --------------------- |
-| serviceHashes | bytes32[] | Wanted service hashes |
-
-### \_addSupportedToken
-
-```solidity
-function _addSupportedToken(address _token) internal virtual
-```
-
-Adds a supported payment token.
-
-#### Parameters
-
-| Name    | Type    | Description                       |
-| ------- | ------- | --------------------------------- |
-| \_token | address | Payment token address to be added |
-
-### \_removeSupportedToken
-
-```solidity
-function _removeSupportedToken(address _token) internal virtual
-```
-
-Removes a supported payment token.
-
-#### Parameters
-
-| Name    | Type    | Description                         |
-| ------- | ------- | ----------------------------------- |
-| \_token | address | Payment token address to be removed |
-
-### getSupportedTokens
-
-```solidity
-function getSupportedTokens() public view virtual returns (address[] tokens)
-```
-
-Returns supported token addresses.
-
-#### Return Values
-
-| Name   | Type      | Description               |
-| ------ | --------- | ------------------------- |
-| tokens | address[] | Supported token addresses |
-
-### \_setOffChainPaymentSupported
-
-```solidity
-function _setOffChainPaymentSupported(bool _supportsOffChainPayment) internal virtual
-```
-
-Sets the off-chain payment support is supported.
-
-### offChainPaymentSupported
-
-```solidity
-function offChainPaymentSupported() public view virtual returns (bool)
-```
-
-Returns true if off-chain payment is supported for the given service.
-
-### \_addPublicKey
-
-```solidity
-function _addPublicKey(address pubKeyAddress, bytes publicKeyData) internal virtual
-```
-
-Adds public key with an address. Reverts if the public key already
-exists.
-
-Beware: This functions does not check if the public key is actually for the
-given address.
-
-### \_removePublicKey
-
-```solidity
-function _removePublicKey(address pubKeyAddress) internal virtual
-```
-
-Removes the public key for a given address
-
-Reverts if the public key does not exist
-
-### getPublicKeysAddresses
-
-```solidity
-function getPublicKeysAddresses() public view virtual returns (address[] pubKeyAddresses)
-```
-
-Returns the addresses of all public keys. These can then be used to
-retrieve the public keys the `getPublicKey(address)` function.
-
-### getPublicKey
-
-```solidity
-function getPublicKey(address pubKeyAddress) public view virtual returns (bytes data)
-```
-
-Returns the public key for a given address.
-
-Reverts if the public key does not exist
-
-#### Parameters
-
-| Name          | Type    | Description               |
-| ------------- | ------- | ------------------------- |
-| pubKeyAddress | address | Address of the public key |
-
-## ServiceRegistry
-
-Service registry is used by the {CMAccountManager} contract to register
-services by hashing (keccak256) the service name (string) and creating a mapping
-as keccak256(serviceName) => serviceName.
-
-### ServiceRegistryStorage
-
-```solidity
-struct ServiceRegistryStorage {
-  struct EnumerableSet.Bytes32Set _servicesHashSet;
-  mapping(bytes32 => string) _serviceNameByHash;
-  mapping(string => bytes32) _hashByServiceName;
-}
-```
-
-### ServiceRegistered
-
-```solidity
-event ServiceRegistered(string serviceName, bytes32 serviceHash)
-```
-
-### ServiceUnregistered
-
-```solidity
-event ServiceUnregistered(string serviceName, bytes32 serviceHash)
-```
-
-### ServiceAlreadyRegistered
-
-```solidity
-error ServiceAlreadyRegistered(string serviceName)
-```
-
-### ServiceNotRegistered
-
-```solidity
-error ServiceNotRegistered()
-```
-
-### \_\_ServiceRegistry_init
-
-```solidity
-function __ServiceRegistry_init() internal
-```
-
-### \_\_ServiceRegistry_init_unchained
-
-```solidity
-function __ServiceRegistry_init_unchained() internal
-```
-
-### \_registerServiceName
-
-```solidity
-function _registerServiceName(string serviceName) internal virtual
-```
-
-Adds a new service by its name. This function calculates the hash of the
-service name and adds it to the registry
-
-{serviceName} is the pkg + service name as:
-
-```text
- ┌────────────── pkg ─────────────┐ ┌───── service name ─────┐
-"cmp.services.accommodation.v1alpha.AccommodationSearchService"
-```
-
-_These services are coming from the Camino Messenger Protocol's protobuf
-definitions._
-
-#### Parameters
-
-| Name        | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| serviceName | string | Name of the service |
-
-### \_unregisterServiceName
-
-```solidity
-function _unregisterServiceName(string serviceName) internal virtual
-```
-
-Removes a service by its name. This function calculates the hash of the
-service name and removes it from the registry.
-
-#### Parameters
-
-| Name        | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| serviceName | string | Name of the service |
-
-### getRegisteredServiceNameByHash
-
-```solidity
-function getRegisteredServiceNameByHash(bytes32 serviceHash) public view returns (string serviceName)
-```
-
-Returns the name of a registered service by its hash.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### getServiceNameByHash
-
-```solidity
-function getServiceNameByHash(bytes32 serviceHash) public view returns (string serviceName)
-```
-
-Returns the name of a service by its hash. Even if the service is unregistered at the moment.
-
-#### Parameters
-
-| Name        | Type    | Description         |
-| ----------- | ------- | ------------------- |
-| serviceHash | bytes32 | Hash of the service |
-
-### getRegisteredServiceHashByName
-
-```solidity
-function getRegisteredServiceHashByName(string serviceName) public view returns (bytes32 serviceHash)
-```
-
-Returns the hash of a service by its name.
-
-#### Parameters
-
-| Name        | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| serviceName | string | Name of the service |
-
-### getServiceHashByName
-
-```solidity
-function getServiceHashByName(string serviceName) public view returns (bytes32 serviceHash)
-```
-
-Returns the hash of a service by its name. Even if the service is unregistered at the moment.
-
-#### Parameters
-
-| Name        | Type   | Description         |
-| ----------- | ------ | ------------------- |
-| serviceName | string | Name of the service |
-
-### getAllRegisteredServiceHashes
-
-```solidity
-function getAllRegisteredServiceHashes() public view returns (bytes32[] services)
-```
-
-Returns all registered service **hashes**.
-
-#### Return Values
-
-| Name     | Type      | Description                   |
-| -------- | --------- | ----------------------------- |
-| services | bytes32[] | All registered service hashes |
-
-### getAllRegisteredServiceNames
-
-```solidity
-function getAllRegisteredServiceNames() public view returns (string[] services)
-```
-
-Returns all registered service **names**.
-
-#### Return Values
-
-| Name     | Type     | Description                  |
-| -------- | -------- | ---------------------------- |
-| services | string[] | All registered service names |
-
 ## Dummy
 
 ### getVersion
@@ -3373,97 +3130,3 @@ function getVersion() public pure returns (string)
 ```solidity
 constructor() public
 ```
-
-## ServiceFeeToken
-
-This contract is intended to be used only on testnet as an ERC20 service
-fee token.
-
-For more info see:
-https://github.com/chain4travel/camino-messenger-contracts/
-
-### PAUSER_ROLE
-
-```solidity
-bytes32 PAUSER_ROLE
-```
-
-### MINTER_ROLE
-
-```solidity
-bytes32 MINTER_ROLE
-```
-
-### UPGRADER_ROLE
-
-```solidity
-bytes32 UPGRADER_ROLE
-```
-
-### constructor
-
-```solidity
-constructor() public
-```
-
-### initialize
-
-```solidity
-function initialize(address defaultAdmin, address pauser, address minter, address upgrader) public
-```
-
-### reinitializeV2
-
-```solidity
-function reinitializeV2(string newName, string newSymbol) public
-```
-
-This function allows reinitializing the contract to update the name and symbol
-
-_Only callable by DEFAULT_ADMIN_ROLE_
-
-#### Parameters
-
-| Name      | Type   | Description      |
-| --------- | ------ | ---------------- |
-| newName   | string | New token name   |
-| newSymbol | string | New token symbol |
-
-### pause
-
-```solidity
-function pause() public
-```
-
-### unpause
-
-```solidity
-function unpause() public
-```
-
-### mint
-
-```solidity
-function mint(address to, uint256 amount) public
-```
-
-### \_authorizeUpgrade
-
-```solidity
-function _authorizeUpgrade(address newImplementation) internal
-```
-
-\_Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
-{upgradeToAndCall}.
-
-Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
-
-````solidity
-function _authorizeUpgrade(address) internal onlyOwner {}
-```_
-
-### _update
-
-```solidity
-function _update(address from, address to, uint256 value) internal
-````

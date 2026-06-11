@@ -111,11 +111,7 @@ abstract contract PartnerConfiguration is Initializable {
      * @param capabilities Capabilities for the service
      * @param restrictedRate If the service is restricted to pre-agreement
      */
-    function _addService(
-        bytes32 serviceHash,
-        string[] memory capabilities,
-        bool restrictedRate
-    ) internal virtual {
+    function _addService(bytes32 serviceHash, string[] memory capabilities, bool restrictedRate) internal virtual {
         PartnerConfigurationStorage storage $ = _getPartnerConfigurationStorage();
 
         // Try to add the service to the services hash set
@@ -123,10 +119,7 @@ abstract contract PartnerConfiguration is Initializable {
         if (!added) {
             revert ServiceAlreadyExists(serviceHash);
         }
-        $._supportedServices[serviceHash] = Service({
-            _capabilities: capabilities,
-            _restrictedRate: restrictedRate
-        });
+        $._supportedServices[serviceHash] = Service({ _capabilities: capabilities, _restrictedRate: restrictedRate });
     }
 
     /**
@@ -145,8 +138,6 @@ abstract contract PartnerConfiguration is Initializable {
 
         delete $._supportedServices[serviceHash];
     }
-
-
 
     /**
      * @notice Sets the Service restricted rate for a given hash.
