@@ -171,7 +171,6 @@ contract CMAccount is
     event WantedServiceAdded(string indexed serviceName);
     event WantedServiceRemoved(string indexed serviceName);
 
-    event ServiceFeeUpdated(string indexed serviceName, uint256 fee);
     event ServiceRestrictedRateUpdated(string indexed serviceName, bool restrictedRate);
 
     event ServiceCapabilitiesUpdated(string indexed serviceName);
@@ -440,16 +439,14 @@ contract CMAccount is
      * definitions.
      *
      * @param serviceName Service name to add to the account as a supported service
-     * @param fee Fee of the service in aCAM (wei in ETH terminology)
      * @param capabilities Capabilities of the service (if any, optional)
      */
     function addService(
         string memory serviceName,
-        uint256 fee,
         bool restrictedRate,
         string[] memory capabilities
     ) public onlyRole(SERVICE_ADMIN_ROLE) {
-        _addService(getRegisteredServiceHash(serviceName), fee, capabilities, restrictedRate);
+        _addService(getRegisteredServiceHash(serviceName), capabilities, restrictedRate);
         emit ServiceAdded(serviceName);
     }
 
@@ -474,15 +471,7 @@ contract CMAccount is
         }
     }
 
-    // FEE
 
-    /**
-     * @notice Set the fee of a service by name
-     */
-    function setServiceFee(string memory serviceName, uint256 fee) public onlyRole(SERVICE_ADMIN_ROLE) {
-        _setServiceFee(getServiceHash(serviceName), fee);
-        emit ServiceFeeUpdated(serviceName, fee);
-    }
 
     // RESTRICTED RATE
 
@@ -579,10 +568,12 @@ contract CMAccount is
     }
 
     /**
-     * @notice Get service fee by name. Overloading the getServiceFee function.
+     * @notice Check if a service is registered and supported.
+     *
+     * @param serviceName Service name to check
      */
-    function getServiceFee(string memory serviceName) public view returns (uint256 fee) {
-        return getServiceFee(getServiceHash(serviceName));
+    function isServiceSupported(string memory serviceName) public view returns (bool) {
+        return _isServiceSupported(getServiceHash(serviceName));
     }
 
     /**

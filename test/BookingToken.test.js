@@ -5,10 +5,8 @@ const { ethers } = require("hardhat");
 
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
-// Fixtures
 const {
     setupSigners,
-    developerFeeBp,
     deployCMAccountManagerFixture,
     deployCMAccountImplFixture,
     deployCMAccountManagerWithCMAccountImplFixture,

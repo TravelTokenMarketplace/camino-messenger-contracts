@@ -19,8 +19,6 @@ import { ICMAccount } from "../account/ICMAccount.sol";
 
 // Utils
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Service Registry
 import { ServiceRegistry } from "../partner/ServiceRegistry.sol";
@@ -59,7 +57,6 @@ contract CMAccountManager is
     ServiceRegistry
 {
     using Address for address payable;
-    using SafeERC20 for IERC20;
 
     /**
      * @notice Pauser role can pause the contract. Currently this only affects the
@@ -83,23 +80,7 @@ contract CMAccountManager is
      */
     bytes32 public constant VERSIONER_ROLE = keccak256("VERSIONER_ROLE");
 
-    /**
-     * @notice Fee admin role can set the developer fee basis points which used for
-     * calculating the developer fee that is cut from the cheque payments.
-     */
-    bytes32 public constant FEE_ADMIN_ROLE = keccak256("FEE_ADMIN_ROLE");
 
-    /**
-     * @notice Developer wallet admin role can set the developer wallet address
-     * which is used to receive the developer fee.
-     */
-    bytes32 public constant DEVELOPER_WALLET_ADMIN_ROLE = keccak256("DEVELOPER_WALLET_ADMIN_ROLE");
-
-    /**
-     * @notice Prefund admin role can set the mandatory prefund amount for {CMAccount}
-     * contracts.
-     */
-    bytes32 public constant PREFUND_ADMIN_ROLE = keccak256("PREFUND_ADMIN_ROLE");
 
     /**
      * @notice Service registry admin role can add and remove services to the service
@@ -113,10 +94,7 @@ contract CMAccountManager is
      */
     bytes32 public constant CMACCOUNT_ROLE = keccak256("CMACCOUNT_ROLE");
 
-    /**
-     * @notice This role is able to set the service fee token address.
-     */
-    bytes32 public constant SERVICE_FEE_TOKEN_ADMIN_ROLE = keccak256("SERVICE_FEE_TOKEN_ADMIN_ROLE");
+
 
     /***************************************************
      *                   STORAGE                       *
@@ -139,24 +117,6 @@ contract CMAccountManager is
          */
         address _latestAccountImplementation;
         /**
-         * @dev Prefund amount.
-         */
-        uint256 _prefundAmount;
-        /**
-         * @dev Developer wallet address. CMAccount sends the developer fee to this address.
-         */
-        address _developerWallet;
-        /**
-         * @dev Developer fee basis points.
-         *
-         * A basis point (bp) is one hundredth of 1 percentage point.
-         *
-         * 1 bp = 0.01%, 1/10,000⁠, or 0.0001.
-         * 10 bp = 0.1%, 1/1,000⁠, or 0.001.
-         * 100 bp = 1%, ⁠1/100⁠, or 0.01.
-         */
-        uint256 _developerFeeBp;
-        /**
          * @dev BookingToken address.
          */
         address _bookingToken;
@@ -164,10 +124,6 @@ contract CMAccountManager is
          * @dev CMAccount info mapping to track if an address is a CMAccount and initial creators.
          */
         mapping(address account => CMAccountInfo) _cmAccountInfo;
-        /**
-         * @dev ERC20 Service fee token address.
-         */
-        address _serviceFeeToken;
     }
 
     // keccak256(abi.encode(uint256(keccak256("camino.messenger.storage.CMAccountManager")) - 1)) & ~bytes32(uint256(0xff));
@@ -197,19 +153,7 @@ contract CMAccountManager is
      */
     event CMAccountImplementationUpdated(address indexed oldImplementation, address indexed newImplementation);
 
-    /**
-     * @notice Developer wallet address updated event.
-     * @param oldDeveloperWallet The old developer wallet address
-     * @param newDeveloperWallet The new developer wallet address
-     */
-    event DeveloperWalletUpdated(address indexed oldDeveloperWallet, address indexed newDeveloperWallet);
 
-    /**
-     * @notice Developer fee basis points updated event.
-     * @param oldDeveloperFeeBp The old developer fee basis points
-     * @param newDeveloperFeeBp The new developer fee basis points
-     */
-    event DeveloperFeeBpUpdated(uint256 indexed oldDeveloperFeeBp, uint256 indexed newDeveloperFeeBp);
 
     /**
      * @notice Booking token address updated event.
@@ -218,19 +162,7 @@ contract CMAccountManager is
      */
     event BookingTokenAddressUpdated(address indexed oldBookingToken, address indexed newBookingToken);
 
-    /**
-     * @notice Service fee token address updated event.
-     * @param oldServiceFeeToken The old service fee token address
-     * @param newServiceFeeToken The new service fee token address
-     */
-    event ServiceFeeTokenUpdated(address indexed oldServiceFeeToken, address indexed newServiceFeeToken);
 
-    /**
-     * @notice Prefund amount updated event.
-     * @param oldPrefundAmount The old prefund amount
-     * @param newPrefundAmount The new prefund amount
-     */
-    event PrefundAmountUpdated(uint256 indexed oldPrefundAmount, uint256 indexed newPrefundAmount);
 
     /***************************************************
      *                    ERRORS                       *
@@ -248,11 +180,7 @@ contract CMAccountManager is
      */
     error CMAccountInvalidAdmin(address admin);
 
-    /**
-     * @notice Invalid developer address.
-     * @param developerWallet The developer wallet address
-     */
-    error InvalidDeveloperWallet(address developerWallet);
+
 
     /**
      * @notice Invalid booking token address.
@@ -260,11 +188,7 @@ contract CMAccountManager is
      */
     error InvalidBookingTokenAddress(address bookingToken);
 
-    /**
-     * @notice Invalid service fee token error.
-     * @param serviceFeeToken The service fee token address
-     */
-    error InvalidServiceFeeToken(address serviceFeeToken);
+
 
     /***************************************************
      *                    FUNCS                        *
@@ -279,9 +203,7 @@ contract CMAccountManager is
         address defaultAdmin, // can grant roles
         address pauser, // can pause the manager
         address upgrader, // can upgrade the manager (this contract)
-        address versioner, // can set CMAccount implementation address
-        address developerWallet, // developer wallet used to receive the developer fee
-        uint256 developerFeeBp // developer fee basis points
+        address versioner // can set CMAccount implementation address
     ) public initializer {
         __Pausable_init();
         __AccessControl_init();
@@ -291,14 +213,6 @@ contract CMAccountManager is
         _grantRole(PAUSER_ROLE, pauser);
         _grantRole(UPGRADER_ROLE, upgrader);
         _grantRole(VERSIONER_ROLE, versioner);
-
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-
-        $._developerWallet = developerWallet;
-        $._developerFeeBp = developerFeeBp;
-
-        // Set initial prefund amount to 100 ethers (assuming the service token is 18 decimals)
-        $._prefundAmount = 100 ether;
     }
 
     /**
@@ -377,31 +291,9 @@ contract CMAccountManager is
         // [CAM] Send the msg.value to the CMAccount
         payable(cmAccountProxy).sendValue(msg.value);
 
-        // [ServiceFee] Transfer the service fee prefund amount to the CMAccount
-        _transferServiceFeePrefund(address(cmAccountProxy));
-
         emit CMAccountCreated(address(cmAccountProxy));
 
         return address(cmAccountProxy);
-    }
-
-    /**
-     * @notice Transfers the service fee prefund amount to the CMAccount
-     *
-     * @dev This function is called when a CMAccount is created. The msg.sender
-     * should approve the allowance of the service fee token to the
-     * CMAccountManager.
-     *
-     * @param account The CMAccount address
-     */
-    function _transferServiceFeePrefund(address account) internal {
-        address serviceFeeToken = getServiceFeeToken();
-
-        if (serviceFeeToken == address(0)) {
-            revert InvalidServiceFeeToken(serviceFeeToken);
-        }
-
-        IERC20(serviceFeeToken).safeTransferFrom(msg.sender, account, getPrefundAmount());
     }
 
     function _setCMAccountInfo(address account, CMAccountInfo memory info) internal {
@@ -427,39 +319,7 @@ contract CMAccountManager is
         return $._cmAccountInfo[account].isCMAccount;
     }
 
-    /***************************************************
-     *               SERVICE FEE TOKEN                 *
-     ***************************************************/
 
-    /**
-     * @notice Returns the service fee token address.
-     */
-    function getServiceFeeToken() public view returns (address) {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        return $._serviceFeeToken;
-    }
-
-    /**
-     * @notice Sets the service fee token address.
-     * @param serviceFeeToken The service fee token address
-     */
-    function setServiceFeeToken(address serviceFeeToken) public onlyRole(SERVICE_FEE_TOKEN_ADMIN_ROLE) {
-        // Fail fast if the provided token is the zero address or not a deployed contract
-        if (serviceFeeToken == address(0) || serviceFeeToken.code.length == 0) {
-            revert InvalidServiceFeeToken(serviceFeeToken);
-        }
-
-        address oldServiceFeeToken = getServiceFeeToken();
-
-        _setServiceFeeToken(serviceFeeToken);
-
-        emit ServiceFeeTokenUpdated(oldServiceFeeToken, serviceFeeToken);
-    }
-
-    function _setServiceFeeToken(address serviceFeeToken) internal {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        $._serviceFeeToken = serviceFeeToken;
-    }
 
     /***************************************************
      *             ACCOUNT IMPLEMENTATION              *
@@ -492,27 +352,7 @@ contract CMAccountManager is
         $._latestAccountImplementation = newImplementation;
     }
 
-    /***************************************************
-     *                    PREFUND                      *
-     ***************************************************/
 
-    /**
-     * @notice Returns the prefund amount.
-     */
-    function getPrefundAmount() public view returns (uint256) {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        return $._prefundAmount;
-    }
-
-    /**
-     * @notice Sets the prefund amount.
-     */
-    function setPrefundAmount(uint256 newPrefundAmount) public onlyRole(PREFUND_ADMIN_ROLE) {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        uint256 oldPrefundAmount = $._prefundAmount;
-        $._prefundAmount = newPrefundAmount;
-        emit PrefundAmountUpdated(oldPrefundAmount, newPrefundAmount);
-    }
 
     /***************************************************
      *                  BOOKING TOKEN                  *
@@ -544,63 +384,7 @@ contract CMAccountManager is
         $._bookingToken = token;
     }
 
-    /***************************************************
-     *            DEVELOPER WALLET & FEE               *
-     ***************************************************/
 
-    /**
-     * @notice Returns developer wallet address.
-     */
-    function getDeveloperWallet() public view returns (address developerWallet) {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        return $._developerWallet;
-    }
-
-    /**
-     * @notice Sets developer wallet address.
-     */
-    function setDeveloperWallet(address developerWallet) public onlyRole(DEVELOPER_WALLET_ADMIN_ROLE) {
-        if (developerWallet == address(0)) {
-            revert InvalidDeveloperWallet(developerWallet);
-        }
-
-        address oldDeveloperWallet = getDeveloperWallet();
-        _setDeveloperWallet(developerWallet);
-        emit DeveloperWalletUpdated(oldDeveloperWallet, developerWallet);
-    }
-
-    function _setDeveloperWallet(address developerWallet) private {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        $._developerWallet = developerWallet;
-    }
-
-    /**
-     * @notice Returns developer fee in basis points.
-     */
-    function getDeveloperFeeBp() public view returns (uint256 developerFeeBp) {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        return $._developerFeeBp;
-    }
-
-    /**
-     * @notice Sets developer fee in basis points.
-     *
-     * A basis point (bp) is one hundredth of 1 percentage point.
-     *
-     * 1 bp = 0.01%, 1/10,000⁠, or 0.0001.
-     * 10 bp = 0.1%, 1/1,000⁠, or 0.001.
-     * 100 bp = 1%, ⁠1/100⁠, or 0.01.
-     */
-    function setDeveloperFeeBp(uint256 bp) public onlyRole(FEE_ADMIN_ROLE) {
-        uint256 oldBp = getDeveloperFeeBp();
-        _setDeveloperFeeBp(bp);
-        emit DeveloperFeeBpUpdated(oldBp, bp);
-    }
-
-    function _setDeveloperFeeBp(uint256 bp) private {
-        CMAccountManagerStorage storage $ = _getCMAccountManagerStorage();
-        $._developerFeeBp = bp;
-    }
 
     /***************************************************
      *               SERVICE REGISTRY                  *

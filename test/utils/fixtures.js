@@ -4,7 +4,7 @@
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { ethers, upgrades } = require("hardhat");
 
-const developerFeeBp = 100;
+
 
 async function setupSigners() {
     const [
@@ -64,20 +64,6 @@ async function deployNullUSDFixture() {
     return { nullUSD, nullUSDDecimals };
 }
 
-async function deployServiceFeeTokenFixture() {
-    // Set up signers
-    await setupSigners();
-
-    const ServiceFeeToken = await ethers.getContractFactory("ServiceFeeToken");
-    const serviceFeeToken = await upgrades.deployProxy(ServiceFeeToken, [
-        signers.feeAdmin.address, // admin
-        signers.managerPauser.address, // pauser
-        signers.withdrawer.address, // minter
-        signers.managerUpgrader.address, // upgrader
-    ]);
-    return { serviceFeeToken };
-}
-
 async function deployCMAccountManagerFixture() {
     // Set up signers
     await setupSigners();
@@ -90,8 +76,6 @@ async function deployCMAccountManagerFixture() {
             signers.managerPauser.address,
             signers.managerUpgrader.address,
             signers.managerVersioner.address,
-            signers.developerWallet.address,
-            developerFeeBp,
         ],
         { kind: "uups" },
     );
@@ -135,16 +119,6 @@ async function deployAndConfigureAllFixture() {
 
     const { nullUSD, nullUSDDecimals } = await loadFixture(deployNullUSDFixture);
 
-    await cmAccountManager.grantRole(
-        await cmAccountManager.DEVELOPER_WALLET_ADMIN_ROLE(),
-        signers.developerWalletAdmin.address,
-    );
-    await cmAccountManager.grantRole(await cmAccountManager.FEE_ADMIN_ROLE(), signers.feeAdmin.address);
-
-    // Set Service Fee Token Address
-    await cmAccountManager.grantRole(await cmAccountManager.SERVICE_FEE_TOKEN_ADMIN_ROLE(), signers.feeAdmin.address);
-    await cmAccountManager.connect(signers.feeAdmin).setServiceFeeToken(await nullUSD.getAddress());
-
     // Deploy BookingToken
 
     const BookingToken = await ethers.getContractFactory("BookingToken");
@@ -157,16 +131,10 @@ async function deployAndConfigureAllFixture() {
     // Set BookingToken address on the manager
     await cmAccountManager.connect(signers.managerVersioner).setBookingTokenAddress(bookingToken.getAddress());
 
-    // Get pre fund amount
-    const prefundAmount = await cmAccountManager.getPrefundAmount();
-
-    // Approve allowance for service fee prefund amount
-    await nullUSD.approve(await cmAccountManager.getAddress(), prefundAmount);
-
     const tx = await cmAccountManager.createCMAccount(
         signers.cmAccountAdmin.address,
         signers.cmAccountUpgrader.address,
-        { value: prefundAmount },
+        { value: ethers.parseEther("100") },
     );
 
     const receipt = await tx.wait();
@@ -190,7 +158,6 @@ async function deployAndConfigureAllFixture() {
         cmAccountManager,
         cmAccount,
         bookingToken,
-        prefundAmount,
         nullUSD,
         nullUSDDecimals,
     };
@@ -200,7 +167,7 @@ async function deployCMAccountWithDepositFixture() {
     // Set up signers
     await setupSigners();
 
-    const { cmAccountManager, cmAccount, bookingToken, prefundAmount, nullUSD, nullUSDDecimals } =
+    const { cmAccountManager, cmAccount, bookingToken, nullUSD, nullUSDDecimals } =
         await loadFixture(deployAndConfigureAllFixture);
 
     // Grant withdrawer role
@@ -225,7 +192,6 @@ async function deployCMAccountWithDepositFixture() {
         cmAccountManager,
         cmAccount,
         bookingToken,
-        prefundAmount,
         nullUSD,
         nullUSDDecimals,
     };
@@ -235,21 +201,18 @@ async function deployBookingTokenFixture() {
     // Set up signers
     await setupSigners();
 
-    const { cmAccountManager, cmAccount, bookingToken, prefundAmount, nullUSD, nullUSDDecimals } = await loadFixture(
+    const { cmAccountManager, cmAccount, bookingToken, nullUSD, nullUSDDecimals } = await loadFixture(
         deployCMAccountWithDepositFixture,
     );
 
     // Supplier CMAccount with deposit
     const supplierCMAccount = cmAccount;
 
-    // Approve allowance for service fee prefund amount
-    await nullUSD.approve(await cmAccountManager.getAddress(), prefundAmount);
-
     // Create distributor CMAccount
     const tx = await cmAccountManager.createCMAccount(
         signers.cmAccountAdmin.address,
         signers.cmAccountUpgrader.address,
-        { value: prefundAmount },
+        { value: ethers.parseEther("100") },
     );
 
     const receipt = await tx.wait();
@@ -286,7 +249,6 @@ async function deployBookingTokenFixture() {
         supplierCMAccount,
         distributorCMAccount,
         bookingToken,
-        prefundAmount,
         nullUSD,
         nullUSDDecimals,
     };
@@ -301,7 +263,6 @@ async function deployBookingTokenWithNullUSDFixture() {
         supplierCMAccount,
         distributorCMAccount,
         bookingToken,
-        prefundAmount,
         nullUSD,
         nullUSDDecimals,
     } = await loadFixture(deployBookingTokenFixture);
@@ -316,7 +277,6 @@ async function deployBookingTokenWithNullUSDFixture() {
         supplierCMAccount,
         distributorCMAccount,
         bookingToken,
-        prefundAmount,
         nullUSD,
         nullUSDDecimals,
     };
@@ -331,7 +291,6 @@ async function deployCancellationSupportFixture() {
         supplierCMAccount,
         distributorCMAccount,
         bookingToken,
-        prefundAmount,
         nullUSD,
         nullUSDDecimals,
     } = await loadFixture(deployBookingTokenWithNullUSDFixture);
@@ -477,11 +436,10 @@ async function deployCancellationSupportFixture() {
 
     // We also need another CM Account to test for fail cases
     // Create other CMAccount
-    await nullUSD.approve(await cmAccountManager.getAddress(), prefundAmount);
     const tx = await cmAccountManager.createCMAccount(
         signers.cmAccountAdmin.address,
         signers.cmAccountUpgrader.address,
-        { value: prefundAmount },
+        { value: ethers.parseEther("100") },
     );
 
     const receipt = await tx.wait();
@@ -597,7 +555,6 @@ async function deployAndConfigureAllWithRegisteredServicesFixture() {
 
 module.exports = {
     setupSigners,
-    developerFeeBp,
     deployCMAccountManagerFixture,
     deployCMAccountImplFixture,
     deployCMAccountManagerWithCMAccountImplFixture,
@@ -608,5 +565,4 @@ module.exports = {
     deployBookingTokenWithNullUSDFixture,
     deployCancellationSupportFixture,
     deployNullUSDFixture,
-    deployServiceFeeTokenFixture,
 };

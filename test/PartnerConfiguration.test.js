@@ -8,7 +8,6 @@ const { ethers, upgrades } = require("hardhat");
 // Fixtures
 const {
     setupSigners,
-    developerFeeBp,
     deployCMAccountManagerFixture,
     deployCMAccountImplFixture,
     deployCMAccountManagerWithCMAccountImplFixture,
@@ -49,19 +48,18 @@ describe("PartnerConfiguration", function () {
                 .to.emit(cmAccount, "RoleGranted")
                 .withArgs(SERVICE_ADMIN_ROLE, signers.otherAccount1.address, signers.cmAccountAdmin.address);
 
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
 
             // Should revert if the same service is added again
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
             )
                 .to.be.revertedWithCustomError(cmAccount, "ServiceAlreadyExists")
                 .withArgs(serviceHash);
@@ -98,12 +96,11 @@ describe("PartnerConfiguration", function () {
                 .to.emit(cmAccount, "RoleGranted")
                 .withArgs(SERVICE_ADMIN_ROLE, signers.otherAccount1.address, signers.cmAccountAdmin.address);
 
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
@@ -167,22 +164,21 @@ describe("PartnerConfiguration", function () {
                 .withArgs(SERVICE_ADMIN_ROLE, signers.otherAccount1.address, signers.cmAccountAdmin.address);
 
             // Add all services
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName1, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName1, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName1);
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName2, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName2, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName2);
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName3, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName3, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName3);
@@ -250,13 +246,12 @@ describe("PartnerConfiguration", function () {
                 .to.emit(cmAccount, "RoleGranted")
                 .withArgs(SERVICE_ADMIN_ROLE, signers.otherAccount1.address, signers.cmAccountAdmin.address);
 
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             // Try to add a service with otherAccount2
             await expect(
-                cmAccount.connect(signers.otherAccount2).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount2).addService(serviceName, restrictedRate, capabilities),
             )
                 .to.be.revertedWithCustomError(cmAccount, "AccessControlUnauthorizedAccount")
                 .withArgs(signers.otherAccount2.address, SERVICE_ADMIN_ROLE);
@@ -266,10 +261,6 @@ describe("PartnerConfiguration", function () {
             const { cmAccountManager, cmAccount, services } = await loadFixture(
                 deployAndConfigureAllWithRegisteredServicesFixture,
             );
-
-            const fee1 = 1000n;
-            const fee2 = 2000n;
-            const fee3 = 3000n;
 
             const restrictedRate1 = false;
             const restrictedRate2 = true;
@@ -283,7 +274,7 @@ describe("PartnerConfiguration", function () {
             expect(
                 await cmAccount
                     .connect(signers.cmServiceAdmin)
-                    .addService(services.serviceName1, fee1, restrictedRate1, capabilities1),
+                    .addService(services.serviceName1, restrictedRate1, capabilities1),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(services.serviceName1);
@@ -291,7 +282,7 @@ describe("PartnerConfiguration", function () {
             expect(
                 await cmAccount
                     .connect(signers.cmServiceAdmin)
-                    .addService(services.serviceName2, fee2, restrictedRate2, capabilities2),
+                    .addService(services.serviceName2, restrictedRate2, capabilities2),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(services.serviceName2);
@@ -299,7 +290,7 @@ describe("PartnerConfiguration", function () {
             expect(
                 await cmAccount
                     .connect(signers.cmServiceAdmin)
-                    .addService(services.serviceName3, fee3, restrictedRate3, capabilities3),
+                    .addService(services.serviceName3, restrictedRate3, capabilities3),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(services.serviceName3);
@@ -309,20 +300,11 @@ describe("PartnerConfiguration", function () {
             expect(servicesFromCMAccount).to.be.deep.equal([
                 [services.serviceName1, services.serviceName2, services.serviceName3],
                 [
-                    [fee1, restrictedRate1, capabilities1],
-                    [fee2, restrictedRate2, capabilities2],
-                    [fee3, restrictedRate3, capabilities3],
+                    [restrictedRate1, capabilities1],
+                    [restrictedRate2, capabilities2],
+                    [restrictedRate3, capabilities3],
                 ],
             ]);
-
-            // The contract calls below uses
-            // contract["functionName(string)"](string) to get the correct
-            // overloaded function
-
-            // Get specific fee for a service name
-            expect(await cmAccount["getServiceFee(string)"](services.serviceName1)).to.be.equal(fee1);
-            expect(await cmAccount["getServiceFee(string)"](services.serviceName2)).to.be.equal(fee2);
-            expect(await cmAccount["getServiceFee(string)"](services.serviceName3)).to.be.equal(fee3);
 
             // Get specific restricted rate for a service name
             expect(await cmAccount["getServiceRestrictedRate(string)"](services.serviceName1)).to.be.equal(
@@ -349,9 +331,7 @@ describe("PartnerConfiguration", function () {
             // TEST SETTERS
             // with new values for each service field
 
-            const newFee1 = 4000n;
-            const newFee2 = 5000n;
-            const newFee3 = 6000n;
+
 
             const newRestrictedRate1 = true;
             const newRestrictedRate2 = false;
@@ -360,40 +340,6 @@ describe("PartnerConfiguration", function () {
             const newCapabilities1 = ["test capability 4"];
             const newCapabilities2 = ["test capability 5"];
             const newCapabilities3 = ["test capability 6"];
-
-            // Fee Setter
-            await expect(
-                await cmAccount
-                    .connect(signers.cmServiceAdmin)
-                    ["setServiceFee(string,uint256)"](services.serviceName1, newFee1),
-            )
-                .to.emit(cmAccount, "ServiceFeeUpdated")
-                .withArgs(services.serviceName1, newFee1);
-
-            await expect(
-                await cmAccount
-                    .connect(signers.cmServiceAdmin)
-                    ["setServiceFee(string,uint256)"](services.serviceName2, newFee2),
-            )
-                .to.emit(cmAccount, "ServiceFeeUpdated")
-                .withArgs(services.serviceName2, newFee2);
-
-            await expect(
-                await cmAccount
-                    .connect(signers.cmServiceAdmin)
-                    ["setServiceFee(string,uint256)"](services.serviceName3, newFee3),
-            )
-                .to.emit(cmAccount, "ServiceFeeUpdated")
-                .withArgs(services.serviceName3, newFee3);
-
-            // Try with non-auth address
-            await expect(
-                cmAccount
-                    .connect(signers.otherAccount1)
-                    ["setServiceFee(string,uint256)"](services.serviceName1, newFee1),
-            )
-                .to.be.revertedWithCustomError(cmAccount, "AccessControlUnauthorizedAccount")
-                .withArgs(signers.otherAccount1.address, await cmAccount.SERVICE_ADMIN_ROLE());
 
             // Restricted Rate Setter
             await expect(
@@ -504,10 +450,7 @@ describe("PartnerConfiguration", function () {
 
             // TEST GETTERS with hashes
 
-            // Get specific fee for a service name
-            expect(await cmAccount["getServiceFee(bytes32)"](services.serviceHash1)).to.be.equal(newFee1);
-            expect(await cmAccount["getServiceFee(bytes32)"](services.serviceHash2)).to.be.equal(newFee2);
-            expect(await cmAccount["getServiceFee(bytes32)"](services.serviceHash3)).to.be.equal(newFee3);
+
 
             // Get specific restricted rate for a service name
             expect(await cmAccount["getServiceRestrictedRate(bytes32)"](services.serviceHash1)).to.be.equal(
@@ -544,15 +487,12 @@ describe("PartnerConfiguration", function () {
                 deployAndConfigureAllWithRegisteredServicesFixture,
             );
 
-            // Non registered service
             const serviceName = "cmp.service.accommodation.v0.AccommodationSearchService";
-
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             await expect(
-                cmAccount.connect(signers.cmServiceAdmin).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.cmServiceAdmin).addService(serviceName, restrictedRate, capabilities),
             ).to.be.revertedWithCustomError(cmAccountManager, "ServiceNotRegistered");
         });
     });
@@ -589,12 +529,11 @@ describe("PartnerConfiguration", function () {
                 .to.emit(cmAccount, "RoleGranted")
                 .withArgs(SERVICE_ADMIN_ROLE, signers.otherAccount1.address, signers.cmAccountAdmin.address);
 
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
@@ -641,12 +580,11 @@ describe("PartnerConfiguration", function () {
                 .to.emit(cmAccount, "RoleGranted")
                 .withArgs(SERVICE_ADMIN_ROLE, signers.otherAccount1.address, signers.cmAccountAdmin.address);
 
-            const fee = 1000n;
             const restrictedRate = false;
             const capabilities = [];
 
             await expect(
-                cmAccount.connect(signers.otherAccount1).addService(serviceName, fee, restrictedRate, capabilities),
+                cmAccount.connect(signers.otherAccount1).addService(serviceName, restrictedRate, capabilities),
             )
                 .to.emit(cmAccount, "ServiceAdded")
                 .withArgs(serviceName);
@@ -658,7 +596,7 @@ describe("PartnerConfiguration", function () {
 
             // Try to get all services
             const servicesFromCMAccount = await cmAccount.getSupportedServices();
-            expect(servicesFromCMAccount).to.be.deep.equal([[serviceName], [[fee, restrictedRate, capabilities]]]);
+            expect(servicesFromCMAccount).to.be.deep.equal([[serviceName], [[restrictedRate, capabilities]]]);
         });
 
         it("should get all wanted services even if one is unregistered on the manager", async function () {
@@ -868,6 +806,24 @@ describe("PartnerConfiguration", function () {
                 services.serviceHash2,
                 services.serviceHash3,
             ]);
+        });
+
+        it("should return correct status for isServiceSupported", async function () {
+            const { cmAccountManager, cmAccount, services } = await loadFixture(
+                deployAndConfigureAllWithRegisteredServicesFixture,
+            );
+
+            // Prior to adding, it should be unsupported
+            expect(await cmAccount.isServiceSupported(services.serviceName1)).to.be.false;
+
+            // Add the service
+            await cmAccount.connect(signers.cmServiceAdmin).addService(services.serviceName1, false, []);
+
+            // Now it should be supported
+            expect(await cmAccount.isServiceSupported(services.serviceName1)).to.be.true;
+
+            // Non-registered or other services should still be unsupported
+            expect(await cmAccount.isServiceSupported(services.serviceName2)).to.be.false;
         });
     });
 

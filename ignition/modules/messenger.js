@@ -16,20 +16,6 @@ const CaminoMessengerModule = buildModule("CaminoMessengerModule", (m) => {
     const upgrader = m.getParameter("managerUpgrader", admin);
     const versioner = m.getParameter("managerVersioner", admin);
 
-    /***************************************************
-     *                DEVELOPER WALLET                 *
-     ***************************************************/
-
-    // We need a developer wallet to initialize the CMAccountManager
-    const developerWallet = m.getParameter("developerWallet", admin);
-
-    // Developer fee basis points, 100 bp == 1%
-    const developerFeeBp = m.getParameter("developerFeeBp", 100);
-
-    /***************************************************
-     *                     MANAGER                     *
-     ***************************************************/
-
     // Deploy CMAccountManager implementation contract
     const cmAccountManager = m.contract("CMAccountManager");
 
@@ -39,8 +25,6 @@ const CaminoMessengerModule = buildModule("CaminoMessengerModule", (m) => {
         pauser,
         upgrader,
         versioner,
-        developerWallet,
-        developerFeeBp,
     ]);
 
     // Deploy the proxy contract for CMAccountManager with the initialize data

@@ -5,10 +5,8 @@ const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helper
 const { expect } = require("chai");
 const { ethers, upgrades } = require("hardhat");
 
-// Fixtures
 const {
     setupSigners,
-    developerFeeBp,
     deployCMAccountManagerFixture,
     deployCMAccountImplFixture,
     deployCMAccountManagerWithCMAccountImplFixture,
