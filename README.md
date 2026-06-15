@@ -489,12 +489,11 @@ Ethers.js, check out the [`test/ChequeManager.test.js`](test/ChequeManager.test.
 ## Camino Messenger Account Setup
 
 > [!WARNING]
-> This guide is for development purposes only. For officially registered
-> CM Accounts, please visit [Camino Messenger
-> Partners](https://suite.camino.network/partners) and select "**Register As A
-> Partner**" from top right.
+> This guide is for development purposes on Base Sepolia only. For officially registered
+> CM Accounts on Base, please wait for the frontend GUI to be finished.
 
-To set up your Camino Messenger Account (CM Account) for use with the Camino Messenger Bot, you need to:
+To set up your Camino Messenger Account (CM Account) for use with the Camino Messenger Bot
+on Base Sepolia, you need to:
 
 1. Create a CM Account
 2. Register your bot on your CM Account
@@ -507,8 +506,9 @@ Follow the steps below to complete this process.
 Before you begin, ensure you have completed the following steps:
 
 - **Compile the Contracts:** Ensure all contracts are successfully compiled. (`yarn compile --force`)
-- **KYC Verification:** Complete [the KYC process](https://docs.camino.network/guides/kyc) for your wallet, as deploying a new contract (your CM Account) requires verification.
-- **Fund Your Wallet:** Use [the faucet](https://docs.camino.network/developer/guides/how-to-deploy-a-smart-contract/#3-request-funds-from-the-discord-faucet) to fund your wallet. Your new CM Account will initially needs to receive 100 CAM tokens, so ensure your wallet contains more than 100 CAM tokens.
+- **KYC Verification:** is not required on Base Sepolia
+- **Fund Your Wallet:** Use one of the faucets to obtain at least 0.1ETH. Most of them require real ETH
+  on Mainnet or Mainnet activity. See: https://docs.base.org/base-chain/network-information/network-faucets
 
 ### Creating a CM Account
 
