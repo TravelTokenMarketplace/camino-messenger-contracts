@@ -9,7 +9,7 @@ const ACC_ROLES = [
     "DEFAULT_ADMIN_ROLE",
     "UPGRADER_ROLE",
     "BOT_ADMIN_ROLE",
-    "CHEQUE_OPERATOR_ROLE",
+    "MESSENGER_BOT_ROLE",
     "GAS_WITHDRAWER_ROLE",
     "WITHDRAWER_ROLE",
     "BOOKING_OPERATOR_ROLE",
@@ -56,14 +56,7 @@ async function getCMAccount(cmAccountAddress) {
     return await ethers.getContractAt("CMAccount", cmAccountAddress);
 }
 
-async function getServiceFeeTokenFromManager(hre) {
-    const manager = await getManager(hre);
-    const sftAddress = await manager.getServiceFeeToken();
-    if (sftAddress === ethers.ZeroAddress) {
-        throw new Error("ServiceFeeToken is not configured on the CMAccountManager");
-    }
-    return await ethers.getContractAt("ServiceFeeToken", sftAddress);
-}
+// ServiceFeeToken helper removed as service fees are deprecated
 
 async function handleRoles(taskArgs, hre, action) {
     const cmAccount = await getCMAccount(taskArgs.cmAccount);
@@ -218,30 +211,10 @@ ACCOUNT_SCOPE.task("create", "Create CMAccount")
     .setAction(async (taskArgs, hre) => {
         const manager = await getManager(hre);
 
-        console.log("We need to approve the ServiceFeeToken for the manager to create the CMAccount.");
-        console.log("Getting ServiceFeeToken...");
-        const serviceFeeToken = await getServiceFeeTokenFromManager(hre);
-        console.log("ServiceFeeToken Address:", await serviceFeeToken.getAddress());
-        console.log("ServiceFeeToken Name   :", await serviceFeeToken.name());
-        const sftSymbol = await serviceFeeToken.symbol();
-        const sftDecimals = await serviceFeeToken.decimals();
-        console.log("ServiceFeeToken Symbol :", sftSymbol);
-
         try {
             // Get signer from private key
             const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
             console.log("Signer:", signer.address);
-
-            // Approve the Service Fee Token
-            // Get prefund amount
-            console.log("Getting Prefund Amount...");
-            const prefundAmount = await manager.getPrefundAmount();
-            const prefundAmountFormatted = ethers.formatUnits(prefundAmount, sftDecimals);
-            console.log("Prefund Amount:", prefundAmountFormatted);
-            console.log(`Approving the manager for ${prefundAmountFormatted} ${sftSymbol} ...`);
-            const txApprove = await serviceFeeToken.connect(signer).approve(await manager.getAddress(), prefundAmount);
-            const receiptApprove = await txApprove.wait();
-            console.log("Tx:", receiptApprove.hash);
 
             // Create CMAccount
             const parsedCAM = ethers.parseEther(taskArgs.camAmount);
@@ -488,8 +461,8 @@ ACCOUNT_SCOPE.task("bot:list", "List all bots from CMAccount")
 
         console.log("\n📢 A bot is an address that has been granted some special roles on the CMAccount.");
 
-        const role1 = "CHEQUE_OPERATOR_ROLE";
-        console.log("\n🤖", role1, "(Can sign cheques that are valid for the CMAccount)");
+        const role1 = "MESSENGER_BOT_ROLE";
+        console.log("\n🤖", role1, "(Can represent the CMAccount / interact on behalf of it)");
         console.log("======================================================");
         await hre.run({ scope: "account", task: "role:members" }, { role: role1, cmAccount: taskArgs.cmAccount });
 
@@ -587,14 +560,12 @@ ACCOUNT_SCOPE.task("service:add", "Add supported service to CMAccount")
         process.env.CMACCOUNT_ADDRESS,
     )
     .addParam("serviceName", "Name of service to add")
-    .addParam("fee", "Fee of the service in aCAM (wei in ETH terminology)")
     .addParam("restrictedRate", "Restricted rate of the service", false, types.boolean)
     .addOptionalParam("capabilities", "Capabilities of the service, comma separated (optional)")
     .setAction(async (taskArgs, hre) => {
         const cmAccount = await getCMAccount(taskArgs.cmAccount);
         console.log("CMAccount:", taskArgs.cmAccount);
         console.log("Service Name:", taskArgs.serviceName);
-        console.log("Fee:", taskArgs.fee);
         console.log("Restricted Rate:", taskArgs.restrictedRate);
         console.log("Capabilities:", taskArgs.capabilities);
 
@@ -608,7 +579,7 @@ ACCOUNT_SCOPE.task("service:add", "Add supported service to CMAccount")
 
             const tx = await cmAccount
                 .connect(signer)
-                .addService(taskArgs.serviceName, taskArgs.fee, taskArgs.restrictedRate, capabilities);
+                .addService(taskArgs.serviceName, taskArgs.restrictedRate, capabilities);
             const receipt = await tx.wait();
             console.log("Tx:", receipt.hash);
         } catch (error) {
@@ -663,14 +634,12 @@ ACCOUNT_SCOPE.task("service:list", "List supported services from CMAccount")
                 console.log("Supported Services:");
                 for (let i = 0; i < serviceNames.length; i++) {
                     console.log(`📦 ${serviceNames[i]}`);
-                    const feeACAM = serviceDetails[i][0];
-                    const feeNCAM = ethers.formatUnits(serviceDetails[i][0], "gwei");
-                    const feeCAM = ethers.formatEther(serviceDetails[i][0]);
-                    console.log(`\t💰 Fee: ${feeNCAM} nCAM (${feeACAM} aCAM or ${feeCAM} CAM)`);
-                    console.log(`\t🔒 Restricted Rate: ${serviceDetails[i][1]} ${serviceDetails[i][1] ? "✅" : "❌"}`);
+                    const restrictedRate = serviceDetails[i]._restrictedRate !== undefined ? serviceDetails[i]._restrictedRate : serviceDetails[i][0];
+                    const capabilities = serviceDetails[i]._capabilities !== undefined ? serviceDetails[i]._capabilities : serviceDetails[i][1];
+                    console.log(`\t🔒 Restricted Rate: ${restrictedRate} ${restrictedRate ? "✅" : "❌"}`);
 
-                    for (let j = 0; j < serviceDetails[i][2].length; j++) {
-                        console.log(`\t🔧 ${serviceDetails[i][2][j]}`);
+                    for (let j = 0; j < capabilities.length; j++) {
+                        console.log(`\t🔧 ${capabilities[j]}`);
                     }
                 }
             } else {
@@ -1059,29 +1028,7 @@ ACCOUNT_SCOPE.task("service:remove-all", "Remove all supported services from CMA
         }
     });
 
-ACCOUNT_SCOPE.task("service:set-fee", "Set the fee of a supported service on CMAccount")
-    .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)
-    .addOptionalParam(
-        "cmAccount",
-        "CMAccount address, default: CMACCOUNT_ADDRESS env variable",
-        process.env.CMACCOUNT_ADDRESS,
-    )
-    .addParam("serviceName", "Name of the service")
-    .addParam("fee", "Fee of the service in aCAM")
-    .setAction(async (taskArgs, hre) => {
-        const cmAccount = await getCMAccount(taskArgs.cmAccount);
-        console.log("CMAccount:", taskArgs.cmAccount);
-
-        try {
-            const signer = new ethers.Wallet(taskArgs.privateKey, ethers.provider);
-            console.log(`Setting fee of service ${taskArgs.serviceName} to ${taskArgs.fee}...`);
-            const tx = await cmAccount.connect(signer).setServiceFee(taskArgs.serviceName, taskArgs.fee);
-            const receipt = await tx.wait();
-            console.log("Tx:", receipt.hash);
-        } catch (error) {
-            handleTransactionError(error, cmAccount);
-        }
-    });
+// service:set-fee task removed as service fees are deprecated
 
 ACCOUNT_SCOPE.task("service:set-restricted-rate", "Set the restricted rate property of a supported service")
     .addOptionalParam("privateKey", "Private key to use, default: CMACCOUNT_PK env variable", process.env.CMACCOUNT_PK)

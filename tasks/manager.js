@@ -10,12 +10,8 @@ const ROLES = [
     "PAUSER_ROLE",
     "UPGRADER_ROLE",
     "VERSIONER_ROLE",
-    "FEE_ADMIN_ROLE",
-    "DEVELOPER_WALLET_ADMIN_ROLE",
-    "PREFUND_ADMIN_ROLE",
     "SERVICE_REGISTRY_ADMIN_ROLE",
     //"CMACCOUNT_ROLE", // Disabled because it slows down the role:all output a lot. Use `account:list` instead
-    "SERVICE_FEE_TOKEN_ADMIN_ROLE",
 ];
 
 function bold(text) {
@@ -59,10 +55,7 @@ async function getBookingToken(hre) {
     return await ethers.getContractAt("BookingToken", addresses["CaminoMessengerModule#BookingTokenProxy"]);
 }
 
-async function getServiceFeeToken(hre) {
-    const addresses = getAddressesForNetwork(hre);
-    return await ethers.getContractAt("ServiceFeeToken", addresses["ServiceFeeTokenModule#ServiceFeeTokenProxy"]);
-}
+// ServiceFeeToken helper removed as service fees are deprecated
 
 async function handleRoles(taskArgs, hre, action, contractName) {
     let contract;
@@ -153,11 +146,6 @@ MANAGER_SCOPE.task("status", "Print status of deployed contracts").setAction(asy
 
     const cmAccount = await ethers.getContractAt("CMAccount", addresses["CaminoMessengerModule#CMAccount"]);
 
-    const serviceFeeToken = await ethers.getContractAt(
-        "ServiceFeeToken",
-        addresses["ServiceFeeTokenModule#ServiceFeeTokenProxy"],
-    );
-
     const bookingTokenImplementation = await ethers.getContractAt(
         "BookingToken",
         addresses["CaminoMessengerModule#BookingToken"],
@@ -181,32 +169,9 @@ MANAGER_SCOPE.task("status", "Print status of deployed contracts").setAction(asy
     console.log(`Proxy: ${await bookingToken.getAddress()}`);
     console.log(`Implementation: ${await bookingTokenImplementation.getAddress()}`);
 
-    if (hre.network.name !== "camino") {
-        console.log();
-        console.log("================ SERVICE FEE TEST TOKEN ========================");
-        console.log(`Proxy: ${await serviceFeeToken.getAddress()}`);
-    }
-
     console.log();
     console.log("================ CONFIGURATION on MANAGER ======================");
     console.log(`CM Account Impl: ${await manager.getAccountImplementation()}`);
-    console.log(`Developer Wallet: ${await manager.getDeveloperWallet()}`);
-    const feeBasisPoints = await manager.getDeveloperFeeBp();
-    const feePercentage = (Number(feeBasisPoints) / 10000) * 100;
-    console.log(`Developer Fee: ${feeBasisPoints}bp (${feePercentage}%)`);
-    console.log(`Service Fee Token: ${await manager.getServiceFeeToken()}`);
-
-    let decimals = 18;
-    const serviceFeeTokenAddr = await manager.getServiceFeeToken();
-    if (serviceFeeTokenAddr !== ethers.ZeroAddress) {
-        const serviceFeeTokenContract = await ethers.getContractAt(
-            ["function decimals() view returns (uint8)"],
-            serviceFeeTokenAddr,
-        );
-        decimals = await serviceFeeTokenContract.decimals();
-    }
-    const prefund = await manager.getPrefundAmount();
-    console.log(`Prefund Amount: ${ethers.formatUnits(prefund, decimals)} SFT`);
 });
 
 MANAGER_SCOPE.task("services:register", "Register services")
@@ -297,79 +262,7 @@ MANAGER_SCOPE.task("account:set-implementation", "Set CMAccount implementation a
         console.log("Tx:", txReceipt.hash);
     });
 
-MANAGER_SCOPE.task("developer:set-fee", "Set developer fee")
-    .addParam("feeBasisPoints", "Developer fee basis points")
-    .setAction(async (taskArgs, hre) => {
-        const manager = await getManager(hre);
-        console.log(`Setting developer fee to ${taskArgs.feeBasisPoints} basis points...`);
-        const tx = await manager.setDeveloperFeeBp(taskArgs.feeBasisPoints);
-        const txReceipt = await tx.wait();
-        console.log("Tx:", txReceipt.hash);
-    });
-
-MANAGER_SCOPE.task("developer:set-address", "Set developer address")
-    .addParam("address", "Developer address")
-    .setAction(async (taskArgs, hre) => {
-        const manager = await getManager(hre);
-        console.log(`Setting developer address to ${taskArgs.address}...`);
-        const tx = await manager.setDeveloperWallet(taskArgs.address);
-        const txReceipt = await tx.wait();
-        console.log("Tx:", txReceipt.hash);
-    });
-
-MANAGER_SCOPE.task("sft:set", "Set Service Fee Token Address")
-    .addParam("address", "Service Fee Token Address")
-    .setAction(async (taskArgs, hre) => {
-        const manager = await getManager(hre);
-        console.log(`Setting Service Fee Token Address to ${taskArgs.address}...`);
-        const tx = await manager.setServiceFeeToken(taskArgs.address);
-        const txReceipt = await tx.wait();
-        console.log("Tx:", txReceipt.hash);
-    });
-
-MANAGER_SCOPE.task("sft:get", "Get Service Fee Token Address").setAction(async (taskArgs, hre) => {
-    const manager = await getManager(hre);
-    const address = await manager.getServiceFeeToken();
-    console.log(`Service Fee Token Address: ${address}`);
-});
-
-MANAGER_SCOPE.task("sft:mint", "Mint Service Fee Token")
-    .addParam("amount", "Amount to mint in eth (not wei")
-    .addParam("recipient", "Recipient address")
-    .setAction(async (taskArgs, hre) => {
-        const serviceFeeToken = await getServiceFeeToken(hre);
-
-        // parse amount
-        const mintAmount = ethers.parseUnits(taskArgs.amount, await serviceFeeToken.decimals());
-
-        // format mint amount
-        const mintAmountStr = ethers.formatUnits(mintAmount, await serviceFeeToken.decimals());
-
-        console.log(`Minting ${mintAmountStr} SFT to ${taskArgs.recipient}...`);
-        const tx = await serviceFeeToken.mint(taskArgs.recipient, mintAmount);
-        const txReceipt = await tx.wait();
-        console.log("Tx:", txReceipt.hash);
-    });
-
-MANAGER_SCOPE.task("prefund:set", "Set prefund amount on the manager contract")
-    .addParam("amount", "Prefund amount in token units (e.g. 100)")
-    .setAction(async (taskArgs, hre) => {
-        const manager = await getManager(hre);
-        let decimals = 18;
-        const serviceFeeTokenAddr = await manager.getServiceFeeToken();
-        if (serviceFeeTokenAddr !== ethers.ZeroAddress) {
-            const serviceFeeToken = await ethers.getContractAt(
-                ["function decimals() view returns (uint8)"],
-                serviceFeeTokenAddr,
-            );
-            decimals = await serviceFeeToken.decimals();
-        }
-        const amountWei = ethers.parseUnits(taskArgs.amount, decimals);
-        console.log(`Setting prefund amount to ${taskArgs.amount} SFT (${amountWei.toString()} smallest units)...`);
-        const tx = await manager.setPrefundAmount(amountWei);
-        const txReceipt = await tx.wait();
-        console.log("Tx:", txReceipt.hash);
-    });
+// Obsolete developer fee and prefund set tasks removed
 
 MANAGER_SCOPE.task("btoken:set", "Set Booking Token address on the manager contract")
     .addParam("address", "Booking Token address")
