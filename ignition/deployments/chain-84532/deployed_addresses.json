@@ -1,13 +1,10 @@
 {
-  "CaminoMessengerModule#BookingToken": "0xAb84d847dE35AF9C4931aE2A24f584a4F058a784",
-  "CaminoMessengerModule#BookingTokenOperator": "0x51b94B67171a3D1eb52A78f8aC3Dc9a64F5C79a8",
-  "CaminoMessengerModule#CMAccountManager": "0x06C2414614A00F459eeD7f6aB5f941322767Da69",
-  "CaminoMessengerModule#CMAccount": "0xA94C8D66d91946bDa3762Ed8eD6696AFC1513992",
-  "CaminoMessengerModule#ManagerERC1967Proxy": "0xb0234D0f33d1Ccc82dc87A9406Fd0528e0CE2c51",
-  "CaminoMessengerModule#ManagerProxy": "0xb0234D0f33d1Ccc82dc87A9406Fd0528e0CE2c51",
-  "CaminoMessengerModule#BookingTokenERC1967Proxy": "0x571047874c669F854A33F5B90803CEeD80863334",
-  "CaminoMessengerModule#BookingTokenProxy": "0x571047874c669F854A33F5B90803CEeD80863334",
-  "ServiceFeeTokenModule#ServiceFeeToken": "0x2059Ca0C2234CF24CC9E9f47d3750b4543715D4b",
-  "ServiceFeeTokenModule#ServiceFeeTokenERC1967Proxy": "0xF8BD889B94142aae5d6ed585B16c77C8c378CAAD",
-  "ServiceFeeTokenModule#ServiceFeeTokenProxy": "0xF8BD889B94142aae5d6ed585B16c77C8c378CAAD"
+  "CaminoMessengerModule#BookingToken": "0x63262fFf1B57405CAcA5a38B5bDeD10728467169",
+  "CaminoMessengerModule#BookingTokenOperator": "0x579EF9939b884E2E9424736AfCcE6623FC728A66",
+  "CaminoMessengerModule#CMAccountManager": "0x0188180791714e472Ecc39Fc4dE30E34895f1819",
+  "CaminoMessengerModule#CMAccount": "0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61",
+  "CaminoMessengerModule#ManagerERC1967Proxy": "0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9",
+  "CaminoMessengerModule#ManagerProxy": "0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9",
+  "CaminoMessengerModule#BookingTokenERC1967Proxy": "0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83",
+  "CaminoMessengerModule#BookingTokenProxy": "0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83"
 }
