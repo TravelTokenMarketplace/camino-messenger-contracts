@@ -634,8 +634,14 @@ ACCOUNT_SCOPE.task("service:list", "List supported services from CMAccount")
                 console.log("Supported Services:");
                 for (let i = 0; i < serviceNames.length; i++) {
                     console.log(`📦 ${serviceNames[i]}`);
-                    const restrictedRate = serviceDetails[i]._restrictedRate !== undefined ? serviceDetails[i]._restrictedRate : serviceDetails[i][0];
-                    const capabilities = serviceDetails[i]._capabilities !== undefined ? serviceDetails[i]._capabilities : serviceDetails[i][1];
+                    const restrictedRate =
+                        serviceDetails[i]._restrictedRate !== undefined
+                            ? serviceDetails[i]._restrictedRate
+                            : serviceDetails[i][0];
+                    const capabilities =
+                        serviceDetails[i]._capabilities !== undefined
+                            ? serviceDetails[i]._capabilities
+                            : serviceDetails[i][1];
                     console.log(`\t🔒 Restricted Rate: ${restrictedRate} ${restrictedRate ? "✅" : "❌"}`);
 
                     for (let j = 0; j < capabilities.length; j++) {
