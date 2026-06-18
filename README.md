@@ -18,19 +18,16 @@ Below is a table of deployed contracts and their addresses on Camino mainnet.
 | BookingTokenOperator (Library) | [0x65C34Ca1FCdF46B60C2b9b8f81475f69086116dD](https://caminoscan.com/address/0x65C34Ca1FCdF46B60C2b9b8f81475f69086116dD?tab=contract) |
 | CMAccount (Implementation)     | [0x52D94b6ccDa96BE4a99ED9C8D39682D6B4EE4702](https://caminoscan.com/address/0x52D94b6ccDa96BE4a99ED9C8D39682D6B4EE4702?tab=contract) |
 
-## Columbus (testnet) Deployed Contracts
+## Base Sepolia (testnet) Deployed Contracts
 
-Below is a table of deployed contracts and their addresses on Columbus testnet.
+Below is a table of deployed contracts and their addresses on Base Sepolia testnet.
 
-| Contract                       | Address                                                                                                                                       |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| CMAccountManager               | [0xE5B2f76C778D082b07BDd7D51FFe83E3E055B47F](https://columbus.caminoscan.com/address/0xE5B2f76C778D082b07BDd7D51FFe83E3E055B47F?tab=contract) |
-| BookingToken                   | [0xe55E387F5474a012D1b048155E25ea78C7DBfBBC](https://columbus.caminoscan.com/address/0xe55E387F5474a012D1b048155E25ea78C7DBfBBC?tab=contract) |
-| BookingTokenOperator (Library) | [0xac1300CDaF25fD622a0fA09302fB09e9a6400ae4](https://columbus.caminoscan.com/address/0xac1300CDaF25fD622a0fA09302fB09e9a6400ae4?tab=contract) |
-| CMAccount (Implementation)     | [0xaA573b3942168bC5222C7aa11c6708D7f64Af374](https://columbus.caminoscan.com/address/0xaA573b3942168bC5222C7aa11c6708D7f64Af374?tab=contract) |
-
-## Base Sepolia (testnet) Deployed Contracts 
-to do after fee removal feature
+| Contract                       | Address                                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CMAccountManager               | [0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9](https://sepolia.basescan.org/address/0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9#code)                  |
+| BookingToken                   | [0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83](https://sepolia.basescan.org/address/0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83#code)                  |
+| BookingTokenOperator (Library) | [0x579EF9939b884E2E9424736AfCcE6623FC728A66](https://sepolia.basescan.org/address/0x579EF9939b884E2E9424736AfCcE6623FC728A66)                       |
+| CMAccount (Implementation)     | [0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61](https://sepolia.basescan.org/address/0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61#code)                  |
 
 ## Chain4Travel Messenger Server
 
@@ -42,11 +39,11 @@ Chain4Travel is running the first and currently only messenger server.
 | Messenger CM Account                 | `0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7` |
 | Messenger Service Bot (`toBot`) Addr | `0xbeb027D2f439805E17EAA16Da26c1FCa68a30232` |
 
-| Columbus Testnet                     | Address                                      |
+| Base Sepolia Testnet                 | Address                                      |
 | ------------------------------------ | -------------------------------------------- |
 | Messenger URL                        | `https://dev.messenger.chain4travel.com`     |
-| Messenger CM Account                 | `0xF6bA5c68A505559c170dC7a30448Ed64D8b9Bc3B` |
-| Messenger Service Bot (`toBot`) Addr | `0xff6BAC3d972680515cbB59fCB6Db6deB13Eb0E91` |
+| Messenger CM Account                 | *TBD*                                        |
+| Messenger Service Bot (`toBot`) Addr | *TBD*                                        |
 
 
 ## Quickstart
@@ -72,16 +69,8 @@ yarn test
 
 ### Setting Hardhat Vars
 
-For Camino (mainnet), Columbus (testnet), Base Sepolia (testnet), and Base (mainnet) networks, we are using hardhat's vars
+For Camino (mainnet), Base Sepolia (testnet), and Base (mainnet) networks, we are using hardhat's vars
 tool to store private keys and URLs. To set these you can use the commands below:
-
-```
-yarn hardhat vars set COLUMBUS_DEPLOYER_PRIVATE_KEY
-```
-
-```
-yarn hardhat vars set CAMINO_DEPLOYER_PRIVATE_KEY
-```
 
 ```
 yarn hardhat vars set BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY
@@ -91,13 +80,17 @@ yarn hardhat vars set BASE_SEPOLIA_DEPLOYER_PRIVATE_KEY
 yarn hardhat vars set BASE_DEPLOYER_PRIVATE_KEY
 ```
 
-Optional settings for Base:
+```
+yarn hardhat vars set CAMINO_DEPLOYER_PRIVATE_KEY
+```
+
+Optional settings for Base networks:
 
 ```
 yarn hardhat vars set BASE_SEPOLIA_URL
 ```
 
-(Defaults to `wss://base-sepolia.drpc.org` if not set)
+(Defaults to `wss://base-sepolia.drpc.org` if not set. **Note**: Public endpoints are subject to rate limiting. For high-volume usage, users should use private endpoints from third-party RPC providers such as QuickNode, Ankr, Infura, or Alchemy.)
 
 ```
 yarn hardhat vars set BASE_URL
@@ -321,14 +314,14 @@ __Check the created contract using BaseScan (https://sepolia.basescan.org/)__
 #### Command Parameters
 
 - **`--private-key`:** Enter the static private key of your wallet.
-- **`--network`:** Specify the network where you wish to create your account (as configured in the `hardhat.config.json`). For development purposes, use `columbus`.
+- **`--network`:** Specify the network where you wish to create your account (as configured in the `hardhat.config.js`). For development purposes, use `base_sepolia`.
 
 The command output will provide a new CM Account address that you must save for use in the following steps.
 
 ### Registering Your Bot
 
 After creating your CM Account, you need to register the address of your bot on the
-CM Account to enable it to sign cheques. Execute the following command:
+CM Account to authorize it. Execute the following command:
 
 ```
 yarn hardhat account bot:add --cm-account <CMAccountAddress> --private-key <PrivateKeyValue> --bot <BotAddress> --network base_sepolia
@@ -339,7 +332,7 @@ yarn hardhat account bot:add --cm-account <CMAccountAddress> --private-key <Priv
 
 ```
 yarn run v1.22.22
-$ /hgst/work/github.com/chain4travel/camino-messenger-contracts/node_modules/.bin/hardhat account bot:add --cm-account 0xe7C3AAd26fA667a2dc51A4B3c56f8919574b275A --private-key <private-key-deducted> --network columbus --bot 0xd41786599F2B225A5A1eA35cDc4A2a6Fa9E92BeA
+$ /hgst/work/github.com/chain4travel/camino-messenger-contracts/node_modules/.bin/hardhat account bot:add --cm-account 0xe7C3AAd26fA667a2dc51A4B3c56f8919574b275A --private-key <private-key-deducted> --network base_sepolia --bot 0xd41786599F2B225A5A1eA35cDc4A2a6Fa9E92BeA
 CMAccount: 0xe7C3AAd26fA667a2dc51A4B3c56f8919574b275A
 Bot: 0xd41786599F2B225A5A1eA35cDc4A2a6Fa9E92BeA
 Gas: 0 (This amount will be transferred from the CMAccount to the bot address)
@@ -355,15 +348,15 @@ Done in 2.16s.
 
 - **`--cm-account`:** The EVM contract address of your newly created CM Account.
 - **`--private-key`:** The static private key of the wallet used for creating the CM Account.
-- **`--bot`:** The address of the bot you are registering. Ensure that this address is your C-chain address and not the same as your CM Account wallet.
-- **`--network`:** Specify the network (as configured in the `hardhat.config.json`).
+- **`--bot`:** The address of the bot you are registering. Ensure that this address is your bot's wallet address and not the same as your CM Account wallet.
+- **`--network`:** Specify the network (as configured in the `hardhat.config.js`).
 
 ### Registering Services
 
 With your CM Account and bot registered, you can now add supported services. For example, to register the Ping Service, use the following command:
 
 ```
-yarn hardhat account service:add --cm-account  <CMAccountAddress> --private-key <PrivateKeyValue> --service-name cmp.services.ping.v1.PingService --fee 10 --network columbus
+yarn hardhat account service:add --cm-account  <CMAccountAddress> --private-key <PrivateKeyValue> --service-name cmp.services.ping.v1.PingService --fee 10 --network base_sepolia
 ```
 
 <details>
@@ -371,7 +364,7 @@ yarn hardhat account service:add --cm-account  <CMAccountAddress> --private-key 
 
 ```
 yarn run v1.22.22
-$ /hgst/work/github.com/chain4travel/camino-messenger-contracts/node_modules/.bin/hardhat account service:add --service-name cmp.services.ping.v1.PingService --fee 10 --cm-account 0xe7C3AAd26fA667a2dc51A4B3c56f8919574b275A --private-key <private-key-deducted> --network columbus
+$ /hgst/work/github.com/chain4travel/camino-messenger-contracts/node_modules/.bin/hardhat account service:add --service-name cmp.services.ping.v1.PingService --fee 10 --cm-account 0xe7C3AAd26fA667a2dc51A4B3c56f8919574b275A --private-key <private-key-deducted> --network base_sepolia
 CMAccount: 0xe7C3AAd26fA667a2dc51A4B3c56f8919574b275A
 Service Name: cmp.services.ping.v1.PingService
 Fee: 10
@@ -391,7 +384,7 @@ Done in 2.11s.
 - **`--private-key`:** The static private key of the wallet used to create your CM Account.
 - **`--service-name`:** The full-service name to register. For a complete list of supported services, consult the [Camino Messenger Protocol documentation](https://buf.build/chain4travel/camino-messenger-protocol/docs). (You can also check the service names here in the [services](./services/) folder)
 - **`--fee`:** The service fee associated with your service in `aCAM` (`wei` in EVM terms).
-- **`--network`:** Specify the network (as configured in the `hardhat.config.json`).
+- **`--network`:** Specify the network (as configured in the `hardhat.config.js`).
 
 ### Summary
 
