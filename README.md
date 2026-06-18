@@ -22,12 +22,12 @@ Below is a table of deployed contracts and their addresses on Camino mainnet.
 
 Below is a table of deployed contracts and their addresses on Base Sepolia testnet.
 
-| Contract                       | Address                                                                                                                                              |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CMAccountManager               | [0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9](https://sepolia.basescan.org/address/0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9#code)                  |
-| BookingToken                   | [0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83](https://sepolia.basescan.org/address/0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83#code)                  |
-| BookingTokenOperator (Library) | [0x579EF9939b884E2E9424736AfCcE6623FC728A66](https://sepolia.basescan.org/address/0x579EF9939b884E2E9424736AfCcE6623FC728A66)                       |
-| CMAccount (Implementation)     | [0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61](https://sepolia.basescan.org/address/0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61#code)                  |
+| Contract                       | Address                                                                                                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| CMAccountManager               | [0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9](https://sepolia.basescan.org/address/0xEcf9b5ca23257969B4F9bb3Efca2d5bb850FAcE9#code) |
+| BookingToken                   | [0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83](https://sepolia.basescan.org/address/0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83#code) |
+| BookingTokenOperator (Library) | [0x579EF9939b884E2E9424736AfCcE6623FC728A66](https://sepolia.basescan.org/address/0x579EF9939b884E2E9424736AfCcE6623FC728A66)      |
+| CMAccount (Implementation)     | [0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61](https://sepolia.basescan.org/address/0x7AEFbc8FC7d103bDf79e14F7CC4F42d93B916b61#code) |
 
 ## Chain4Travel Messenger Server
 
@@ -39,12 +39,11 @@ Chain4Travel is running the first and currently only messenger server.
 | Messenger CM Account                 | `0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7` |
 | Messenger Service Bot (`toBot`) Addr | `0xbeb027D2f439805E17EAA16Da26c1FCa68a30232` |
 
-| Base Sepolia Testnet                 | Address                                      |
-| ------------------------------------ | -------------------------------------------- |
-| Messenger URL                        | `https://dev.messenger.chain4travel.com`     |
-| Messenger CM Account                 | *TBD*                                        |
-| Messenger Service Bot (`toBot`) Addr | *TBD*                                        |
-
+| Base Sepolia Testnet                 | Address                                  |
+| ------------------------------------ | ---------------------------------------- |
+| Messenger URL                        | `https://dev.messenger.chain4travel.com` |
+| Messenger CM Account                 | _TBD_                                    |
+| Messenger Service Bot (`toBot`) Addr | _TBD_                                    |
 
 ## Quickstart
 
@@ -128,10 +127,10 @@ manager holds.
 
 ### PartnerConfiguration
 
-Will be replaced with new "account manager". __The `PartnerConfiguration` contract is used by the `CMAccount` and implements
+Will be replaced with new "account manager". **The `PartnerConfiguration` contract is used by the `CMAccount` and implements
 features to register supported (supplier) and wanted (distributor) services,
 register public keys that would be used to encrypt private data, off-chain payment
-support, and on-chain supported payment token addresses.__
+support, and on-chain supported payment token addresses.**
 
 ### ServiceRegistry
 
@@ -291,8 +290,9 @@ Tx: 0x3ea49567a6fbbfddb049b3588350542d6a4e2c23ae0e1e30d019d3f8a453621f
 CMAccount Address: 0x5e1c75F35be2f3E0093525E1CcEE03C1A359D7e7
 Done in 4.67s.
 ```
-__The above example output was taken before the message fee deposit was removed__
-__Check the created contract using BaseScan (https://sepolia.basescan.org/)__
+
+**The above example output was taken before the message fee deposit was removed**
+**Check the created contract using BaseScan (https://sepolia.basescan.org/)**
 
 </details>
 
