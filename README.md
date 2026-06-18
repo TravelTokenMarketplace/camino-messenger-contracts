@@ -275,7 +275,7 @@ Before you begin, ensure you have completed the following steps:
 To create your CM Account, run the following command:
 
 ```
-yarn hardhat account create --private-key <PrivateKeyValue> --network base-sepolia
+yarn hardhat account create --private-key <PrivateKeyValue> --network base_sepolia
 ```
 
 <details>
