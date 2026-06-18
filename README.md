@@ -133,11 +133,10 @@ address that the manager holds.
 
 ### PartnerConfiguration
 
-Will be replaced with new "account manager". **The `PartnerConfiguration`
-contract is used by the `CMAccount` and implements features to register
-supported (supplier) and wanted (distributor) services, register public keys
-that would be used to encrypt private data, off-chain payment support, and
-on-chain supported payment token addresses.**
+The `PartnerConfiguration` contract is used by the `CMAccount` and implements
+features to register supported (supplier) and wanted (distributor) services,
+register public keys that would be used to encrypt private data, off-chain
+payment support, and on-chain supported payment token addresses.
 
 ### ServiceRegistry
 
