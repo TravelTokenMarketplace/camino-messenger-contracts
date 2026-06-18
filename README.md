@@ -3,7 +3,7 @@
 [![CAMINO NETWORK](https://img.shields.io/badge/CAMINO-NETWORK-b440fc?style=for-the-badge&logoColor=white&labelColor=0085ff)](https://camino.network/)
 [![CHAT WITH US](https://img.shields.io/badge/DISCORD-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/channels/949247897688494150/1182680860797960253)
 
-[![CI](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/actions/workflows/ci.yaml/badge.svg)](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/actions/workflows/ci.yaml/ci.yaml)
+[![CI](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/actions/workflows/ci.yaml/badge.svg)](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/actions/workflows/ci.yaml)
 
 This repository contains the smart contracts for the [Camino
 Messenger](https://camino.network/camino-messenger-sets-the-global-standard-in-travel-data-management-and-distribution/).
