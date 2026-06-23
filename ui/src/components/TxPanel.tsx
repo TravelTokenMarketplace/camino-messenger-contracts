@@ -2,6 +2,7 @@ import { CheckCircle2, ExternalLink, Loader2, X, XCircle } from "lucide-react";
 import { APP_CHAINS } from "../config/chains";
 import { explorerTxUrl, shortAddress } from "../lib/format";
 import { useTx } from "../tx/TxProvider";
+import { Tooltip } from "./Tooltip";
 
 const STATE_TEXT = {
   pending: "Waiting for confirmation…",
@@ -45,14 +46,16 @@ export function TxPanel() {
                   </a>
                 )}
               </span>
-              <button
-                type="button"
-                onClick={() => dismiss(t.id)}
-                className="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                aria-label="Dismiss transaction"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <Tooltip content="Dismiss from this list (does not affect the transaction)" side="bottom">
+                <button
+                  type="button"
+                  onClick={() => dismiss(t.id)}
+                  className="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  aria-label="Dismiss transaction"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
             </li>
           );
         })}

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { type Abi, type Address, type Hex } from "viem";
 import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { Card } from "../../components/Card";
 import { ListManager } from "../../components/ListManager";
 import { RoleGate } from "../../components/RoleGate";
-import { RowAction } from "../../components/RowAction";
+import { Tooltip } from "../../components/Tooltip";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useContractList } from "../../hooks/useContractList";
@@ -32,12 +32,16 @@ function SupportedServiceRow({
   abi,
   service,
   hasRole,
+  open,
+  onToggle,
   onChanged,
 }: {
   account: Address;
   abi: Abi;
   service: ServiceInfo;
   hasRole: boolean;
+  open: boolean;
+  onToggle: () => void;
   onChanged: () => void;
 }) {
   const { writeContractAsync } = useWriteContract();
@@ -64,91 +68,125 @@ function SupportedServiceRow({
   }
 
   return (
-    <li className="group rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700/60">
-      <div className="flex items-start justify-between gap-3">
-        <span className="block min-w-0 break-all font-mono text-sm">{service.name}</span>
-        {hasRole && (
-          <RowAction>
-            <TxButton
-              label="Remove"
-              variant="danger"
-              icon={<Trash2 className="h-4 w-4" />}
-              write={() => writeContractAsync({ address: account, abi, functionName: "removeService", args: [service.name] })}
-              onConfirmed={onChanged}
-            />
-          </RowAction>
-        )}
-      </div>
-
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {/* Restricted rate: an interactive pill when the user can edit, else a badge. */}
-        {hasRole ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              run(
-                `${service.restricted ? "Disable" : "Enable"} restricted rate · ${service.name}`,
-                "setServiceRestrictedRate",
-                [service.name, !service.restricted],
-              )
-            }
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors disabled:opacity-50 ${
-              service.restricted
-                ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
-            }`}
-            title="Toggle restricted rate"
-          >
-            Restricted rate: {service.restricted ? "on" : "off"}
-          </button>
-        ) : (
-          service.restricted && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">Restricted rate</span>
-          )
-        )}
-
-        {service.capabilities.map((c) => (
-          <span key={c} className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-            {c}
-            {hasRole && (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => run(`Remove capability "${c}" · ${service.name}`, "removeServiceCapability", [service.name, c])}
-                className="text-gray-400 hover:text-red-500 disabled:opacity-50"
-                aria-label={`Remove capability ${c}`}
-              >
-                <X className="h-3 w-3" />
-              </button>
+    <li className="rounded-md border border-gray-100 dark:border-gray-700/60">
+      {/* Header — click to expand the editing controls for this service. */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-start gap-2 px-3 py-2 text-left"
+      >
+        <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`} />
+        <span className="min-w-0 flex-1">
+          <span className="block break-all font-mono text-sm">{service.name}</span>
+          <span className="mt-1 flex flex-wrap items-center gap-1">
+            {service.restricted && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">Restricted rate</span>
+            )}
+            {service.capabilities.map((c) => (
+              <span key={c} className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">{c}</span>
+            ))}
+            {!service.restricted && service.capabilities.length === 0 && (
+              <span className="text-xs text-gray-400">No restrictions or capabilities</span>
             )}
           </span>
-        ))}
+        </span>
+      </button>
 
-        {hasRole && (
-          <span className="inline-flex items-center gap-1">
-            <input
-              className={`w-32 ${inputClass} py-0.5`}
-              placeholder="+ capability"
-              value={newCap}
-              onChange={(e) => setNewCap(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && newCap.trim()) {
-                  run(`Add capability "${newCap.trim()}" · ${service.name}`, "addServiceCapability", [service.name, newCap.trim()], () => setNewCap(""));
-                }
-              }}
-            />
-            <button
-              type="button"
-              disabled={busy || !newCap.trim()}
-              onClick={() => run(`Add capability "${newCap.trim()}" · ${service.name}`, "addServiceCapability", [service.name, newCap.trim()], () => setNewCap(""))}
-              className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
-            >
-              Add
-            </button>
-          </span>
-        )}
-      </div>
+      {open && (
+        <div className="space-y-3 border-t border-gray-100 px-3 py-3 dark:border-gray-700/60">
+          {hasRole ? (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Rate</span>
+                <Tooltip
+                  content={
+                    service.restricted
+                      ? "Restricted rate is ON. Click to disable it — sends a transaction to your wallet."
+                      : "Restricted rate is OFF. Click to enable it — sends a transaction to your wallet."
+                  }
+                >
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      run(
+                        `${service.restricted ? "Disable" : "Enable"} restricted rate · ${service.name}`,
+                        "setServiceRestrictedRate",
+                        [service.name, !service.restricted],
+                      )
+                    }
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors disabled:opacity-50 ${
+                      service.restricted
+                        ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300"
+                        : "bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
+                    }`}
+                  >
+                    Restricted rate: {service.restricted ? "on" : "off"}
+                  </button>
+                </Tooltip>
+              </div>
+
+              <div>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Capabilities</span>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  {service.capabilities.length === 0 && <span className="text-xs text-gray-400">None</span>}
+                  {service.capabilities.map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                      {c}
+                      <Tooltip content={`Remove capability "${c}" — sends a transaction to your wallet.`}>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => run(`Remove capability "${c}" · ${service.name}`, "removeServiceCapability", [service.name, c])}
+                          className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+                          aria-label={`Remove capability ${c}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Tooltip>
+                    </span>
+                  ))}
+                  <input
+                    className={`w-32 ${inputClass} py-0.5`}
+                    placeholder="+ capability"
+                    value={newCap}
+                    onChange={(e) => setNewCap(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newCap.trim()) {
+                        run(`Add capability "${newCap.trim()}" · ${service.name}`, "addServiceCapability", [service.name, newCap.trim()], () => setNewCap(""));
+                      }
+                    }}
+                  />
+                  <Tooltip content="Add this capability to the service — sends a transaction to your wallet.">
+                    <button
+                      type="button"
+                      disabled={busy || !newCap.trim()}
+                      onClick={() => run(`Add capability "${newCap.trim()}" · ${service.name}`, "addServiceCapability", [service.name, newCap.trim()], () => setNewCap(""))}
+                      className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
+                    >
+                      Add
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <TxButton
+                  label="Remove service"
+                  variant="danger"
+                  icon={<Trash2 className="h-4 w-4" />}
+                  tooltip="Removes this service from the account — sends a transaction to your wallet."
+                  write={() => writeContractAsync({ address: account, abi, functionName: "removeService", args: [service.name] })}
+                  onConfirmed={onChanged}
+                />
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-gray-400">You need the SERVICE_ADMIN_ROLE to edit this service.</p>
+          )}
+        </div>
+      )}
     </li>
   );
 }
@@ -194,6 +232,7 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
   }));
   const isLoading = hashesLoading || (hashes.length > 0 && namesLoading);
   const refetch = () => { void refetchHashes(); void refetchNames(); void refetchConfig(); };
+  const [openHash, setOpenHash] = useState<Hex | null>(null);
   const [name, setName] = useState("");
   const [restricted, setRestricted] = useState(false);
   const [caps, setCaps] = useState("");
@@ -204,7 +243,16 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
         <ul className="mb-4 space-y-2">
           {services.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {services.map((s) => (
-            <SupportedServiceRow key={s.hash} account={account} abi={abi} service={s} hasRole={hasRole} onChanged={refetch} />
+            <SupportedServiceRow
+              key={s.hash}
+              account={account}
+              abi={abi}
+              service={s}
+              hasRole={hasRole}
+              open={openHash === s.hash}
+              onToggle={() => setOpenHash((cur) => (cur === s.hash ? null : s.hash))}
+              onChanged={refetch}
+            />
           ))}
         </ul>
       )}
@@ -241,6 +289,7 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
                 label="Add service"
                 icon={<Plus className="h-4 w-4" />}
                 disabled={!name.trim()}
+                tooltip="Adds a supported service to the account — sends a transaction to your wallet."
                 write={() => writeContractAsync({
                   address: account,
                   abi,

@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useTx } from "../tx/TxProvider";
+import { Tooltip } from "./Tooltip";
 
 interface TxButtonProps {
   label: string;
@@ -9,9 +10,11 @@ interface TxButtonProps {
   onConfirmed?: () => void;
   icon?: ReactNode;
   variant?: "primary" | "danger";
+  /** Rich tooltip; defaults to a note that this sends a wallet transaction. */
+  tooltip?: ReactNode;
 }
 
-export function TxButton({ label, disabled, write, onConfirmed, icon, variant = "primary" }: TxButtonProps) {
+export function TxButton({ label, disabled, write, onConfirmed, icon, variant = "primary", tooltip }: TxButtonProps) {
   const { track } = useTx();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
@@ -37,15 +40,17 @@ export function TxButton({ label, disabled, write, onConfirmed, icon, variant = 
 
   return (
     <div className="flex flex-col gap-1">
-      <button
-        type="button"
-        disabled={disabled || pending}
-        onClick={handleClick}
-        className={`inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-white transition-colors disabled:opacity-50 ${color}`}
-      >
-        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
-        <span>{pending ? "Confirming…" : label}</span>
-      </button>
+      <Tooltip content={tooltip ?? "Sends a transaction to your wallet to confirm."}>
+        <button
+          type="button"
+          disabled={disabled || pending}
+          onClick={handleClick}
+          className={`inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-white transition-colors disabled:opacity-50 ${color}`}
+        >
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
+          <span>{pending ? "Confirming…" : label}</span>
+        </button>
+      </Tooltip>
       {error && <span className="max-w-xs text-xs text-red-600">{error}</span>}
     </div>
   );

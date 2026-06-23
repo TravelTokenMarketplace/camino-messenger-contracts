@@ -82,7 +82,6 @@ export function TxProvider({ children }: { children: ReactNode }) {
           if (receipt.status === "success") {
             update(id, { state: "confirmed" });
             onConfirmed?.();
-            setTimeout(() => dismiss(id), 6000);
           } else {
             update(id, { state: "failed" });
           }
@@ -91,7 +90,7 @@ export function TxProvider({ children }: { children: ReactNode }) {
         }
       })();
     },
-    [config, update, dismiss],
+    [config, update],
   );
 
   return <TxContext.Provider value={{ txs, track, dismiss }}>{children}</TxContext.Provider>;
