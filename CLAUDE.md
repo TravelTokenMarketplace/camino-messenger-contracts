@@ -5,11 +5,11 @@ Solidity smart contracts for the Camino Messenger ecosystem, built with Hardhat.
 ## Layout
 
 - `contracts/` — Solidity sources (Solidity 0.8.24, optimizer `runs: 1`, `evmVersion: paris`)
-  - `manager/` — `CMAccountManager` (factory + registry + roles), `ICMAccountManager`
-  - `account/` — `CMAccount` (per-partner account: bots, tokens, services, pubkeys, withdrawals), `GasMoneyManager`, `ICMAccount`
-  - `booking-token/` — `BookingToken` (ERC-721) + cancellable/operator extensions
-  - `partner/` — shared base contracts: `PartnerConfiguration`, `ServiceRegistry`
-  - `test/` — mocks/helpers used by tests
+    - `manager/` — `CMAccountManager` (factory + registry + roles), `ICMAccountManager`
+    - `account/` — `CMAccount` (per-partner account: bots, tokens, services, pubkeys, withdrawals), `GasMoneyManager`, `ICMAccount`
+    - `booking-token/` — `BookingToken` (ERC-721) + cancellable/operator extensions
+    - `partner/` — shared base contracts: `PartnerConfiguration`, `ServiceRegistry`
+    - `test/` — mocks/helpers used by tests
 - `tasks/` — Hardhat tasks for management: `manager.js`, `account.js` (registered in `hardhat.config.js`). The UI mirrors these.
 - `ignition/` — Hardhat Ignition deployment: `modules/messenger.js`, per-network `*_parameters.json`, and recorded deployments in `deployments/chain-<id>/`
 - `abi/` — exported ABIs (see ABIs note below)
