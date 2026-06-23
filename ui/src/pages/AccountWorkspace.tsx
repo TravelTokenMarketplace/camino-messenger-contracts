@@ -28,12 +28,20 @@ export function AccountWorkspace() {
   const Active = (TABS.find((t) => t.id === active) ?? TABS[0]).Component;
 
   return (
-    <div className="grid gap-6 md:grid-cols-[260px_1fr]">
+    <div className="grid items-start gap-6 md:grid-cols-[260px_1fr]">
       <AccountSummary account={account} />
-      <div className="grid gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         <nav className="flex flex-wrap gap-3 border-b text-sm dark:border-gray-800">
           {TABS.map((t) => (
-            <Link key={t.id} to={`?tab=${t.id}`} className={`inline-flex items-center gap-1.5 pb-2 ${active === t.id ? "border-b-2 border-indigo-600 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
+            <Link
+              key={t.id}
+              to={`?tab=${t.id}`}
+              className={`-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 ${
+                active === t.id
+                  ? "border-indigo-600 font-medium text-gray-900 dark:text-gray-100"
+                  : "border-transparent text-gray-500 dark:text-gray-400"
+              }`}
+            >
               <t.Icon className="h-4 w-4" /> {t.label}
             </Link>
           ))}
