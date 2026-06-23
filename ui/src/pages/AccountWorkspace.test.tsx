@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AccountWorkspace } from "./AccountWorkspace";
 
 vi.mock("wagmi", () => ({
@@ -22,9 +23,11 @@ describe("AccountWorkspace", () => {
 
   it("renders the tab bar and the account summary with the full address", () => {
     render(
-      <MemoryRouter initialEntries={[`/account/${addr}`]}>
-        <Routes><Route path="account/:address" element={<AccountWorkspace />} /></Routes>
-      </MemoryRouter>,
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={[`/account/${addr}`]}>
+          <Routes><Route path="account/:address" element={<AccountWorkspace />} /></Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
     expect(screen.getByRole("link", { name: /bots/i })).toBeInTheDocument();
     // Full address appears in the left-pane summary.

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TxProvider, useTx } from "./TxProvider";
 
 // wagmi's useConfig only needs to return an object the mocked actions ignore.
@@ -30,9 +31,11 @@ describe("TxProvider", () => {
     const onConfirmed = vi.fn();
 
     render(
-      <TxProvider>
-        <Harness onConfirmed={onConfirmed} />
-      </TxProvider>,
+      <QueryClientProvider client={new QueryClient()}>
+        <TxProvider>
+          <Harness onConfirmed={onConfirmed} />
+        </TxProvider>
+      </QueryClientProvider>,
     );
 
     fireEvent.click(screen.getByText("go"));

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { AlertTriangle, Check, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Info, Plus, Trash2 } from "lucide-react";
 import { type Abi, type Address, parseEther } from "viem";
 import { useBalance, useReadContracts, useWriteContract } from "wagmi";
+import { APP_CHAINS } from "../../config/chains";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
 import { Input } from "../../components/Input";
@@ -100,13 +101,29 @@ function BotRow({ account, bot, abi, hasRole, onChanged }: { account: Address; b
 }
 
 export function BotsTab({ account }: { account: Address }) {
-  const { cmAccountAbi } = useActiveContracts();
+  const { cmAccountAbi, chainId } = useActiveContracts();
   const abi = cmAccountAbi as Abi;
   const { writeContractAsync } = useWriteContract();
   const { members, isLoading, refetch } = useRoleMembers(account, abi, "MESSENGER_BOT_ROLE");
   const { hasRole, isLoading: roleLoading } = useHasRole(account, abi, "BOT_ADMIN_ROLE");
+  const { data: accountBalance } = useBalance({ address: account, chainId });
+  const symbol = accountBalance?.symbol ?? APP_CHAINS.find((c) => c.id === chainId)?.nativeCurrency.symbol ?? "";
   const [bot, setBot] = useState("");
-  const [gas, setGas] = useState("0");
+  const [gas, setGas] = useState("");
+
+  // The gas money is paid out of the CM Account's own balance, so validate
+  // against that and warn (without blocking) when it would exceed it.
+  let gasError: string | undefined;
+  let gasValue = 0n;
+  if (gas.trim()) {
+    try {
+      gasValue = parseEther(gas.trim());
+    } catch {
+      gasError = "Enter a valid amount.";
+    }
+  }
+  const insufficient = !gasError && accountBalance !== undefined && gasValue > accountBalance.value;
+  const gasInvalid = Boolean(gasError) || insufficient;
 
   return (
     <Card title="Messenger Bots">
@@ -120,10 +137,31 @@ export function BotsTab({ account }: { account: Address }) {
         </ul>
       )}
       <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE" action="Add bot">
-        <div className="flex items-end gap-2">
-          <Input className="flex-1 font-mono" placeholder="Bot address 0x…" value={bot} onChange={(e) => setBot(e.target.value)} />
-          <Input className="w-32" placeholder="Gas money (CAM)" value={gas} onChange={(e) => setGas(e.target.value)} />
-          <TxButton label="Add bot" icon={<Plus className="h-4 w-4" />} disabled={!bot} write={() => writeContractAsync({ address: account, abi, functionName: "addMessengerBot", args: [bot as Address, parseEther(gas || "0")] })} onConfirmed={() => { setBot(""); setGas("0"); refetch(); }} />
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-end gap-2">
+            <Input className="min-w-[14rem] flex-1 font-mono" placeholder="Bot address 0x…" value={bot} onChange={(e) => setBot(e.target.value)} />
+            <div className="flex items-center gap-1.5">
+              <Input
+                className={`w-36 ${gasInvalid ? "!border-red-500 focus:!border-red-500 focus:!ring-red-500" : ""}`}
+                inputMode="decimal"
+                placeholder={`Gas money (${symbol})`}
+                value={gas}
+                onChange={(e) => setGas(e.target.value)}
+              />
+              <Tooltip content={`This amount is sent from the CM Account's own balance to the bot to cover its transaction fees${symbol ? ` (in ${symbol})` : ""}.`}>
+                <button type="button" aria-label="Gas money info" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                  <Info className="h-4 w-4" />
+                </button>
+              </Tooltip>
+            </div>
+            <TxButton label="Add bot" icon={<Plus className="h-4 w-4" />} disabled={!bot || Boolean(gasError)} write={() => writeContractAsync({ address: account, abi, functionName: "addMessengerBot", args: [bot as Address, gasValue] })} onConfirmed={() => { setBot(""); setGas(""); refetch(); }} />
+          </div>
+          {gasError && <p className="text-xs text-red-600">{gasError}</p>}
+          {insufficient && (
+            <p className="text-xs text-red-600">
+              Exceeds the CM Account balance ({accountBalance?.formatted} {symbol}). Fund the account first or the transaction will revert.
+            </p>
+          )}
         </div>
       </RoleGate>
     </Card>

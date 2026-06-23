@@ -7,6 +7,7 @@ import { AddressDisplay } from "../components/AddressDisplay";
 import { Card } from "../components/Card";
 import { Checkbox } from "../components/Checkbox";
 import { GoToAccount } from "../components/GoToAccount";
+import { RefreshButton } from "../components/RefreshButton";
 import { RoleBadge } from "../components/RoleBadge";
 import { useActiveContracts } from "../hooks/useActiveContracts";
 import { useAccountRolesFor, useManagerAccounts } from "../hooks/useMyAccounts";
@@ -68,7 +69,7 @@ export function Dashboard() {
         </dl>
       </Card>
 
-      <Card title="CM Accounts">
+      <Card title="CM Accounts" actions={<RefreshButton />}>
         <div className="mb-2">
           <Checkbox checked={onlyMine} disabled={!address} onChange={setOnlyMine} label="Only accounts where I hold a role" />
         </div>

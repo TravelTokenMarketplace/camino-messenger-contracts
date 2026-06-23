@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import type { Hex } from "viem";
+import { useQueryClient } from "@tanstack/react-query";
 import { useConfig } from "wagmi";
 import { getAccount, waitForTransactionReceipt } from "wagmi/actions";
 
@@ -57,6 +58,7 @@ const nextId = () => `tx-${Date.now()}-${counter++}`;
 
 export function TxProvider({ children }: { children: ReactNode }) {
   const config = useConfig();
+  const queryClient = useQueryClient();
   const [txs, setTxs] = useState<TrackedTx[]>([]);
 
   const update = useCallback((id: string, patch: Partial<TrackedTx>) => {
@@ -82,6 +84,10 @@ export function TxProvider({ children }: { children: ReactNode }) {
           if (receipt.status === "success") {
             update(id, { state: "confirmed" });
             onConfirmed?.();
+            // The mined tx may affect reads anywhere in the app (lists, role
+            // badges, balances, count pills), not just the one wired to
+            // onConfirmed — invalidate every query so the whole view refreshes.
+            void queryClient.invalidateQueries();
           } else {
             update(id, { state: "failed" });
           }
@@ -90,7 +96,7 @@ export function TxProvider({ children }: { children: ReactNode }) {
         }
       })();
     },
-    [config, update],
+    [config, queryClient, update],
   );
 
   return <TxContext.Provider value={{ txs, track, dismiss }}>{children}</TxContext.Provider>;
