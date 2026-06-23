@@ -9,6 +9,7 @@ vi.mock("wagmi", () => ({
   useAccount: () => ({ address: undefined, chainId: 84532 }),
   useReadContract: () => ({ data: undefined, isLoading: false }),
   useReadContracts: () => ({ data: undefined, isLoading: false }),
+  useWriteContract: () => ({ writeContractAsync: vi.fn() }),
   usePublicClient: () => undefined,
 }));
 
@@ -26,7 +27,7 @@ describe("AccountWorkspace", () => {
       </MemoryRouter>,
     );
     expect(screen.getByRole("link", { name: /bots/i })).toBeInTheDocument();
-    // Full address appears in the left-pane summary (and the overview tab).
+    // Full address appears in the left-pane summary.
     expect(screen.getAllByText(addr).length).toBeGreaterThan(0);
   });
 });

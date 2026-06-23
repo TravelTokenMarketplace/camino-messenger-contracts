@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { type Abi, type Address, type Hex } from "viem";
 import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
@@ -191,9 +191,10 @@ function SupportedServiceRow({
   );
 }
 
-function SupportedServices({ account, abi, hasRole }: { account: Address; abi: Abi; hasRole: boolean }) {
+function SupportedServices({ account, abi, hasRole, registered }: { account: Address; abi: Abi; hasRole: boolean; registered: string[] }) {
   const { manager, managerAbi, chainId } = useActiveContracts();
   const { writeContractAsync } = useWriteContract();
+  const datalistId = useId();
   // getSupportedServices() returns a (uint256,bool,string[])[] tuple that viem
   // cannot reliably decode, so list service hashes and resolve names + config
   // via per-hash getters instead.
@@ -261,13 +262,21 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
           <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-200">Add a service</h3>
           <div className="grid gap-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Service name</span>
+              <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
+                Service name <span className="font-normal text-gray-400">(must be registered in the manager)</span>
+              </span>
               <input
                 className={`w-full ${inputClass}`}
-                placeholder="cmp.services.accommodation.v2.AccommodationSearchService"
+                placeholder="Click to pick a registered service…"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                list={datalistId}
               />
+              <datalist id={datalistId}>
+                {registered
+                  .filter((n) => !services.some((s) => s.name === n))
+                  .map((n) => <option key={n} value={n} />)}
+              </datalist>
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -307,15 +316,24 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
 }
 
 export function ServicesTab({ account }: { account: Address }) {
-  const { cmAccountAbi } = useActiveContracts();
+  const { cmAccountAbi, manager, managerAbi, chainId } = useActiveContracts();
   const abi = cmAccountAbi as Abi;
   const { writeContractAsync } = useWriteContract();
   const wanted = useContractList(account, abi, "getWantedServices");
   const { hasRole } = useHasRole(account, abi, "SERVICE_ADMIN_ROLE");
+  // Services can only reference names registered in the manager — surface them
+  // as autocomplete suggestions so users don't have to know the exact string.
+  const { data: registeredData } = useReadContract({
+    chainId,
+    address: manager,
+    abi: managerAbi as Abi,
+    functionName: "getAllRegisteredServiceNames",
+  });
+  const registered = (registeredData as string[] | undefined) ?? [];
 
   return (
     <div className="grid gap-4">
-      <SupportedServices account={account} abi={abi} hasRole={hasRole} />
+      <SupportedServices account={account} abi={abi} hasRole={hasRole} registered={registered} />
       <ListManager
         title="Wanted Services"
         items={wanted.items}
@@ -324,6 +342,7 @@ export function ServicesTab({ account }: { account: Address }) {
         hasRole={hasRole}
         addLabel="Add wanted"
         addPlaceholder="Service name"
+        suggestions={registered.filter((n) => !wanted.items.includes(n))}
         onAdd={(v) => writeContractAsync({ address: account, abi, functionName: "addWantedServices", args: [[v]] })}
         onRemove={(v) => writeContractAsync({ address: account, abi, functionName: "removeWantedServices", args: [[v]] })}
         onChanged={wanted.refetch}

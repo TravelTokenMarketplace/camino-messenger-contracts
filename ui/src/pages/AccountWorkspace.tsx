@@ -1,9 +1,8 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowUpFromLine, Bot, Coins, KeyRound, LayoutDashboard, Server, Users } from "lucide-react";
+import { ArrowUpFromLine, Bot, Coins, KeyRound, Server, Users } from "lucide-react";
 import { type Address } from "viem";
 import { AccountSummary } from "../components/AccountSummary";
 import { TxPanel } from "../components/TxPanel";
-import { OverviewTab } from "./tabs/OverviewTab";
 import { BotsTab } from "./tabs/BotsTab";
 import { PaymentTokensTab } from "./tabs/PaymentTokensTab";
 import { ServicesTab } from "./tabs/ServicesTab";
@@ -12,7 +11,6 @@ import { PubkeysTab } from "./tabs/PubkeysTab";
 import { WithdrawalsTab } from "./tabs/WithdrawalsTab";
 
 const TABS = [
-  { id: "overview", label: "Overview", Icon: LayoutDashboard, Component: OverviewTab },
   { id: "bots", label: "Bots", Icon: Bot, Component: BotsTab },
   { id: "tokens", label: "Payment Tokens", Icon: Coins, Component: PaymentTokensTab },
   { id: "services", label: "Services", Icon: Server, Component: ServicesTab },
@@ -24,7 +22,7 @@ const TABS = [
 export function AccountWorkspace() {
   const { address } = useParams();
   const [params] = useSearchParams();
-  const active = params.get("tab") ?? "overview";
+  const active = params.get("tab") ?? TABS[0].id;
   const account = address as Address;
   const Active = (TABS.find((t) => t.id === active) ?? TABS[0]).Component;
 
