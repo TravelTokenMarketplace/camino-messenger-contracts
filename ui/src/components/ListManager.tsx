@@ -1,5 +1,6 @@
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { Autocomplete } from "./Autocomplete";
 import { Card } from "./Card";
 import { RoleGate } from "./RoleGate";
 import { RowAction } from "./RowAction";
@@ -24,7 +25,6 @@ interface ListManagerProps {
 export function ListManager(props: ListManagerProps) {
   const { title, items, isLoading, roleName, hasRole, addLabel, addPlaceholder, suggestions } = props;
   const [value, setValue] = useState("");
-  const listId = useId();
 
   return (
     <Card title={title}>
@@ -45,12 +45,11 @@ export function ListManager(props: ListManagerProps) {
       )}
       <RoleGate hasRole={hasRole} roleName={roleName} action={addLabel}>
         <div className="flex items-end gap-2">
-          <input className="flex-1 rounded border px-2 py-1" placeholder={addPlaceholder} value={value} onChange={(e) => setValue(e.target.value)} list={suggestions?.length ? listId : undefined} />
-          {suggestions?.length ? (
-            <datalist id={listId}>
-              {suggestions.map((s) => <option key={s} value={s} />)}
-            </datalist>
-          ) : null}
+          {suggestions ? (
+            <Autocomplete className="flex-1" value={value} onChange={setValue} options={suggestions} placeholder={addPlaceholder} />
+          ) : (
+            <input className="flex-1 rounded border px-2 py-1" placeholder={addPlaceholder} value={value} onChange={(e) => setValue(e.target.value)} />
+          )}
           <TxButton label={addLabel} icon={<Plus className="h-4 w-4" />} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} />
         </div>
       </RoleGate>

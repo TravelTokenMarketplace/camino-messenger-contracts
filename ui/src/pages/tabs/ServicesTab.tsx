@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { ChevronRight, Plus, Trash2, X } from "lucide-react";
 import { type Abi, type Address, type Hex } from "viem";
 import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
+import { Autocomplete } from "../../components/Autocomplete";
 import { Card } from "../../components/Card";
 import { ListManager } from "../../components/ListManager";
 import { RoleGate } from "../../components/RoleGate";
@@ -194,7 +195,7 @@ function SupportedServiceRow({
 function SupportedServices({ account, abi, hasRole, registered }: { account: Address; abi: Abi; hasRole: boolean; registered: string[] }) {
   const { manager, managerAbi, chainId } = useActiveContracts();
   const { writeContractAsync } = useWriteContract();
-  const datalistId = useId();
+  const serviceInputId = useId();
   // getSupportedServices() returns a (uint256,bool,string[])[] tuple that viem
   // cannot reliably decode, so list service hashes and resolve names + config
   // via per-hash getters instead.
@@ -265,18 +266,13 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
               <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
                 Service name <span className="font-normal text-gray-400">(must be registered in the manager)</span>
               </span>
-              <input
-                className={`w-full ${inputClass}`}
-                placeholder="Click to pick a registered service…"
+              <Autocomplete
+                id={serviceInputId}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                list={datalistId}
+                onChange={setName}
+                options={registered.filter((n) => !services.some((s) => s.name === n))}
+                placeholder="Click to pick a registered service…"
               />
-              <datalist id={datalistId}>
-                {registered
-                  .filter((n) => !services.some((s) => s.name === n))
-                  .map((n) => <option key={n} value={n} />)}
-              </datalist>
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
