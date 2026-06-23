@@ -86,7 +86,7 @@ function SupportedServiceRow({
             {service.capabilities.map((c) => (
               <span key={c} className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">{c}</span>
             ))}
-            {!service.restricted && service.capabilities.length === 0 && (
+            {open && !service.restricted && service.capabilities.length === 0 && (
               <span className="text-xs text-gray-400">No restrictions or capabilities</span>
             )}
           </span>
