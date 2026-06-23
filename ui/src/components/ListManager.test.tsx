@@ -24,6 +24,6 @@ describe("ListManager", () => {
   it("hides add/remove controls without the role", () => {
     render(<ListManager {...base} hasRole={false} items={["0xAAA"]} onAdd={vi.fn()} />);
     expect(screen.queryByRole("button", { name: /add token/i })).toBeNull();
-    expect(screen.getByText(/DEFAULT_ADMIN_ROLE/)).toBeInTheDocument();
+    expect(screen.getAllByText(/DEFAULT_ADMIN_ROLE/).length).toBeGreaterThan(0);
   });
 });
