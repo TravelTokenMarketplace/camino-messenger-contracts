@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { Card } from "./Card";
 import { RoleGate } from "./RoleGate";
 import { TxButton } from "./TxButton";
@@ -31,7 +32,7 @@ export function ListManager(props: ListManagerProps) {
             <li key={item} className="flex items-center justify-between py-2">
               <span className="font-mono text-sm">{props.renderItem ? props.renderItem(item) : item}</span>
               <RoleGate hasRole={hasRole} roleName={roleName}>
-                <TxButton label="Remove" write={() => props.onRemove(item)} onConfirmed={props.onChanged} explorerBase={props.explorerBase} />
+                <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => props.onRemove(item)} onConfirmed={props.onChanged} explorerBase={props.explorerBase} />
               </RoleGate>
             </li>
           ))}
@@ -40,7 +41,7 @@ export function ListManager(props: ListManagerProps) {
       <RoleGate hasRole={hasRole} roleName={roleName}>
         <div className="flex items-end gap-2">
           <input className="flex-1 rounded border px-2 py-1" placeholder={addPlaceholder} value={value} onChange={(e) => setValue(e.target.value)} />
-          <TxButton label={addLabel} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} explorerBase={props.explorerBase} />
+          <TxButton label={addLabel} icon={<Plus className="h-4 w-4" />} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} explorerBase={props.explorerBase} />
         </div>
       </RoleGate>
     </Card>

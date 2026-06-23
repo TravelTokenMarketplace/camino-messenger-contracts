@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { type Abi, type Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
@@ -15,7 +16,7 @@ function AccountRow({ account, connected, onlyMine }: { account: Address; connec
     <li className="flex flex-wrap items-center justify-between gap-2 py-2">
       <span className="flex items-center gap-2">
         <AddressDisplay address={account} truncate />
-        <Link className="text-xs text-indigo-600 underline dark:text-indigo-400" to={`/account/${account}`}>Open</Link>
+        <Link className="inline-flex items-center gap-1 text-xs text-indigo-600 underline dark:text-indigo-400" to={`/account/${account}`}>Open <ArrowRight className="h-3 w-3" /></Link>
       </span>
       <span className="flex flex-wrap gap-1">
         {roles.map((r) => (

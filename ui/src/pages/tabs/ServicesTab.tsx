@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { type Abi, type Address, type Hex } from "viem";
 import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { Card } from "../../components/Card";
@@ -49,7 +50,7 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
             <li key={s} className="flex items-center justify-between py-2">
               <span className="font-mono text-sm">{s}</span>
               <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE">
-                <TxButton label="Remove" write={() => writeContractAsync({ address: account, abi, functionName: "removeService", args: [s] })} onConfirmed={() => void refetch()} />
+                <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => writeContractAsync({ address: account, abi, functionName: "removeService", args: [s] })} onConfirmed={() => void refetch()} />
               </RoleGate>
             </li>
           ))}
@@ -62,6 +63,7 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
           <input className="w-48 rounded border px-2 py-1" placeholder="Capabilities (comma separated)" value={caps} onChange={(e) => setCaps(e.target.value)} />
           <TxButton
             label="Add service"
+            icon={<Plus className="h-4 w-4" />}
             disabled={!name}
             write={() => writeContractAsync({
               address: account,

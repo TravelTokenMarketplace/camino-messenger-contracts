@@ -1,4 +1,5 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import { ArrowUpFromLine, Bot, Coins, KeyRound, LayoutDashboard, Server, Users } from "lucide-react";
 import { type Address } from "viem";
 import { AccountSummary } from "../components/AccountSummary";
 import { OverviewTab } from "./tabs/OverviewTab";
@@ -10,13 +11,13 @@ import { PubkeysTab } from "./tabs/PubkeysTab";
 import { WithdrawalsTab } from "./tabs/WithdrawalsTab";
 
 const TABS = [
-  { id: "overview", label: "Overview", Component: OverviewTab },
-  { id: "bots", label: "Bots", Component: BotsTab },
-  { id: "tokens", label: "Payment Tokens", Component: PaymentTokensTab },
-  { id: "services", label: "Services", Component: ServicesTab },
-  { id: "roles", label: "Roles", Component: RolesTab },
-  { id: "pubkeys", label: "Pubkeys", Component: PubkeysTab },
-  { id: "withdrawals", label: "Withdrawals", Component: WithdrawalsTab },
+  { id: "overview", label: "Overview", Icon: LayoutDashboard, Component: OverviewTab },
+  { id: "bots", label: "Bots", Icon: Bot, Component: BotsTab },
+  { id: "tokens", label: "Payment Tokens", Icon: Coins, Component: PaymentTokensTab },
+  { id: "services", label: "Services", Icon: Server, Component: ServicesTab },
+  { id: "roles", label: "Roles", Icon: Users, Component: RolesTab },
+  { id: "pubkeys", label: "Pubkeys", Icon: KeyRound, Component: PubkeysTab },
+  { id: "withdrawals", label: "Withdrawals", Icon: ArrowUpFromLine, Component: WithdrawalsTab },
 ] as const;
 
 export function AccountWorkspace() {
@@ -32,8 +33,8 @@ export function AccountWorkspace() {
       <div className="grid gap-4">
         <nav className="flex flex-wrap gap-3 border-b text-sm dark:border-gray-800">
           {TABS.map((t) => (
-            <Link key={t.id} to={`?tab=${t.id}`} className={`pb-2 ${active === t.id ? "border-b-2 border-indigo-600 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
-              {t.label}
+            <Link key={t.id} to={`?tab=${t.id}`} className={`inline-flex items-center gap-1.5 pb-2 ${active === t.id ? "border-b-2 border-indigo-600 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
+              <t.Icon className="h-4 w-4" /> {t.label}
             </Link>
           ))}
         </nav>
