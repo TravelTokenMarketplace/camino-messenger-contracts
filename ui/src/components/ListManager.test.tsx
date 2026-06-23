@@ -21,9 +21,11 @@ describe("ListManager", () => {
     await waitFor(() => expect(onAdd).toHaveBeenCalledWith("0xBBB"));
   });
 
-  it("hides add/remove controls without the role", () => {
+  it("replaces add/remove controls with a named permission hint without the role", () => {
     render(<ListManager {...base} hasRole={false} items={["0xAAA"]} onAdd={vi.fn()} />);
-    expect(screen.queryByRole("button", { name: /add token/i })).toBeNull();
+    // The submit control is gone; only the permission hint (which names the
+    // action in its accessible label) remains.
+    expect(screen.getByText(/can't add token/i)).toBeInTheDocument();
     expect(screen.getAllByText(/DEFAULT_ADMIN_ROLE/).length).toBeGreaterThan(0);
   });
 });

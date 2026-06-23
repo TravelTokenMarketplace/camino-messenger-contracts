@@ -37,7 +37,7 @@ export function PubkeysTab({ account }: { account: Address }) {
           ))}
         </ul>
       )}
-      <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE">
+      <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE" action="Add public key">
         <div className="flex items-end gap-2">
           <input className="flex-1 rounded border px-2 py-1" placeholder="Address 0x…" value={addr} onChange={(e) => setAddr(e.target.value)} />
           <input className="flex-1 rounded border px-2 py-1" placeholder="Pubkey data (hex 0x…)" value={data} onChange={(e) => setData(e.target.value)} />

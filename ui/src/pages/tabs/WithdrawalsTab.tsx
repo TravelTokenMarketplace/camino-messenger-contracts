@@ -18,7 +18,7 @@ export function WithdrawalsTab({ account }: { account: Address }) {
 
   return (
     <Card title="Withdraw native funds">
-      <RoleGate hasRole={hasRole} roleName="WITHDRAWER_ROLE">
+      <RoleGate hasRole={hasRole} roleName="WITHDRAWER_ROLE" action="Withdraw">
         <div className="flex items-end gap-2">
           <input className="flex-1 rounded border px-2 py-1" placeholder="Recipient 0x…" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
           <input className="w-32 rounded border px-2 py-1" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />

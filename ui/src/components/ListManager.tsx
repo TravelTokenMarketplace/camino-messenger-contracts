@@ -40,7 +40,7 @@ export function ListManager(props: ListManagerProps) {
           ))}
         </ul>
       )}
-      <RoleGate hasRole={hasRole} roleName={roleName}>
+      <RoleGate hasRole={hasRole} roleName={roleName} action={addLabel}>
         <div className="flex items-end gap-2">
           <input className="flex-1 rounded border px-2 py-1" placeholder={addPlaceholder} value={value} onChange={(e) => setValue(e.target.value)} />
           <TxButton label={addLabel} icon={<Plus className="h-4 w-4" />} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} />

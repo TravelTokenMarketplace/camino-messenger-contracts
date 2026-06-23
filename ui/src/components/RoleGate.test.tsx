@@ -13,4 +13,9 @@ describe("RoleGate", () => {
     expect(screen.queryByRole("button", { name: /add bot/i })).toBeNull();
     expect(screen.getByText(/BOT_ADMIN_ROLE/)).toBeInTheDocument();
   });
+
+  it("names the gated action when provided", () => {
+    render(<RoleGate hasRole={false} roleName="BOT_ADMIN_ROLE" action="Add bot"><span /></RoleGate>);
+    expect(screen.getByText(/can't add bot/i)).toBeInTheDocument();
+  });
 });

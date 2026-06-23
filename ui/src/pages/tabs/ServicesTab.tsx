@@ -256,7 +256,7 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
           ))}
         </ul>
       )}
-      <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE">
+      <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE" action="Add service">
         <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
           <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-200">Add a service</h3>
           <div className="grid gap-3">

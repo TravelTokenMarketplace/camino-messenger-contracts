@@ -67,7 +67,7 @@ export function BotsTab({ account }: { account: Address }) {
           ))}
         </ul>
       )}
-      <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE">
+      <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE" action="Add bot">
         <div className="flex items-end gap-2">
           <input className="flex-1 rounded border px-2 py-1" placeholder="Bot address 0x…" value={bot} onChange={(e) => setBot(e.target.value)} />
           <input className="w-32 rounded border px-2 py-1" placeholder="Gas money (CAM)" value={gas} onChange={(e) => setGas(e.target.value)} />
