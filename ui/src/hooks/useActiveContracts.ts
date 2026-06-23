@@ -1,17 +1,17 @@
 import { type Address } from "viem";
-import { useChainId } from "wagmi";
 import {
   BOOKINGTOKEN_ABI,
   CMACCOUNT_ABI,
   MANAGER_ABI,
   getContractsForChain,
 } from "../contracts";
+import { useActiveChain } from "../wallet/activeChain";
 
 export function useActiveContracts() {
-  const chainId = useChainId();
-  const resolved = chainId ? getContractsForChain(chainId) : undefined;
+  const { activeChainId } = useActiveChain();
+  const resolved = getContractsForChain(activeChainId);
   return {
-    chainId,
+    chainId: activeChainId,
     supported: Boolean(resolved),
     manager: resolved?.manager as Address | undefined,
     bookingToken: resolved?.bookingToken as Address | undefined,

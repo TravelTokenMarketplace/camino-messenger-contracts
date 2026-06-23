@@ -10,12 +10,13 @@ import { useContractList } from "../../hooks/useContractList";
 import { useHasRole } from "../../hooks/useHasRole";
 
 function SupportedServices({ account, abi, hasRole }: { account: Address; abi: Abi; hasRole: boolean }) {
-  const { manager, managerAbi } = useActiveContracts();
+  const { manager, managerAbi, chainId } = useActiveContracts();
   const { writeContractAsync } = useWriteContract();
   // getSupportedServices() returns a (uint256,bool,string[])[] tuple that viem
   // cannot reliably decode, so list service hashes and resolve names via the
   // manager registry instead.
   const { data: hashesData, isLoading: hashesLoading, refetch: refetchHashes } = useReadContract({
+    chainId,
     address: account,
     abi,
     functionName: "getAllServiceHashes",
@@ -23,6 +24,7 @@ function SupportedServices({ account, abi, hasRole }: { account: Address; abi: A
   const hashes = (hashesData as Hex[] | undefined) ?? [];
   const { data: nameResults, isLoading: namesLoading, refetch: refetchNames } = useReadContracts({
     contracts: hashes.map((h) => ({
+      chainId,
       address: manager,
       abi: managerAbi as Abi,
       functionName: "getRegisteredServiceNameByHash",

@@ -1,7 +1,6 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { type Address } from "viem";
-import { Card } from "../components/Card";
-import { shortAddress } from "../lib/format";
+import { AccountSummary } from "../components/AccountSummary";
 import { OverviewTab } from "./tabs/OverviewTab";
 import { BotsTab } from "./tabs/BotsTab";
 import { PaymentTokensTab } from "./tabs/PaymentTokensTab";
@@ -28,16 +27,18 @@ export function AccountWorkspace() {
   const Active = (TABS.find((t) => t.id === active) ?? TABS[0]).Component;
 
   return (
-    <div className="grid gap-4">
-      <Card><h1 className="font-mono">{shortAddress(account)}</h1></Card>
-      <nav className="flex gap-3 border-b text-sm">
-        {TABS.map((t) => (
-          <Link key={t.id} to={`?tab=${t.id}`} className={`pb-2 ${active === t.id ? "border-b-2 border-indigo-600 font-medium" : "text-gray-500"}`}>
-            {t.label}
-          </Link>
-        ))}
-      </nav>
-      <Active account={account} />
+    <div className="grid gap-6 md:grid-cols-[260px_1fr]">
+      <AccountSummary account={account} />
+      <div className="grid gap-4">
+        <nav className="flex flex-wrap gap-3 border-b text-sm dark:border-gray-800">
+          {TABS.map((t) => (
+            <Link key={t.id} to={`?tab=${t.id}`} className={`pb-2 ${active === t.id ? "border-b-2 border-indigo-600 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
+              {t.label}
+            </Link>
+          ))}
+        </nav>
+        <Active account={account} />
+      </div>
     </div>
   );
 }

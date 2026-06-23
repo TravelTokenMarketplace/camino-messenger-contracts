@@ -27,13 +27,13 @@ function AccountRow({ account, connected, onlyMine }: { account: Address; connec
 }
 
 export function Dashboard() {
-  const { manager, managerAbi, supported } = useActiveContracts();
+  const { manager, managerAbi, supported, chainId } = useActiveContracts();
   const abi = managerAbi as Abi;
   const { address } = useAccount();
   const { accounts, isLoading } = useManagerAccounts();
   const [onlyMine, setOnlyMine] = useState(false);
-  const { data: paused } = useReadContract({ address: manager, abi, functionName: "paused" });
-  const { data: impl } = useReadContract({ address: manager, abi, functionName: "getAccountImplementation" });
+  const { data: paused } = useReadContract({ chainId, address: manager, abi, functionName: "paused" });
+  const { data: impl } = useReadContract({ chainId, address: manager, abi, functionName: "getAccountImplementation" });
 
   if (!supported) return <Card title="Dashboard">Connect to a supported network.</Card>;
 

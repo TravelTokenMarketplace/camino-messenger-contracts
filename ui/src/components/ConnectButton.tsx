@@ -8,7 +8,7 @@ export function ConnectButton() {
 
   if (isConnected && address)
     return (
-      <button className="rounded border px-3 py-1.5" onClick={() => disconnect()}>
+      <button className="rounded border px-3 py-1.5 dark:border-gray-700" onClick={() => disconnect()}>
         {shortAddress(address)} · Disconnect
       </button>
     );

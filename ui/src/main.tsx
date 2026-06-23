@@ -3,14 +3,17 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { Providers } from "./wallet/Providers";
+import { ThemeProvider } from "./theme/theme";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Providers>
-      <BrowserRouter basename="/camino-messenger-contracts">
-        <App />
-      </BrowserRouter>
-    </Providers>
+    <ThemeProvider>
+      <Providers>
+        <BrowserRouter basename="/camino-messenger-contracts">
+          <App />
+        </BrowserRouter>
+      </Providers>
+    </ThemeProvider>
   </React.StrictMode>,
 );
