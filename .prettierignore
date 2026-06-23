@@ -13,3 +13,9 @@ yarn.lock
 
 # Ignore abi
 /abi
+
+# Ignore UI
+/ui
+
+# Ignore superpowers skill docs
+/docs/superpowers/
