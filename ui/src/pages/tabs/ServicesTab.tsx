@@ -5,6 +5,7 @@ import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { Autocomplete } from "../../components/Autocomplete";
 import { Card } from "../../components/Card";
 import { Checkbox } from "../../components/Checkbox";
+import { CopyButton } from "../../components/CopyButton";
 import { ListManager } from "../../components/ListManager";
 import { RoleGate } from "../../components/RoleGate";
 import { Tooltip } from "../../components/Tooltip";
@@ -12,7 +13,16 @@ import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useContractList } from "../../hooks/useContractList";
 import { useHasRole } from "../../hooks/useHasRole";
+import { type ParsedService, parseServiceName, versionOrder } from "../../lib/serviceName";
 import { useTx } from "../../tx/TxProvider";
+
+// Deterministic accent colour per package, for quick visual grouping.
+const PKG_DOTS = ["bg-indigo-500", "bg-emerald-500", "bg-amber-500", "bg-sky-500", "bg-rose-500", "bg-violet-500", "bg-teal-500", "bg-orange-500"];
+function pkgColor(pkg: string): string {
+  let h = 0;
+  for (let i = 0; i < pkg.length; i++) h = (h * 31 + pkg.charCodeAt(i)) >>> 0;
+  return PKG_DOTS[h % PKG_DOTS.length];
+}
 
 // Explicit single-overload fragments: the CMAccount ABI overloads these by
 // (string) and (bytes32), which makes viem's overload resolution ambiguous.
@@ -33,6 +43,7 @@ function SupportedServiceRow({
   account,
   abi,
   service,
+  parsed,
   hasRole,
   open,
   onToggle,
@@ -41,6 +52,7 @@ function SupportedServiceRow({
   account: Address;
   abi: Abi;
   service: ServiceInfo;
+  parsed: ParsedService;
   hasRole: boolean;
   open: boolean;
   onToggle: () => void;
@@ -80,23 +92,31 @@ function SupportedServiceRow({
       >
         <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`} />
         <span className="min-w-0 flex-1">
-          <span className="block break-all font-mono text-sm">{service.name}</span>
-          <span className="mt-1 flex flex-wrap items-center gap-1">
-            {service.restricted && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">Restricted rate</span>
+          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            {parsed.version && (
+              <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{parsed.version}</span>
             )}
-            {service.capabilities.map((c) => (
-              <span key={c} className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">{c}</span>
-            ))}
-            {open && !service.restricted && service.capabilities.length === 0 && (
-              <span className="text-xs text-gray-400">No restrictions or capabilities</span>
-            )}
+            <span className="break-all font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{parsed.name}</span>
           </span>
+          {(service.restricted || service.capabilities.length > 0) && (
+            <span className="mt-1 flex flex-wrap items-center gap-1">
+              {service.restricted && (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">Restricted rate</span>
+              )}
+              {service.capabilities.map((c) => (
+                <span key={c} className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">{c}</span>
+              ))}
+            </span>
+          )}
         </span>
       </button>
 
       {open && (
         <div className="space-y-3 border-t border-gray-100 px-3 py-3 dark:border-gray-700/60">
+          <div className="flex items-start gap-2">
+            <code className="min-w-0 break-all font-mono text-xs text-gray-500 dark:text-gray-400">{service.name}</code>
+            <CopyButton value={service.name} label="Copy full service name" />
+          </div>
           {hasRole ? (
             <>
               <div className="flex flex-wrap items-center gap-2">
@@ -240,24 +260,54 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
   const [restricted, setRestricted] = useState(false);
   const [caps, setCaps] = useState("");
 
+  // Parse, then group by package and sort by version + name so similar services
+  // sit together and the version/name (the distinguishing parts) stand out.
+  const enriched = services.map((s) => ({ ...s, parsed: parseServiceName(s.name) }));
+  const sorted = [...enriched].sort(
+    (a, b) =>
+      a.parsed.pkg.localeCompare(b.parsed.pkg) ||
+      versionOrder(a.parsed.version) - versionOrder(b.parsed.version) ||
+      a.parsed.name.localeCompare(b.parsed.name),
+  );
+  const groups: { pkg: string; items: typeof sorted }[] = [];
+  for (const s of sorted) {
+    const key = s.parsed.pkg || "other";
+    let g = groups.find((x) => x.pkg === key);
+    if (!g) { g = { pkg: key, items: [] }; groups.push(g); }
+    g.items.push(s);
+  }
+
   return (
     <Card title="Supported Services">
-      {isLoading ? <p>Loading…</p> : (
-        <ul className="mb-4 space-y-2">
-          {services.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
-          {services.map((s) => (
-            <SupportedServiceRow
-              key={s.hash}
-              account={account}
-              abi={abi}
-              service={s}
-              hasRole={hasRole}
-              open={openHash === s.hash}
-              onToggle={() => setOpenHash((cur) => (cur === s.hash ? null : s.hash))}
-              onChanged={refetch}
-            />
+      {isLoading ? <p>Loading…</p> : services.length === 0 ? (
+        <p className="mb-4 py-2 text-sm text-gray-400">None</p>
+      ) : (
+        <div className="mb-4 space-y-5">
+          {groups.map((g) => (
+            <div key={g.pkg}>
+              <div className="mb-1.5 flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${pkgColor(g.pkg)}`} aria-hidden />
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{g.pkg}</h4>
+                <span className="text-xs text-gray-400">{g.items.length}</span>
+              </div>
+              <ul className="space-y-2">
+                {g.items.map((s) => (
+                  <SupportedServiceRow
+                    key={s.hash}
+                    account={account}
+                    abi={abi}
+                    service={s}
+                    parsed={s.parsed}
+                    hasRole={hasRole}
+                    open={openHash === s.hash}
+                    onToggle={() => setOpenHash((cur) => (cur === s.hash ? null : s.hash))}
+                    onChanged={refetch}
+                  />
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
       <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE" action="Add service">
         <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
