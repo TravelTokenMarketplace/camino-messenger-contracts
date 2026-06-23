@@ -13,7 +13,10 @@ interface AddressDisplayProps {
 export function AddressDisplay({ address, truncate = false, className = "", showIcon = true }: AddressDisplayProps) {
   const [copied, setCopied] = useState(false);
 
-  async function copy() {
+  async function copy(e: React.MouseEvent) {
+    // Don't let a copy click trigger a parent row's navigation.
+    e.stopPropagation();
+    e.preventDefault();
     try {
       await navigator.clipboard?.writeText(address);
       setCopied(true);
