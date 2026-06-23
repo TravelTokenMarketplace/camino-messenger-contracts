@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { PermissionHint } from "./PermissionHint";
 
 interface RoleGateProps {
   hasRole: boolean;
@@ -9,11 +10,6 @@ interface RoleGateProps {
 
 export function RoleGate({ hasRole, isLoading, roleName, children }: RoleGateProps) {
   if (isLoading) return <span className="text-xs text-gray-400">Checking permissions…</span>;
-  if (!hasRole)
-    return (
-      <p className="text-xs text-amber-600">
-        Requires <code>{roleName}</code> on the connected account.
-      </p>
-    );
+  if (!hasRole) return <PermissionHint roleName={roleName} />;
   return <>{children}</>;
 }
