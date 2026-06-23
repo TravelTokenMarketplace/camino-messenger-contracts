@@ -40,7 +40,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (getStored() !== null || typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => setTheme(e.matches ? "dark" : "light");
+    const handler = (e: MediaQueryListEvent) => {
+      // A toggle since mount persists a choice; once that happens, stop letting
+      // OS changes override the user's explicit selection.
+      if (getStored() !== null) return;
+      setTheme(e.matches ? "dark" : "light");
+    };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);

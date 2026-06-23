@@ -1,5 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { Loader2 } from "lucide-react";
+import type { TransactionReceipt } from "viem";
 import { useTx } from "../tx/TxProvider";
 import { Tooltip } from "./Tooltip";
 
@@ -7,7 +8,7 @@ interface TxButtonProps {
   label: string;
   disabled?: boolean;
   write: () => Promise<`0x${string}`>;
-  onConfirmed?: () => void;
+  onConfirmed?: (receipt: TransactionReceipt) => void;
   icon?: ReactNode;
   variant?: "primary" | "danger";
   /** Rich tooltip; defaults to a note that this sends a wallet transaction. */

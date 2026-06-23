@@ -10,10 +10,9 @@ on:
             - ".github/workflows/deploy-ui.yml"
     workflow_dispatch:
 
+# Default to least privilege; the deploy job widens these for Pages/OIDC.
 permissions:
     contents: read
-    pages: write
-    id-token: write
 
 concurrency:
     group: pages
@@ -24,6 +23,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
             - uses: actions/setup-node@v4
               with:
                   node-version: 20
@@ -40,6 +41,10 @@ jobs:
     deploy:
         needs: build
         runs-on: ubuntu-latest
+        # Pages publishing needs write + OIDC token; scope it to this job only.
+        permissions:
+            pages: write
+            id-token: write
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}

@@ -256,7 +256,7 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
     query: { enabled: hashes.length > 0 },
   });
   // Per-service config (restricted rate + capabilities), best-effort.
-  const { data: configResults, refetch: refetchConfig } = useReadContracts({
+  const { data: configResults, isLoading: configLoading, refetch: refetchConfig } = useReadContracts({
     contracts: hashes.flatMap((h) => [
       { chainId, address: account, abi: RESTRICTED_RATE_ABI, functionName: "getServiceRestrictedRate", args: [h] },
       { chainId, address: account, abi: CAPABILITIES_ABI, functionName: "getServiceCapabilities", args: [h] },
@@ -270,7 +270,10 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
     restricted: configResults?.[i * 2]?.result === true,
     capabilities: (configResults?.[i * 2 + 1]?.result as string[] | undefined) ?? [],
   }));
-  const isLoading = hashesLoading || (hashes.length > 0 && namesLoading);
+  // Gate on config too: rows expose restricted-rate / capability controls whose
+  // defaults (false / []) would otherwise render before config settles and could
+  // drive the wrong action (e.g. inverted restricted-rate toggle).
+  const isLoading = hashesLoading || (hashes.length > 0 && (namesLoading || configLoading));
   const refetch = () => { void refetchHashes(); void refetchNames(); void refetchConfig(); };
   const [openHash, setOpenHash] = useState<Hex | null>(null);
   const [name, setName] = useState("");

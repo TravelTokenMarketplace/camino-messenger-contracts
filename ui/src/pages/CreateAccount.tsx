@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { type Abi, type Address, parseEther } from "viem";
-import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { type Abi, type Address, type TransactionReceipt, parseEther } from "viem";
+import { useAccount, useWriteContract } from "wagmi";
 import { APP_CHAINS } from "../config/chains";
 import { Card } from "../components/Card";
 import { Input } from "../components/Input";
@@ -14,7 +14,6 @@ export function CreateAccount() {
   const { address } = useAccount();
   const { manager, managerAbi, cmAccountAbi, supported, chainId } = useActiveContracts();
   const { writeContractAsync } = useWriteContract();
-  const client = usePublicClient();
   const navigate = useNavigate();
   const [admin, setAdmin] = useState("");
   const [upgrader, setUpgrader] = useState("");
@@ -35,18 +34,22 @@ export function CreateAccount() {
     }
   }
 
-  async function write() {
-    const hash = await writeContractAsync({
+  // Return the hash as soon as it's submitted so TxProvider can register the
+  // pending entry and own the single receipt wait. Navigation to the new
+  // account happens in onConfirmed, which receives the mined receipt.
+  function write() {
+    return writeContractAsync({
       address: manager!,
       abi: managerAbi as Abi,
       functionName: "createCMAccount",
       args: [adminVal, upgraderVal],
       value,
     });
-    const receipt = await client!.waitForTransactionReceipt({ hash });
+  }
+
+  function onConfirmed(receipt: TransactionReceipt) {
     const created = findCreatedAccount(receipt.logs, cmAccountAbi as Abi);
     if (created) navigate(`/account/${created}`);
-    return hash;
   }
 
   if (!supported) return <Card title="Create CM Account">Connect to a supported network.</Card>;
@@ -74,7 +77,7 @@ export function CreateAccount() {
           </span>
           {amountError && <span className="mt-1 block text-xs text-red-600">{amountError}</span>}
         </label>
-        <TxButton label="Create account" icon={<PlusCircle className="h-4 w-4" />} disabled={!address || !!amountError} write={write} />
+        <TxButton label="Create account" icon={<PlusCircle className="h-4 w-4" />} disabled={!address || !!amountError} write={write} onConfirmed={onConfirmed} />
       </div>
     </Card>
   );
