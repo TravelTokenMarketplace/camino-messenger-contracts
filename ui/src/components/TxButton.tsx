@@ -1,35 +1,32 @@
 import { type ReactNode, useState } from "react";
-import { ExternalLink, Loader2 } from "lucide-react";
-import { explorerTxUrl } from "../lib/format";
-
-type Status = "idle" | "pending" | "success" | "error";
+import { Loader2 } from "lucide-react";
+import { useTx } from "../tx/TxProvider";
 
 interface TxButtonProps {
   label: string;
   disabled?: boolean;
   write: () => Promise<`0x${string}`>;
   onConfirmed?: () => void;
-  explorerBase?: string;
   icon?: ReactNode;
   variant?: "primary" | "danger";
 }
 
-export function TxButton({ label, disabled, write, onConfirmed, explorerBase, icon, variant = "primary" }: TxButtonProps) {
-  const [status, setStatus] = useState<Status>("idle");
-  const [hash, setHash] = useState<string>();
+export function TxButton({ label, disabled, write, onConfirmed, icon, variant = "primary" }: TxButtonProps) {
+  const { track } = useTx();
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
 
   async function handleClick() {
-    setStatus("pending");
+    setPending(true);
     setError(undefined);
     try {
-      const h = await write();
-      setHash(h);
-      setStatus("success");
-      onConfirmed?.();
+      // Resolves once submitted; mining and refetch are handled by the panel.
+      await track({ label, write, onConfirmed });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setStatus("error");
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg.split("\n")[0]);
+    } finally {
+      setPending(false);
     }
   }
 
@@ -42,19 +39,14 @@ export function TxButton({ label, disabled, write, onConfirmed, explorerBase, ic
     <div className="flex flex-col gap-1">
       <button
         type="button"
-        disabled={disabled || status === "pending"}
+        disabled={disabled || pending}
         onClick={handleClick}
         className={`inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-white transition-colors disabled:opacity-50 ${color}`}
       >
-        {status === "pending" ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
-        <span>{status === "pending" ? "Confirming…" : status === "success" ? "Confirmed" : label}</span>
+        {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
+        <span>{pending ? "Confirming…" : label}</span>
       </button>
-      {hash && explorerBase && (
-        <a className="inline-flex items-center gap-1 text-xs text-indigo-500 underline" href={explorerTxUrl(explorerBase, hash)} target="_blank" rel="noreferrer">
-          <ExternalLink className="h-3 w-3" /> View transaction
-        </a>
-      )}
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="max-w-xs text-xs text-red-600">{error}</span>}
     </div>
   );
 }

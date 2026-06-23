@@ -1,0 +1,98 @@
+import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import type { Hex } from "viem";
+import { useConfig } from "wagmi";
+import { getAccount, waitForTransactionReceipt } from "wagmi/actions";
+
+export type TxState = "pending" | "confirmed" | "failed";
+
+export interface TrackedTx {
+  id: string;
+  label: string;
+  hash: Hex;
+  chainId?: number;
+  state: TxState;
+}
+
+interface TrackArgs {
+  /** Human-friendly description shown in the transaction panel. */
+  label: string;
+  /** Submits the transaction and resolves with its hash. */
+  write: () => Promise<Hex>;
+  /** Called once the transaction is mined successfully (good place to refetch). */
+  onConfirmed?: () => void;
+}
+
+interface TxApi {
+  txs: TrackedTx[];
+  /**
+   * Submits a transaction and tracks it to completion. Resolves once the tx is
+   * submitted (hash obtained); mining is awaited in the background so the panel
+   * keeps showing progress even after the triggering button disappears.
+   * Submission errors (e.g. wallet rejection) reject so the caller can show them
+   * inline; they do not create a panel entry.
+   */
+  track: (args: TrackArgs) => Promise<void>;
+  dismiss: (id: string) => void;
+}
+
+// Default used when no provider is mounted (e.g. unit tests): fire-and-forget
+// that still calls write/onConfirmed and surfaces submission errors.
+const fallback: TxApi = {
+  txs: [],
+  track: async ({ write, onConfirmed }) => {
+    await write();
+    onConfirmed?.();
+  },
+  dismiss: () => {},
+};
+
+const TxContext = createContext<TxApi>(fallback);
+
+export function useTx() {
+  return useContext(TxContext);
+}
+
+let counter = 0;
+const nextId = () => `tx-${Date.now()}-${counter++}`;
+
+export function TxProvider({ children }: { children: ReactNode }) {
+  const config = useConfig();
+  const [txs, setTxs] = useState<TrackedTx[]>([]);
+
+  const update = useCallback((id: string, patch: Partial<TrackedTx>) => {
+    setTxs((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  }, []);
+
+  const dismiss = useCallback((id: string) => {
+    setTxs((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const track = useCallback(
+    async ({ label, write, onConfirmed }: TrackArgs) => {
+      // Submission errors propagate to the caller and create no panel entry.
+      const hash = await write();
+      const id = nextId();
+      const chainId = getAccount(config).chainId;
+      setTxs((prev) => [{ id, label, hash, chainId, state: "pending" }, ...prev]);
+      // Wait for mining off the critical path so the panel reflects on-chain
+      // confirmation even after the triggering row action is hidden.
+      void (async () => {
+        try {
+          const receipt = await waitForTransactionReceipt(config, { hash, chainId });
+          if (receipt.status === "success") {
+            update(id, { state: "confirmed" });
+            onConfirmed?.();
+            setTimeout(() => dismiss(id), 6000);
+          } else {
+            update(id, { state: "failed" });
+          }
+        } catch {
+          update(id, { state: "failed" });
+        }
+      })();
+    },
+    [config, update, dismiss],
+  );
+
+  return <TxContext.Provider value={{ txs, track, dismiss }}>{children}</TxContext.Provider>;
+}

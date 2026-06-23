@@ -16,7 +16,6 @@ interface ListManagerProps {
   onAdd: (value: string) => Promise<`0x${string}`>;
   onRemove: (value: string) => Promise<`0x${string}`>;
   onChanged?: () => void;
-  explorerBase?: string;
   renderItem?: (value: string) => ReactNode;
 }
 
@@ -34,7 +33,7 @@ export function ListManager(props: ListManagerProps) {
               <span className="min-w-0 font-mono text-sm">{props.renderItem ? props.renderItem(item) : item}</span>
               {hasRole && (
                 <RowAction>
-                  <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => props.onRemove(item)} onConfirmed={props.onChanged} explorerBase={props.explorerBase} />
+                  <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => props.onRemove(item)} onConfirmed={props.onChanged} />
                 </RowAction>
               )}
             </li>
@@ -44,7 +43,7 @@ export function ListManager(props: ListManagerProps) {
       <RoleGate hasRole={hasRole} roleName={roleName}>
         <div className="flex items-end gap-2">
           <input className="flex-1 rounded border px-2 py-1" placeholder={addPlaceholder} value={value} onChange={(e) => setValue(e.target.value)} />
-          <TxButton label={addLabel} icon={<Plus className="h-4 w-4" />} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} explorerBase={props.explorerBase} />
+          <TxButton label={addLabel} icon={<Plus className="h-4 w-4" />} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} />
         </div>
       </RoleGate>
     </Card>

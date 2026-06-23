@@ -2,6 +2,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowUpFromLine, Bot, Coins, KeyRound, LayoutDashboard, Server, Users } from "lucide-react";
 import { type Address } from "viem";
 import { AccountSummary } from "../components/AccountSummary";
+import { TxPanel } from "../components/TxPanel";
 import { OverviewTab } from "./tabs/OverviewTab";
 import { BotsTab } from "./tabs/BotsTab";
 import { PaymentTokensTab } from "./tabs/PaymentTokensTab";
@@ -29,7 +30,10 @@ export function AccountWorkspace() {
 
   return (
     <div className="grid items-start gap-6 md:grid-cols-[260px_1fr]">
-      <AccountSummary account={account} />
+      <div className="flex flex-col gap-4">
+        <AccountSummary account={account} />
+        <TxPanel />
+      </div>
       <div className="flex min-w-0 flex-col gap-4">
         <nav className="flex flex-wrap gap-3 border-b text-sm dark:border-gray-800">
           {TABS.map((t) => (
