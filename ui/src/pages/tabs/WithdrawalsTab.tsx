@@ -3,6 +3,7 @@ import { ArrowUpFromLine } from "lucide-react";
 import { type Abi, type Address, parseEther } from "viem";
 import { useWriteContract } from "wagmi";
 import { Card } from "../../components/Card";
+import { Input } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
@@ -20,8 +21,8 @@ export function WithdrawalsTab({ account }: { account: Address }) {
     <Card title="Withdraw native funds">
       <RoleGate hasRole={hasRole} roleName="WITHDRAWER_ROLE" action="Withdraw">
         <div className="flex items-end gap-2">
-          <input className="flex-1 rounded border px-2 py-1" placeholder="Recipient 0x…" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
-          <input className="w-32 rounded border px-2 py-1" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <Input className="flex-1 font-mono" placeholder="Recipient 0x…" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
+          <Input className="w-32" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
           <TxButton label="Withdraw" icon={<ArrowUpFromLine className="h-4 w-4" />} disabled={!recipient} write={() => writeContractAsync({ address: account, abi, functionName: "withdraw", args: [recipient as Address, parseEther(amount || "0")] })} onConfirmed={() => { setRecipient(""); setAmount("0"); }} />
         </div>
       </RoleGate>

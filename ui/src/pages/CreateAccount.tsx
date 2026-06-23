@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { type Abi, type Address } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { Card } from "../components/Card";
+import { Input } from "../components/Input";
 import { TxButton } from "../components/TxButton";
 import { useActiveContracts } from "../hooks/useActiveContracts";
 import { findCreatedAccount } from "../lib/receipt";
@@ -39,10 +40,10 @@ export function CreateAccount() {
     <Card title="Create CM Account">
       <div className="grid max-w-md gap-3">
         <label className="text-sm">Admin address
-          <input className="mt-1 w-full rounded border px-2 py-1" placeholder={address} value={admin} onChange={(e) => setAdmin(e.target.value)} />
+          <Input className="mt-1 w-full font-mono" placeholder={address} value={admin} onChange={(e) => setAdmin(e.target.value)} />
         </label>
         <label className="text-sm">Upgrader address
-          <input className="mt-1 w-full rounded border px-2 py-1" placeholder={address} value={upgrader} onChange={(e) => setUpgrader(e.target.value)} />
+          <Input className="mt-1 w-full font-mono" placeholder={address} value={upgrader} onChange={(e) => setUpgrader(e.target.value)} />
         </label>
         <TxButton label="Create account" icon={<PlusCircle className="h-4 w-4" />} disabled={!address} write={write} />
       </div>

@@ -4,6 +4,7 @@ import { type Abi, type Address, parseEther } from "viem";
 import { useBalance, useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
+import { Input } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { RowAction } from "../../components/RowAction";
 import { TxButton } from "../../components/TxButton";
@@ -69,8 +70,8 @@ export function BotsTab({ account }: { account: Address }) {
       )}
       <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE" action="Add bot">
         <div className="flex items-end gap-2">
-          <input className="flex-1 rounded border px-2 py-1" placeholder="Bot address 0x…" value={bot} onChange={(e) => setBot(e.target.value)} />
-          <input className="w-32 rounded border px-2 py-1" placeholder="Gas money (CAM)" value={gas} onChange={(e) => setGas(e.target.value)} />
+          <Input className="flex-1 font-mono" placeholder="Bot address 0x…" value={bot} onChange={(e) => setBot(e.target.value)} />
+          <Input className="w-32" placeholder="Gas money (CAM)" value={gas} onChange={(e) => setGas(e.target.value)} />
           <TxButton label="Add bot" icon={<Plus className="h-4 w-4" />} disabled={!bot} write={() => writeContractAsync({ address: account, abi, functionName: "addMessengerBot", args: [bot as Address, parseEther(gas || "0")] })} onConfirmed={() => { setBot(""); setGas("0"); refetch(); }} />
         </div>
       </RoleGate>

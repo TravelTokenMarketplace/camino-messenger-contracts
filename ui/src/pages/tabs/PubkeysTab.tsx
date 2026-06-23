@@ -4,6 +4,7 @@ import { type Abi, type Address, type Hex } from "viem";
 import { useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
+import { Input } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { RowAction } from "../../components/RowAction";
 import { TxButton } from "../../components/TxButton";
@@ -39,8 +40,8 @@ export function PubkeysTab({ account }: { account: Address }) {
       )}
       <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE" action="Add public key">
         <div className="flex items-end gap-2">
-          <input className="flex-1 rounded border px-2 py-1" placeholder="Address 0x…" value={addr} onChange={(e) => setAddr(e.target.value)} />
-          <input className="flex-1 rounded border px-2 py-1" placeholder="Pubkey data (hex 0x…)" value={data} onChange={(e) => setData(e.target.value)} />
+          <Input className="flex-1 font-mono" placeholder="Address 0x…" value={addr} onChange={(e) => setAddr(e.target.value)} />
+          <Input className="flex-1 font-mono" placeholder="Pubkey data (hex 0x…)" value={data} onChange={(e) => setData(e.target.value)} />
           <TxButton label="Add" icon={<Plus className="h-4 w-4" />} disabled={!addr || !data} write={() => writeContractAsync({ address: account, abi, functionName: "addPublicKey", args: [addr as Address, data as Hex] })} onConfirmed={() => { setAddr(""); setData(""); refetch(); }} />
         </div>
       </RoleGate>

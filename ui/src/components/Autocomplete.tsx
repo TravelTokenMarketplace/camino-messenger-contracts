@@ -21,7 +21,7 @@ interface AutocompleteProps {
 }
 
 const inputClass =
-  "w-full rounded border border-gray-300 bg-white py-1.5 pl-3 pr-16 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100";
+  "w-full rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-16 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500";
 
 /**
  * Styled, fuzzy-searchable combobox. Opens on focus to reveal the available

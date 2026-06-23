@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { isAddress } from "viem";
+import { Input } from "./Input";
 
 export function GoToAccount() {
   const [value, setValue] = useState("");
@@ -17,8 +18,8 @@ export function GoToAccount() {
   return (
     <form onSubmit={go} className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <input
-          className="flex-1 rounded border border-gray-300 px-3 py-1.5 font-mono text-sm dark:border-gray-700"
+        <Input
+          className="flex-1 font-mono"
           placeholder="0x… CM Account address"
           value={value}
           onChange={(e) => setValue(e.target.value)}
