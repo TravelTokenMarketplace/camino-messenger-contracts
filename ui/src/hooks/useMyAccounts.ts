@@ -1,7 +1,7 @@
-import { type Address } from "viem";
-import { usePublicClient } from "wagmi";
-import { useEffect, useState } from "react";
+import { type Abi, type Address } from "viem";
+import { useReadContract, useReadContracts } from "wagmi";
 import { useActiveContracts } from "./useActiveContracts";
+import { ACCOUNT_ROLES, roleHash } from "../lib/roles";
 
 export function uniqueAddresses(addrs: string[]): string[] {
   const seen = new Set<string>();
@@ -16,30 +16,53 @@ export function uniqueAddresses(addrs: string[]): string[] {
   return out;
 }
 
-export function useMyAccounts() {
-  const client = usePublicClient();
+/**
+ * Lists every CM Account by enumerating members of the manager's CMACCOUNT_ROLE.
+ * This mirrors the `account find` CLI task and avoids eth_getLogs, which
+ * free-tier RPCs reject for wide block ranges.
+ */
+export function useManagerAccounts() {
   const { manager, managerAbi } = useActiveContracts();
-  const [accounts, setAccounts] = useState<Address[]>([]);
-  const [isLoading, setLoading] = useState(false);
+  const abi = managerAbi as Abi;
 
-  useEffect(() => {
-    if (!client || !manager) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const event = (managerAbi as readonly unknown[]).find(
-        (x) => (x as { type: string; name?: string }).type === "event" &&
-          (x as { name?: string }).name === "CMAccountCreated",
-      );
-      const logs = await client.getLogs({ address: manager, event: event as never, fromBlock: 0n, toBlock: "latest" });
-      const addrs = logs.map((l) => String((l as { args: { account: string } }).args.account));
-      if (!cancelled) {
-        setAccounts(uniqueAddresses(addrs) as Address[]);
-        setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [client, manager, managerAbi]);
+  const { data: cmRole } = useReadContract({
+    address: manager,
+    abi,
+    functionName: "CMACCOUNT_ROLE",
+    query: { enabled: Boolean(manager) },
+  });
 
+  const { data, isLoading } = useReadContract({
+    address: manager,
+    abi,
+    functionName: "getRoleMembers",
+    args: cmRole ? [cmRole] : undefined,
+    query: { enabled: Boolean(manager && cmRole) },
+  });
+
+  const accounts = uniqueAddresses(((data as string[]) ?? [])) as Address[];
   return { accounts, isLoading };
+}
+
+/**
+ * For a single CM Account, returns which account-level roles the given address
+ * holds. Uses a multicall batch of hasRole() reads (plain eth_call).
+ */
+export function useAccountRolesFor(account: Address, address: Address | undefined) {
+  const { cmAccountAbi } = useActiveContracts();
+  const abi = cmAccountAbi as Abi;
+
+  const { data } = useReadContracts({
+    contracts: ACCOUNT_ROLES.map((r) => ({
+      address: account,
+      abi,
+      functionName: "hasRole",
+      args: [roleHash(r), address as Address],
+    })),
+    allowFailure: true,
+    query: { enabled: Boolean(address) },
+  });
+
+  const roles = ACCOUNT_ROLES.filter((_, i) => data?.[i]?.result === true);
+  return roles;
 }
