@@ -6,14 +6,14 @@ import { Autocomplete } from "../../components/Autocomplete";
 import { Card } from "../../components/Card";
 import { Checkbox } from "../../components/Checkbox";
 import { CopyButton } from "../../components/CopyButton";
-import { ListManager } from "../../components/ListManager";
 import { RoleGate } from "../../components/RoleGate";
+import { RowAction } from "../../components/RowAction";
 import { Tooltip } from "../../components/Tooltip";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useContractList } from "../../hooks/useContractList";
 import { useHasRole } from "../../hooks/useHasRole";
-import { type ParsedService, parseServiceName, versionOrder } from "../../lib/serviceName";
+import { type ParsedService, groupServicesByPackage } from "../../lib/serviceName";
 import { useTx } from "../../tx/TxProvider";
 
 // Deterministic accent colour per package, for quick visual grouping.
@@ -22,6 +22,28 @@ function pkgColor(pkg: string): string {
   let h = 0;
   for (let i = 0; i < pkg.length; i++) h = (h * 31 + pkg.charCodeAt(i)) >>> 0;
   return PKG_DOTS[h % PKG_DOTS.length];
+}
+
+function PackageHeader({ pkg, count }: { pkg: string; count: number }) {
+  return (
+    <div className="mb-1.5 flex items-center gap-2">
+      <span className={`h-2 w-2 rounded-full ${pkgColor(pkg)}`} aria-hidden />
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{pkg}</h4>
+      <span className="text-xs text-gray-400">{count}</span>
+    </div>
+  );
+}
+
+/** A service name shown as an optional version pill + the service name. */
+function ServiceLabel({ parsed }: { parsed: ParsedService }) {
+  return (
+    <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+      {parsed.version && (
+        <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{parsed.version}</span>
+      )}
+      <span className="break-all font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{parsed.name}</span>
+    </span>
+  );
 }
 
 // Explicit single-overload fragments: the CMAccount ABI overloads these by
@@ -92,12 +114,7 @@ function SupportedServiceRow({
       >
         <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`} />
         <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            {parsed.version && (
-              <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{parsed.version}</span>
-            )}
-            <span className="break-all font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{parsed.name}</span>
-          </span>
+          <ServiceLabel parsed={parsed} />
           {(service.restricted || service.capabilities.length > 0) && (
             <span className="mt-1 flex flex-wrap items-center gap-1">
               {service.restricted && (
@@ -260,22 +277,8 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
   const [restricted, setRestricted] = useState(false);
   const [caps, setCaps] = useState("");
 
-  // Parse, then group by package and sort by version + name so similar services
-  // sit together and the version/name (the distinguishing parts) stand out.
-  const enriched = services.map((s) => ({ ...s, parsed: parseServiceName(s.name) }));
-  const sorted = [...enriched].sort(
-    (a, b) =>
-      a.parsed.pkg.localeCompare(b.parsed.pkg) ||
-      versionOrder(a.parsed.version) - versionOrder(b.parsed.version) ||
-      a.parsed.name.localeCompare(b.parsed.name),
-  );
-  const groups: { pkg: string; items: typeof sorted }[] = [];
-  for (const s of sorted) {
-    const key = s.parsed.pkg || "other";
-    let g = groups.find((x) => x.pkg === key);
-    if (!g) { g = { pkg: key, items: [] }; groups.push(g); }
-    g.items.push(s);
-  }
+  // Group by package so related services cluster together.
+  const groups = groupServicesByPackage(services);
 
   return (
     <Card title="Supported Services">
@@ -285,11 +288,7 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
         <div className="mb-4 space-y-5">
           {groups.map((g) => (
             <div key={g.pkg}>
-              <div className="mb-1.5 flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${pkgColor(g.pkg)}`} aria-hidden />
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{g.pkg}</h4>
-                <span className="text-xs text-gray-400">{g.items.length}</span>
-              </div>
+              <PackageHeader pkg={g.pkg} count={g.items.length} />
               <ul className="space-y-2">
                 {g.items.map((s) => (
                   <SupportedServiceRow
@@ -359,11 +358,73 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
   );
 }
 
+function WantedServices({ account, abi, hasRole, registered }: { account: Address; abi: Abi; hasRole: boolean; registered: string[] }) {
+  const { writeContractAsync } = useWriteContract();
+  const { items, isLoading, refetch } = useContractList(account, abi, "getWantedServices");
+  const [name, setName] = useState("");
+  const groups = groupServicesByPackage(items.map((n) => ({ name: n })));
+
+  return (
+    <Card title="Wanted Services">
+      {isLoading ? <p>Loading…</p> : items.length === 0 ? (
+        <p className="mb-4 py-2 text-sm text-gray-400">None</p>
+      ) : (
+        <div className="mb-4 space-y-5">
+          {groups.map((g) => (
+            <div key={g.pkg}>
+              <PackageHeader pkg={g.pkg} count={g.items.length} />
+              <ul className="space-y-2">
+                {g.items.map((s) => (
+                  <li key={s.name} className="group flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700/60">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <ServiceLabel parsed={s.parsed} />
+                      <CopyButton value={s.name} label="Copy full service name" />
+                    </span>
+                    {hasRole && (
+                      <RowAction>
+                        <TxButton
+                          label="Remove"
+                          variant="danger"
+                          icon={<Trash2 className="h-4 w-4" />}
+                          tooltip="Removes this wanted service — sends a transaction to your wallet."
+                          write={() => writeContractAsync({ address: account, abi, functionName: "removeWantedServices", args: [[s.name]] })}
+                          onConfirmed={refetch}
+                        />
+                      </RowAction>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+      <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE" action="Add wanted service">
+        <div className="flex items-end gap-2">
+          <Autocomplete
+            className="flex-1"
+            value={name}
+            onChange={setName}
+            options={registered.filter((n) => !items.includes(n))}
+            placeholder="Pick or type a registered service…"
+          />
+          <TxButton
+            label="Add wanted"
+            icon={<Plus className="h-4 w-4" />}
+            disabled={!name.trim()}
+            tooltip="Adds a wanted service to the account — sends a transaction to your wallet."
+            write={() => writeContractAsync({ address: account, abi, functionName: "addWantedServices", args: [[name.trim()]] })}
+            onConfirmed={() => { setName(""); refetch(); }}
+          />
+        </div>
+      </RoleGate>
+    </Card>
+  );
+}
+
 export function ServicesTab({ account }: { account: Address }) {
   const { cmAccountAbi, manager, managerAbi, chainId } = useActiveContracts();
   const abi = cmAccountAbi as Abi;
-  const { writeContractAsync } = useWriteContract();
-  const wanted = useContractList(account, abi, "getWantedServices");
   const { hasRole } = useHasRole(account, abi, "SERVICE_ADMIN_ROLE");
   // Services can only reference names registered in the manager — surface them
   // as autocomplete suggestions so users don't have to know the exact string.
@@ -378,19 +439,7 @@ export function ServicesTab({ account }: { account: Address }) {
   return (
     <div className="grid gap-4">
       <SupportedServices account={account} abi={abi} hasRole={hasRole} registered={registered} />
-      <ListManager
-        title="Wanted Services"
-        items={wanted.items}
-        isLoading={wanted.isLoading}
-        roleName="SERVICE_ADMIN_ROLE"
-        hasRole={hasRole}
-        addLabel="Add wanted"
-        addPlaceholder="Service name"
-        suggestions={registered.filter((n) => !wanted.items.includes(n))}
-        onAdd={(v) => writeContractAsync({ address: account, abi, functionName: "addWantedServices", args: [[v]] })}
-        onRemove={(v) => writeContractAsync({ address: account, abi, functionName: "removeWantedServices", args: [[v]] })}
-        onChanged={wanted.refetch}
-      />
+      <WantedServices account={account} abi={abi} hasRole={hasRole} registered={registered} />
     </div>
   );
 }

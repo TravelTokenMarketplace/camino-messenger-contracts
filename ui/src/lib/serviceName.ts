@@ -35,3 +35,34 @@ export function versionOrder(version?: string): number {
   const m = version.match(/\d+/);
   return m ? Number(m[0]) : -1;
 }
+
+export interface ServiceGroup<T> {
+  pkg: string;
+  items: (T & { parsed: ParsedService })[];
+}
+
+/**
+ * Groups service-bearing items by package and sorts by package, then version,
+ * then name — so related services cluster together and the distinguishing parts
+ * line up. Each returned item is augmented with its parsed form.
+ */
+export function groupServicesByPackage<T extends { name: string }>(items: T[]): ServiceGroup<T>[] {
+  const enriched = items.map((it) => ({ ...it, parsed: parseServiceName(it.name) }));
+  enriched.sort(
+    (a, b) =>
+      a.parsed.pkg.localeCompare(b.parsed.pkg) ||
+      versionOrder(a.parsed.version) - versionOrder(b.parsed.version) ||
+      a.parsed.name.localeCompare(b.parsed.name),
+  );
+  const groups: ServiceGroup<T>[] = [];
+  for (const s of enriched) {
+    const key = s.parsed.pkg || "other";
+    let g = groups.find((x) => x.pkg === key);
+    if (!g) {
+      g = { pkg: key, items: [] };
+      groups.push(g);
+    }
+    g.items.push(s);
+  }
+  return groups;
+}
