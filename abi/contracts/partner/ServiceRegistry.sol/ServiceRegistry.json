@@ -139,5 +139,43 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
+      }
+    ],
+    "name": "getServiceHashByName",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "serviceHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "serviceHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getServiceNameByHash",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ]

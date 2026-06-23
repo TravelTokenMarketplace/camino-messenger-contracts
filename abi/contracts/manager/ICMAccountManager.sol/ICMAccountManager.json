@@ -13,32 +13,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getDeveloperFeeBp",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDeveloperWallet",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "string",
@@ -77,13 +51,38 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getServiceFeeToken",
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
+      }
+    ],
+    "name": "getServiceHashByName",
     "outputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "serviceHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "serviceHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getServiceNameByHash",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
       }
     ],
     "stateMutability": "view",

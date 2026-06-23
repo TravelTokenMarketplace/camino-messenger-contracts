@@ -117,30 +117,8 @@
     "type": "error"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "developerWallet",
-        "type": "address"
-      }
-    ],
-    "name": "InvalidDeveloperWallet",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "InvalidInitialization",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "serviceFeeToken",
-        "type": "address"
-      }
-    ],
-    "name": "InvalidServiceFeeToken",
     "type": "error"
   },
   {
@@ -151,17 +129,6 @@
   {
     "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
-    ],
-    "name": "SafeERC20FailedOperation",
     "type": "error"
   },
   {
@@ -251,44 +218,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "oldDeveloperFeeBp",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "newDeveloperFeeBp",
-        "type": "uint256"
-      }
-    ],
-    "name": "DeveloperFeeBpUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldDeveloperWallet",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newDeveloperWallet",
-        "type": "address"
-      }
-    ],
-    "name": "DeveloperWalletUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "uint64",
         "name": "version",
@@ -309,25 +238,6 @@
       }
     ],
     "name": "Paused",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "oldPrefundAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "newPrefundAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "PrefundAmountUpdated",
     "type": "event"
   },
   {
@@ -403,25 +313,6 @@
       }
     ],
     "name": "RoleRevoked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldServiceFeeToken",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newServiceFeeToken",
-        "type": "address"
-      }
-    ],
-    "name": "ServiceFeeTokenUpdated",
     "type": "event"
   },
   {
@@ -516,59 +407,7 @@
   },
   {
     "inputs": [],
-    "name": "DEVELOPER_WALLET_ADMIN_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "FEE_ADMIN_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "PAUSER_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "PREFUND_ADMIN_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "SERVICE_FEE_TOKEN_ADMIN_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -727,45 +566,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getDeveloperFeeBp",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "developerFeeBp",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDeveloperWallet",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "developerWallet",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getPrefundAmount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "string",
@@ -885,13 +685,38 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getServiceFeeToken",
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
+      }
+    ],
+    "name": "getServiceHashByName",
     "outputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "serviceHash",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "serviceHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getServiceNameByHash",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "serviceName",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -960,16 +785,6 @@
         "internalType": "address",
         "name": "versioner",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "developerWallet",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "developerFeeBp",
-        "type": "uint256"
       }
     ],
     "name": "initialize",
@@ -1100,58 +915,6 @@
       }
     ],
     "name": "setBookingTokenAddress",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "bp",
-        "type": "uint256"
-      }
-    ],
-    "name": "setDeveloperFeeBp",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "developerWallet",
-        "type": "address"
-      }
-    ],
-    "name": "setDeveloperWallet",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "newPrefundAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "setPrefundAmount",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "serviceFeeToken",
-        "type": "address"
-      }
-    ],
-    "name": "setServiceFeeToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
