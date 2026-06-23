@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { shortAddress } from "../lib/format";
+import { Identicon } from "./Identicon";
 
 interface AddressDisplayProps {
   address: string;
   truncate?: boolean;
   className?: string;
+  showIcon?: boolean;
 }
 
-export function AddressDisplay({ address, truncate = false, className = "" }: AddressDisplayProps) {
+export function AddressDisplay({ address, truncate = false, className = "", showIcon = true }: AddressDisplayProps) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -22,7 +24,8 @@ export function AddressDisplay({ address, truncate = false, className = "" }: Ad
   }
 
   return (
-    <span className={`inline-flex items-center gap-1 font-mono ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 font-mono ${className}`}>
+      {showIcon && <Identicon address={address} />}
       <span className="break-all">{truncate ? shortAddress(address) : address}</span>
       <button
         type="button"

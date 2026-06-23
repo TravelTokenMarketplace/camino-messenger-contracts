@@ -1,6 +1,7 @@
 import { LogOut, Wallet } from "lucide-react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { shortAddress } from "../lib/format";
+import { Identicon } from "./Identicon";
 
 export function ConnectButton() {
   const { address, isConnected } = useAccount();
@@ -13,6 +14,7 @@ export function ConnectButton() {
         className="inline-flex items-center gap-1.5 rounded border px-3 py-1.5 dark:border-gray-700"
         onClick={() => disconnect()}
       >
+        <Identicon address={address} />
         <span className="font-mono text-sm">{shortAddress(address)}</span>
         <LogOut className="h-4 w-4 text-gray-400" />
       </button>
