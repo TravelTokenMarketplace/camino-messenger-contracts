@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { type Abi, type Address } from "viem";
-import { useReadContract, useWriteContract } from "wagmi";
+import { type Abi, type Address, type Hex } from "viem";
+import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { Card } from "../../components/Card";
 import { ListManager } from "../../components/ListManager";
 import { RoleGate } from "../../components/RoleGate";
@@ -10,10 +10,30 @@ import { useContractList } from "../../hooks/useContractList";
 import { useHasRole } from "../../hooks/useHasRole";
 
 function SupportedServices({ account, abi, hasRole }: { account: Address; abi: Abi; hasRole: boolean }) {
+  const { manager, managerAbi } = useActiveContracts();
   const { writeContractAsync } = useWriteContract();
-  // getSupportedServices() returns [names: string[], configs: tuple[]]; we list the names.
-  const { data, isLoading, refetch } = useReadContract({ address: account, abi, functionName: "getSupportedServices" });
-  const names = (((data as unknown[]) ?? [])[0] as string[] | undefined) ?? [];
+  // getSupportedServices() returns a (uint256,bool,string[])[] tuple that viem
+  // cannot reliably decode, so list service hashes and resolve names via the
+  // manager registry instead.
+  const { data: hashesData, isLoading: hashesLoading, refetch: refetchHashes } = useReadContract({
+    address: account,
+    abi,
+    functionName: "getAllServiceHashes",
+  });
+  const hashes = (hashesData as Hex[] | undefined) ?? [];
+  const { data: nameResults, isLoading: namesLoading, refetch: refetchNames } = useReadContracts({
+    contracts: hashes.map((h) => ({
+      address: manager,
+      abi: managerAbi as Abi,
+      functionName: "getRegisteredServiceNameByHash",
+      args: [h],
+    })),
+    allowFailure: true,
+    query: { enabled: hashes.length > 0 },
+  });
+  const names = hashes.map((h, i) => (nameResults?.[i]?.result as string | undefined) ?? h);
+  const isLoading = hashesLoading || (hashes.length > 0 && namesLoading);
+  const refetch = () => { void refetchHashes(); void refetchNames(); };
   const [name, setName] = useState("");
   const [restricted, setRestricted] = useState(false);
   const [caps, setCaps] = useState("");
