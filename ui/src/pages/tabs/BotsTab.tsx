@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { type Abi, type Address, parseEther } from "viem";
 import { useWriteContract } from "wagmi";
+import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
 import { RoleGate } from "../../components/RoleGate";
 import { TxButton } from "../../components/TxButton";
@@ -25,7 +26,7 @@ export function BotsTab({ account }: { account: Address }) {
           {members.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {members.map((b) => (
             <li key={b} className="flex items-center justify-between py-2">
-              <span className="font-mono text-sm">{b}</span>
+              <AddressDisplay address={b} className="text-sm" />
               <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE">
                 <TxButton label="Remove" write={() => writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [b as Address] })} onConfirmed={refetch} />
               </RoleGate>

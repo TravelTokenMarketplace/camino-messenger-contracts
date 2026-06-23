@@ -1,5 +1,6 @@
 import { type Abi, type Address } from "viem";
 import { useWriteContract } from "wagmi";
+import { AddressDisplay } from "../../components/AddressDisplay";
 import { ListManager } from "../../components/ListManager";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useContractList } from "../../hooks/useContractList";
@@ -24,6 +25,7 @@ export function PaymentTokensTab({ account }: { account: Address }) {
       onAdd={(v) => writeContractAsync({ address: account, abi, functionName: "addSupportedToken", args: [v as Address] })}
       onRemove={(v) => writeContractAsync({ address: account, abi, functionName: "removeSupportedToken", args: [v as Address] })}
       onChanged={refetch}
+      renderItem={(v) => <AddressDisplay address={v} />}
     />
   );
 }

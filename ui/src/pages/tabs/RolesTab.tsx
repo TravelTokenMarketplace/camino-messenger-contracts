@@ -1,5 +1,6 @@
 import { type Abi, type Address } from "viem";
 import { useWriteContract } from "wagmi";
+import { AddressDisplay } from "../../components/AddressDisplay";
 import { ListManager } from "../../components/ListManager";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useHasRole } from "../../hooks/useHasRole";
@@ -23,6 +24,7 @@ function RoleSection({ account, role, hasAdmin }: { account: Address; role: Role
       onAdd={(v) => writeContractAsync({ address: account, abi, functionName: "grantRole", args: [roleHash(role), v as Address] })}
       onRemove={(v) => writeContractAsync({ address: account, abi, functionName: "revokeRole", args: [roleHash(role), v as Address] })}
       onChanged={refetch}
+      renderItem={(v) => <AddressDisplay address={v} />}
     />
   );
 }

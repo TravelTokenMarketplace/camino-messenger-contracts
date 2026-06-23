@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { type Abi, type Address, type Hex } from "viem";
 import { useWriteContract } from "wagmi";
+import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
 import { RoleGate } from "../../components/RoleGate";
 import { TxButton } from "../../components/TxButton";
@@ -24,7 +25,7 @@ export function PubkeysTab({ account }: { account: Address }) {
           {items.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {items.map((k) => (
             <li key={k} className="flex items-center justify-between py-2">
-              <span className="font-mono text-sm">{k}</span>
+              <AddressDisplay address={k} className="text-sm" />
               <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE">
                 <TxButton label="Remove" write={() => writeContractAsync({ address: account, abi, functionName: "removePublicKey", args: [k as Address] })} onConfirmed={refetch} />
               </RoleGate>

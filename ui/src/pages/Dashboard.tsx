@@ -2,20 +2,24 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { type Abi, type Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
+import { AddressDisplay } from "../components/AddressDisplay";
 import { Card } from "../components/Card";
+import { RoleBadge } from "../components/RoleBadge";
 import { useActiveContracts } from "../hooks/useActiveContracts";
 import { useAccountRolesFor, useManagerAccounts } from "../hooks/useMyAccounts";
-import { shortAddress } from "../lib/format";
 
 function AccountRow({ account, connected, onlyMine }: { account: Address; connected: Address | undefined; onlyMine: boolean }) {
   const roles = useAccountRolesFor(account, connected);
   if (onlyMine && roles.length === 0) return null;
   return (
     <li className="flex flex-wrap items-center justify-between gap-2 py-2">
-      <Link className="font-mono text-indigo-600 underline" to={`/account/${account}`}>{shortAddress(account)}</Link>
+      <span className="flex items-center gap-2">
+        <AddressDisplay address={account} truncate />
+        <Link className="text-xs text-indigo-600 underline dark:text-indigo-400" to={`/account/${account}`}>Open</Link>
+      </span>
       <span className="flex flex-wrap gap-1">
         {roles.map((r) => (
-          <span key={r} className="rounded bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700">{r}</span>
+          <RoleBadge key={r} role={r} />
         ))}
       </span>
     </li>
@@ -37,9 +41,9 @@ export function Dashboard() {
     <div className="grid gap-4">
       <Card title="Network status">
         <dl className="grid grid-cols-2 gap-2 text-sm">
-          <dt className="text-gray-500">Manager</dt><dd className="break-all">{manager}</dd>
-          <dt className="text-gray-500">Paused</dt><dd>{paused ? "Yes" : "No"}</dd>
-          <dt className="text-gray-500">Account implementation</dt><dd className="break-all">{impl as string}</dd>
+          <dt className="text-gray-500 dark:text-gray-400">Manager</dt><dd>{manager && <AddressDisplay address={manager} />}</dd>
+          <dt className="text-gray-500 dark:text-gray-400">Paused</dt><dd>{paused ? "Yes" : "No"}</dd>
+          <dt className="text-gray-500 dark:text-gray-400">Account implementation</dt><dd>{impl ? <AddressDisplay address={impl as string} /> : "—"}</dd>
         </dl>
       </Card>
       <Card title="CM Accounts">
