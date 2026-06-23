@@ -5,6 +5,7 @@ import { useBalance, useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
 import { RoleGate } from "../../components/RoleGate";
+import { RowAction } from "../../components/RowAction";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useRoleMembers } from "../../hooks/useRoleMembers";
@@ -32,14 +33,16 @@ function BotBalance({ bot }: { bot: Address }) {
 function BotRow({ account, bot, abi, hasRole, onChanged }: { account: Address; bot: Address; abi: Abi; hasRole: boolean; onChanged: () => void }) {
   const { writeContractAsync } = useWriteContract();
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 py-2">
+    <li className="group flex flex-wrap items-center justify-between gap-2 py-2">
       <span className="flex items-center gap-3">
         <AddressDisplay address={bot} className="text-sm" />
         <BotBalance bot={bot} />
       </span>
-      <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE">
-        <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [bot] })} onConfirmed={onChanged} />
-      </RoleGate>
+      {hasRole && (
+        <RowAction>
+          <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [bot] })} onConfirmed={onChanged} />
+        </RowAction>
+      )}
     </li>
   );
 }

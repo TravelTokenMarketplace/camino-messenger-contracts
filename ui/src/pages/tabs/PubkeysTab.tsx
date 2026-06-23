@@ -5,6 +5,7 @@ import { useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
 import { RoleGate } from "../../components/RoleGate";
+import { RowAction } from "../../components/RowAction";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useContractList } from "../../hooks/useContractList";
@@ -25,11 +26,13 @@ export function PubkeysTab({ account }: { account: Address }) {
         <ul className="mb-4 divide-y">
           {items.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {items.map((k) => (
-            <li key={k} className="flex items-center justify-between py-2">
+            <li key={k} className="group flex items-center justify-between gap-3 py-2">
               <AddressDisplay address={k} className="text-sm" />
-              <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE">
-                <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => writeContractAsync({ address: account, abi, functionName: "removePublicKey", args: [k as Address] })} onConfirmed={refetch} />
-              </RoleGate>
+              {hasRole && (
+                <RowAction>
+                  <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => writeContractAsync({ address: account, abi, functionName: "removePublicKey", args: [k as Address] })} onConfirmed={refetch} />
+                </RowAction>
+              )}
             </li>
           ))}
         </ul>

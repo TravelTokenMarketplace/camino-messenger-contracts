@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Card } from "./Card";
 import { RoleGate } from "./RoleGate";
+import { RowAction } from "./RowAction";
 import { TxButton } from "./TxButton";
 
 interface ListManagerProps {
@@ -29,11 +30,13 @@ export function ListManager(props: ListManagerProps) {
         <ul className="mb-4 divide-y">
           {items.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {items.map((item) => (
-            <li key={item} className="flex items-center justify-between py-2">
-              <span className="font-mono text-sm">{props.renderItem ? props.renderItem(item) : item}</span>
-              <RoleGate hasRole={hasRole} roleName={roleName}>
-                <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => props.onRemove(item)} onConfirmed={props.onChanged} explorerBase={props.explorerBase} />
-              </RoleGate>
+            <li key={item} className="group flex items-center justify-between gap-3 py-2">
+              <span className="min-w-0 font-mono text-sm">{props.renderItem ? props.renderItem(item) : item}</span>
+              {hasRole && (
+                <RowAction>
+                  <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => props.onRemove(item)} onConfirmed={props.onChanged} explorerBase={props.explorerBase} />
+                </RowAction>
+              )}
             </li>
           ))}
         </ul>
