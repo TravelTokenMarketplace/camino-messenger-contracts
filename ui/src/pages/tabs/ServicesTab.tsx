@@ -4,6 +4,7 @@ import { type Abi, type Address, type Hex } from "viem";
 import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { Autocomplete } from "../../components/Autocomplete";
 import { Card } from "../../components/Card";
+import { Checkbox } from "../../components/Checkbox";
 import { ListManager } from "../../components/ListManager";
 import { RoleGate } from "../../components/RoleGate";
 import { Tooltip } from "../../components/Tooltip";
@@ -285,10 +286,7 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
                 onChange={(e) => setCaps(e.target.value)}
               />
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-              <input type="checkbox" checked={restricted} onChange={(e) => setRestricted(e.target.checked)} />
-              Restricted rate
-            </label>
+            <Checkbox checked={restricted} onChange={setRestricted} label="Restricted rate" />
             <div className="flex justify-end">
               <TxButton
                 label="Add service"

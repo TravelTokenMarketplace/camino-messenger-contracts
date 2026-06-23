@@ -2,6 +2,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowUpFromLine, Bot, Coins, KeyRound, Server, Users } from "lucide-react";
 import { type Address } from "viem";
 import { AccountSummary } from "../components/AccountSummary";
+import { AccountValidityNotice } from "../components/AccountValidityNotice";
 import { TxPanel } from "../components/TxPanel";
 import { BotsTab } from "./tabs/BotsTab";
 import { PaymentTokensTab } from "./tabs/PaymentTokensTab";
@@ -29,6 +30,7 @@ export function AccountWorkspace() {
   return (
     <div className="grid items-start gap-6 md:grid-cols-[260px_1fr]">
       <div className="flex flex-col gap-4">
+        <AccountValidityNotice account={account} />
         <AccountSummary account={account} />
         <TxPanel />
       </div>

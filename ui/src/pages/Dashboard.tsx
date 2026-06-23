@@ -5,6 +5,7 @@ import { type Abi, type Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { AddressDisplay } from "../components/AddressDisplay";
 import { Card } from "../components/Card";
+import { Checkbox } from "../components/Checkbox";
 import { GoToAccount } from "../components/GoToAccount";
 import { RoleBadge } from "../components/RoleBadge";
 import { useActiveContracts } from "../hooks/useActiveContracts";
@@ -68,10 +69,9 @@ export function Dashboard() {
       </Card>
 
       <Card title="CM Accounts">
-        <label className="mb-2 flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={onlyMine} disabled={!address} onChange={(e) => setOnlyMine(e.target.checked)} />
-          Only accounts where I hold a role
-        </label>
+        <div className="mb-2">
+          <Checkbox checked={onlyMine} disabled={!address} onChange={setOnlyMine} label="Only accounts where I hold a role" />
+        </div>
         {isLoading ? <p className="py-2 text-sm text-gray-400">Loading…</p> : (
           <ul className="-mx-2">
             {accounts.length === 0 && <li className="px-2 py-2 text-sm text-gray-400">No accounts found.</li>}

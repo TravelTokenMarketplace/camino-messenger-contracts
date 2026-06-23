@@ -47,7 +47,14 @@ function RoleRow({
         <ChevronRight className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`} />
         <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-100">{label}</span>
         <span className="font-mono text-[11px] text-gray-400">{role}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+            !isLoading && members.length > 0
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+              : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+          }`}
+          title={`${members.length} address${members.length === 1 ? "" : "es"} with this role`}
+        >
           {isLoading ? "…" : members.length}
         </span>
       </button>
@@ -80,7 +87,7 @@ function RoleRow({
             <div className="flex items-end gap-2">
               <input
                 className={`flex-1 ${inputClass}`}
-                placeholder="Account address 0x…"
+                placeholder="Address 0x…"
                 value={grantee}
                 onChange={(e) => setGrantee(e.target.value)}
               />
