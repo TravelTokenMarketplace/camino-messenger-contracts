@@ -1,16 +1,23 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Plus, Trash2 } from "lucide-react";
 import { type Abi, type Address, parseEther } from "viem";
-import { useBalance, useWriteContract } from "wagmi";
+import { useBalance, useReadContracts, useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
 import { Input } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { RowAction } from "../../components/RowAction";
+import { Tooltip } from "../../components/Tooltip";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useRoleMembers } from "../../hooks/useRoleMembers";
 import { useHasRole } from "../../hooks/useHasRole";
+import { roleHash, type RoleName } from "../../lib/roles";
+import { shortRoleName } from "../../lib/format";
+
+// A fully-provisioned bot holds all three roles; an admin can revoke any of
+// them individually, so we surface exactly which ones each address has.
+const BOT_ROLES: RoleName[] = ["MESSENGER_BOT_ROLE", "BOOKING_OPERATOR_ROLE", "GAS_WITHDRAWER_ROLE"];
 
 function BotBalance({ bot }: { bot: Address }) {
   const { chainId } = useActiveContracts();
@@ -31,19 +38,63 @@ function BotBalance({ bot }: { bot: Address }) {
   );
 }
 
+function BotRoles({ account, bot, abi }: { account: Address; bot: Address; abi: Abi }) {
+  const { chainId } = useActiveContracts();
+  const { data, isLoading } = useReadContracts({
+    contracts: BOT_ROLES.map((r) => ({
+      chainId,
+      address: account,
+      abi,
+      functionName: "hasRole",
+      args: [roleHash(r), bot],
+    })),
+    allowFailure: true,
+  });
+
+  if (isLoading) return <span className="text-xs text-gray-400">Checking roles…</span>;
+
+  return (
+    <span className="flex flex-wrap items-center gap-1">
+      {BOT_ROLES.map((r, i) => {
+        const has = data?.[i]?.result === true;
+        return (
+          <Tooltip
+            key={r}
+            content={has ? `Has ${r}` : `Missing ${r} — this bot may not function fully. Re-add or grant it in the Roles tab.`}
+          >
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                has
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+              }`}
+            >
+              {has ? <Check className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+              {shortRoleName(r)}
+            </span>
+          </Tooltip>
+        );
+      })}
+    </span>
+  );
+}
+
 function BotRow({ account, bot, abi, hasRole, onChanged }: { account: Address; bot: Address; abi: Abi; hasRole: boolean; onChanged: () => void }) {
   const { writeContractAsync } = useWriteContract();
   return (
-    <li className="group flex flex-wrap items-center justify-between gap-2 py-2">
-      <span className="flex items-center gap-3">
-        <AddressDisplay address={bot} className="text-sm" />
-        <BotBalance bot={bot} />
-      </span>
-      {hasRole && (
-        <RowAction>
-          <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [bot] })} onConfirmed={onChanged} />
-        </RowAction>
-      )}
+    <li className="group flex flex-col gap-2 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-3">
+          <AddressDisplay address={bot} className="text-sm" />
+          <BotBalance bot={bot} />
+        </span>
+        {hasRole && (
+          <RowAction>
+            <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} tooltip="Revokes all three bot roles from this address — sends a transaction to your wallet." write={() => writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [bot] })} onConfirmed={onChanged} />
+          </RowAction>
+        )}
+      </div>
+      <BotRoles account={account} bot={bot} abi={abi} />
     </li>
   );
 }
@@ -59,7 +110,7 @@ export function BotsTab({ account }: { account: Address }) {
 
   return (
     <Card title="Messenger Bots">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">A bot is an address granted MESSENGER_BOT_ROLE (plus booking/gas roles). It needs native funds to pay transaction fees.</p>
+      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">A bot is an address granted three roles — Messenger Bot, Booking Operator and Gas Withdrawer — and funded with native tokens for transaction fees. Each bot's roles are shown below; an amber badge means that role is missing.</p>
       {isLoading || roleLoading ? <p>Loading…</p> : (
         <ul className="mb-4 divide-y dark:divide-gray-700">
           {members.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}

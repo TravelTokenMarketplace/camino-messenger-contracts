@@ -44,6 +44,7 @@ export function TxButton({ label, disabled, write, onConfirmed, icon, variant = 
         <button
           type="button"
           disabled={disabled || pending}
+          data-pending={pending || undefined}
           onClick={handleClick}
           className={`inline-flex items-center justify-center gap-1.5 rounded px-3 py-1.5 text-white transition-colors disabled:opacity-50 ${color}`}
         >
