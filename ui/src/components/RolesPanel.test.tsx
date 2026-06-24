@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RolesPanel } from "./RolesPanel";
 
@@ -28,6 +28,7 @@ describe("RolesPanel", () => {
 
   it("notes members are not listable in non-enumerable mode", () => {
     wrap(<RolesPanel address={addr} abi={[]} roles={["DEFAULT_ADMIN_ROLE"]} enumerable={false} />);
+    fireEvent.click(screen.getByRole("button", { name: /admin/i }));
     expect(screen.getByText(/cannot list/i)).toBeInTheDocument();
   });
 });

@@ -113,12 +113,20 @@ function NonEnumerableRoleRow({ account, abi, role, hasAdmin, open, onToggle }: 
           ) : <span className="w-px" />
         } />
       </button>
-      <p className="px-3 pb-1 text-xs text-gray-400">This contract cannot list role members on-chain. Grant or revoke by address.</p>
       {open && (
         <div className="space-y-3 border-t border-gray-100 px-3 py-3 dark:border-gray-700/60">
+          <p className="text-xs text-gray-400">This contract cannot list role members on-chain. Grant or revoke by address.</p>
           <RoleGate hasRole={hasAdmin} roleName="DEFAULT_ADMIN_ROLE" action={`manage ${label}`}>
             <div className="space-y-2">
-              <GrantForm account={account} abi={abi} role={role} label={label} onDone={() => {}} />
+              <GrantForm
+                account={account}
+                abi={abi}
+                role={role}
+                label={label}
+                onDone={() => {
+                  /* no member list to refetch in non-enumerable mode */
+                }}
+              />
               <div className="flex items-end gap-2">
                 <input className={`flex-1 ${inputClass}`} placeholder="Address 0x… to revoke" value={revokee} onChange={(e) => setRevokee(e.target.value)} />
                 <TxButton
