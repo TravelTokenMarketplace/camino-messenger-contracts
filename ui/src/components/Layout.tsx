@@ -17,6 +17,7 @@ export function Layout() {
         <div className="flex items-center gap-4">
           <Link to="/" className="font-bold">Camino Messenger</Link>
           <NavLink to="/" end className={navLinkClass}>Dashboard</NavLink>
+          <NavLink to="/manager" className={navLinkClass}>Manager</NavLink>
           <NavLink to="/create" className={navLinkClass}>Create Account</NavLink>
         </div>
         <div className="flex items-center gap-3">
