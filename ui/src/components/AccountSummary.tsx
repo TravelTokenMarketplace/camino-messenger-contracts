@@ -15,7 +15,7 @@ export function AccountSummary({ account }: { account: Address }) {
 
   return (
     <aside className="h-fit rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Active account</h2>
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Active account</h2>
 
       <div className="mb-4 text-sm">
         <AddressDisplay address={account} />
