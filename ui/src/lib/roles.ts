@@ -12,12 +12,23 @@ export const ACCOUNT_ROLES = [
 ] as const;
 
 export const MANAGER_ROLES = [
+  "DEFAULT_ADMIN_ROLE",
   "PAUSER_ROLE",
+  "UPGRADER_ROLE",
   "VERSIONER_ROLE",
   "SERVICE_REGISTRY_ADMIN_ROLE",
 ] as const;
 
-export type RoleName = (typeof ACCOUNT_ROLES)[number] | (typeof MANAGER_ROLES)[number];
+export const BOOKINGTOKEN_ROLES = [
+  "DEFAULT_ADMIN_ROLE",
+  "UPGRADER_ROLE",
+  "MIN_EXPIRATION_ADMIN_ROLE",
+] as const;
+
+export type RoleName =
+  | (typeof ACCOUNT_ROLES)[number]
+  | (typeof MANAGER_ROLES)[number]
+  | (typeof BOOKINGTOKEN_ROLES)[number];
 
 const ZERO_BYTES32 = `0x${"0".repeat(64)}` as Hex;
 
@@ -26,7 +37,7 @@ function compute(name: string): Hex {
 }
 
 export const ROLE_HASHES = Object.fromEntries(
-  [...ACCOUNT_ROLES, ...MANAGER_ROLES].map((r) => [r, compute(r)]),
+  [...ACCOUNT_ROLES, ...MANAGER_ROLES, ...BOOKINGTOKEN_ROLES].map((r) => [r, compute(r)]),
 ) as Record<RoleName, Hex>;
 
 export function roleHash(name: RoleName): Hex {
