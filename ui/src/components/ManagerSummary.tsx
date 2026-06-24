@@ -9,7 +9,7 @@ export function ManagerSummary() {
 
   return (
     <aside className="h-fit rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Ecosystem</h2>
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Ecosystem</h2>
       <dl className="grid grid-cols-1 gap-3 text-sm">
         <div>
           <dt className="text-gray-500 dark:text-gray-400">Manager</dt>

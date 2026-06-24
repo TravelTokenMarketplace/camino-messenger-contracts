@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { Pause, Play, Save } from "lucide-react";
-import { type Abi, type Address } from "viem";
+import { type Abi, type Address, isAddress } from "viem";
 import { useReadContract, useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
+import { inputClass } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useHasRole } from "../../hooks/useHasRole";
-
-const inputClass =
-  "rounded border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100";
 
 function AddressSetting({ title, current, functionName, roleName, action, isLoading, refetch }: {
   title: string; current: Address | undefined; functionName: string; roleName: "VERSIONER_ROLE"; action: string;
@@ -21,6 +19,8 @@ function AddressSetting({ title, current, functionName, roleName, action, isLoad
   const { hasRole } = useHasRole(manager, abi, roleName);
   const { writeContractAsync } = useWriteContract();
   const [value, setValue] = useState("");
+  const trimmed = value.trim();
+  const valid = isAddress(trimmed);
 
   return (
     <Card title={title}>
@@ -32,9 +32,9 @@ function AddressSetting({ title, current, functionName, roleName, action, isLoad
         <div className="flex items-end gap-2">
           <input className={`flex-1 ${inputClass}`} placeholder="0x…" value={value} onChange={(e) => setValue(e.target.value)} />
           <TxButton
-            label="Save" icon={<Save className="h-4 w-4" />} disabled={!value.trim()}
+            label="Save" icon={<Save className="h-4 w-4" />} disabled={!valid}
             tooltip={`${action} — sends a transaction to your wallet.`}
-            write={() => writeContractAsync({ address: manager!, abi, functionName, args: [value.trim() as Address] })}
+            write={() => writeContractAsync({ address: manager!, abi, functionName, args: [trimmed as Address] })}
             onConfirmed={() => { setValue(""); refetch(); }}
           />
         </div>

@@ -4,15 +4,13 @@ import { type Abi } from "viem";
 import { useReadContract, useWriteContract } from "wagmi";
 import { Card } from "../../components/Card";
 import { CopyButton } from "../../components/CopyButton";
+import { inputClass } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { RowAction } from "../../components/RowAction";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useHasRole } from "../../hooks/useHasRole";
 import { groupServicesByPackage, parseServiceName } from "../../lib/serviceName";
-
-const inputClass =
-  "rounded border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100";
 
 export function ServiceRegistryTab() {
   const { manager, managerAbi, chainId, supported } = useActiveContracts();

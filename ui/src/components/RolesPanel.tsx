@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ChevronRight, ShieldCheck, ShieldPlus, Trash2 } from "lucide-react";
-import { type Abi, type Address } from "viem";
+import { type Abi, type Address, isAddress } from "viem";
 import { useWriteContract } from "wagmi";
 import { AddressDisplay } from "./AddressDisplay";
+import { inputClass } from "./Input";
 import { RoleGate } from "./RoleGate";
 import { RowAction } from "./RowAction";
 import { TxButton } from "./TxButton";
@@ -10,9 +11,6 @@ import { useHasRole } from "../hooks/useHasRole";
 import { useRoleMembers } from "../hooks/useRoleMembers";
 import { roleHash, type RoleName } from "../lib/roles";
 import { shortRoleName } from "../lib/format";
-
-const inputClass =
-  "rounded border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100";
 
 function RoleHeader({ label, role, open, badge }: { label: string; role: RoleName; open: boolean; badge: React.ReactNode }) {
   return (
@@ -28,15 +26,17 @@ function RoleHeader({ label, role, open, badge }: { label: string; role: RoleNam
 function GrantForm({ account, abi, role, label, onDone }: { account: Address; abi: Abi; role: RoleName; label: string; onDone: () => void }) {
   const { writeContractAsync } = useWriteContract();
   const [grantee, setGrantee] = useState("");
+  const trimmed = grantee.trim();
+  const valid = isAddress(trimmed);
   return (
     <div className="flex items-end gap-2">
       <input className={`flex-1 ${inputClass}`} placeholder="Address 0x…" value={grantee} onChange={(e) => setGrantee(e.target.value)} />
       <TxButton
         label="Grant"
         icon={<ShieldPlus className="h-4 w-4" />}
-        disabled={!grantee.trim()}
+        disabled={!valid}
         tooltip={`Grants ${label} to this address — sends a transaction to your wallet.`}
-        write={() => writeContractAsync({ address: account, abi, functionName: "grantRole", args: [roleHash(role), grantee.trim() as Address] })}
+        write={() => writeContractAsync({ address: account, abi, functionName: "grantRole", args: [roleHash(role), trimmed as Address] })}
         onConfirmed={() => { setGrantee(""); onDone(); }}
       />
     </div>
@@ -131,7 +131,7 @@ function NonEnumerableRoleRow({ account, abi, role, hasAdmin, open, onToggle }: 
                 <input className={`flex-1 ${inputClass}`} placeholder="Address 0x… to revoke" value={revokee} onChange={(e) => setRevokee(e.target.value)} />
                 <TxButton
                   label="Revoke" variant="danger" icon={<Trash2 className="h-4 w-4" />}
-                  disabled={!revokee.trim()}
+                  disabled={!isAddress(revokee.trim())}
                   tooltip={`Revokes ${label} from this address — sends a transaction to your wallet.`}
                   write={() => writeContractAsync({ address: account, abi, functionName: "revokeRole", args: [roleHash(role), revokee.trim() as Address] })}
                   onConfirmed={() => setRevokee("")}

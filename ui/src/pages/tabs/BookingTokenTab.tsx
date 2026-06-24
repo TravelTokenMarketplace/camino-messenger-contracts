@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { Save } from "lucide-react";
-import { type Abi, type Address } from "viem";
+import { type Abi, type Address, isAddress } from "viem";
 import { useReadContract, useWriteContract } from "wagmi";
 import { AddressDisplay } from "../../components/AddressDisplay";
 import { Card } from "../../components/Card";
+import { inputClass } from "../../components/Input";
 import { RoleGate } from "../../components/RoleGate";
 import { RolesPanel } from "../../components/RolesPanel";
 import { TxButton } from "../../components/TxButton";
 import { useActiveContracts } from "../../hooks/useActiveContracts";
 import { useHasRole } from "../../hooks/useHasRole";
 import { BOOKINGTOKEN_ROLES } from "../../lib/roles";
-
-const inputClass =
-  "rounded border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100";
 
 function formatVersion(v: unknown): string {
   if (!Array.isArray(v) || v.length < 3) return "—";
@@ -63,7 +61,7 @@ export function BookingTokenTab() {
           <div className="flex items-end gap-2">
             <input className={`flex-1 ${inputClass}`} placeholder="0x…" value={newManager} onChange={(e) => setNewManager(e.target.value)} />
             <TxButton
-              label="Save" icon={<Save className="h-4 w-4" />} disabled={!newManager.trim()}
+              label="Save" icon={<Save className="h-4 w-4" />} disabled={!isAddress(newManager.trim())}
               tooltip="Sets the manager address on the booking token — sends a transaction to your wallet."
               write={() => writeContractAsync({ address: bookingToken, abi, functionName: "setManagerAddress", args: [newManager.trim() as Address] })}
               onConfirmed={() => { setNewManager(""); refetchManager(); }}
@@ -79,9 +77,9 @@ export function BookingTokenTab() {
         </dl>
         <RoleGate hasRole={canSetMin} roleName="MIN_EXPIRATION_ADMIN_ROLE" action="set min expiration diff">
           <div className="flex items-end gap-2">
-            <input className={`w-40 ${inputClass}`} type="number" min="0" placeholder="seconds" value={newMin} onChange={(e) => setNewMin(e.target.value)} />
+            <input className={`w-40 ${inputClass}`} type="number" min="0" step="1" placeholder="seconds" value={newMin} onChange={(e) => setNewMin(e.target.value)} />
             <TxButton
-              label="Save" icon={<Save className="h-4 w-4" />} disabled={!newMin.trim()}
+              label="Save" icon={<Save className="h-4 w-4" />} disabled={!/^\d+$/.test(newMin.trim())}
               tooltip="Sets the minimum reservation expiration difference — sends a transaction to your wallet."
               write={() => writeContractAsync({ address: bookingToken, abi, functionName: "setMinExpirationTimestampDiff", args: [BigInt(newMin.trim())] })}
               onConfirmed={() => { setNewMin(""); refetchMinDiff(); }}

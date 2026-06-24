@@ -40,7 +40,7 @@ export function ManagerWorkspace() {
                 to={`?tab=${t.id}`}
                 className={`-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 ${
                   active === t.id
-                    ? "border-indigo-600 font-medium text-gray-900 dark:text-gray-100"
+                    ? "border-indigo-600 dark:border-indigo-400 font-medium text-gray-900 dark:text-gray-100"
                     : "border-transparent text-gray-500 dark:text-gray-400"
                 }`}
               >
