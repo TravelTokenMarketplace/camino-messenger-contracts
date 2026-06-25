@@ -13,7 +13,7 @@ export function AccountSummary({ account }: { account: Address }) {
   const { address } = useAccount();
   const { data: bal } = useBalance({ address: account, chainId });
   const { tokens } = useErc20Balances(account);
-  const nativeZero = bal ? Number(bal.formatted) === 0 : false;
+  const nativeZero = bal ? bal.value === 0n : false;
   const roles = useAccountRolesFor(account, address);
   const chainName = APP_CHAINS.find((c) => c.id === chainId)?.name;
 

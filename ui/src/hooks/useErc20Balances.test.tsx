@@ -28,6 +28,7 @@ afterEach(() => {
   mockSupported = undefined;
   mockMulticall = { data: undefined, isLoading: false };
   warnSpy.mockClear();
+  vi.unstubAllGlobals();
 });
 
 describe("useErc20Balances", () => {
@@ -69,12 +70,12 @@ describe("useErc20Balances", () => {
     expect(warnSpy).toHaveBeenCalled();
   });
 
-  it("keeps token with symbol/decimals fallback when only those fail", () => {
+  it("keeps token with symbol fallback when only symbol fails", () => {
     mockSupported = [];
     mockMulticall = {
       data: [
         { status: "failure", error: new Error("x") }, // symbol
-        { status: "failure", error: new Error("x") }, // decimals
+        { status: "success", result: 18 }, // decimals
         { status: "success", result: 5000000000000000000n }, // balanceOf
       ],
       isLoading: false,
@@ -84,5 +85,21 @@ describe("useErc20Balances", () => {
     expect(result.current.tokens[0]).toMatchObject({ decimals: 18, formatted: "5" });
     // symbol falls back to the shortened address (contains the ellipsis)
     expect(result.current.tokens[0].symbol).toContain("…");
+  });
+
+  it("drops a token when decimals can't be read (avoids misformatting)", () => {
+    vi.stubGlobal("console", { ...console, warn: warnSpy });
+    mockSupported = [];
+    mockMulticall = {
+      data: [
+        { status: "success", result: "USDC" }, // symbol
+        { status: "failure", error: new Error("x") }, // decimals
+        { status: "success", result: 1500000n }, // balanceOf
+      ],
+      isLoading: false,
+    };
+    const { result } = renderHook(() => useErc20Balances(account));
+    expect(result.current.tokens).toHaveLength(0);
+    expect(warnSpy).toHaveBeenCalled();
   });
 });

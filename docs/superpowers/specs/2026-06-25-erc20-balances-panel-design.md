@@ -90,11 +90,13 @@ Behavior:
 - One `useReadContracts({ allowFailure: true, chainId: activeChainId })` multicall
   reading `symbol`, `decimals`, `balanceOf(account)` for each address.
 - Per-token result handling:
-  - **`balanceOf` fails** → not a usable ERC20 → **drop** from the result, and
-    `console.warn` in dev (`import.meta.env.DEV`) so a bad address in `tokens.ts`
-    is catchable.
-  - **`balanceOf` ok but `symbol`/`decimals` fail** → keep the token with fallbacks:
-    `symbol = shortAddress(address)`, `decimals = 18`.
+  - **`balanceOf` or `decimals` fails** → not a safely usable ERC20 → **drop**
+    from the result, and `console.warn` in dev (`import.meta.env.DEV`) so a bad
+    address in `tokens.ts` is catchable. (`decimals` is required: without a
+    trustworthy scale the balance would be misformatted — e.g. a 6-decimal token
+    rendered as 18 — so we drop rather than guess.)
+  - **`balanceOf` + `decimals` ok but `symbol` fails** → keep the token with a
+    cosmetic fallback: `symbol = shortAddress(address)`.
 - Reads are keyed by `activeChainId` per the project's read/write convention.
 
 ### `src/components/AccountSummary.tsx` (modified)
