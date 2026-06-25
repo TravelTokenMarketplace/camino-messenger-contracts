@@ -24,7 +24,7 @@ export function useErc20Balances(account: Address): { tokens: TokenBalance[]; is
     abi: cmAccountAbi,
     functionName: "getSupportedTokens",
   });
-  const supported = ((supportedRaw as Address[] | undefined) ?? []).map((a) => a as Address);
+  const supported = (supportedRaw as Address[] | undefined) ?? [];
   const configured = EXTRA_TOKENS[chainId] ?? [];
 
   // Merge + dedupe case-insensitively, keeping the first-seen casing.

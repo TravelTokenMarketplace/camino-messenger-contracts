@@ -66,6 +66,7 @@ describe("useErc20Balances", () => {
     };
     const { result } = renderHook(() => useErc20Balances(account));
     expect(result.current.tokens).toHaveLength(0);
+    expect(warnSpy).toHaveBeenCalled();
   });
 
   it("keeps token with symbol/decimals fallback when only those fail", () => {
