@@ -26,7 +26,7 @@ export function TokenDisplay({
       <span className="min-w-0">
         <span className="flex min-w-0 items-baseline gap-2">
           <span className="truncate font-medium">{symbol ?? short}</span>
-          {symbol && name && <span className="truncate text-xs text-gray-500 dark:text-gray-400">{name}</span>}
+          {name && <span className="truncate text-xs text-gray-500 dark:text-gray-400">{name}</span>}
         </span>
         <span className="flex items-center gap-1">
           <Tooltip content={address}>

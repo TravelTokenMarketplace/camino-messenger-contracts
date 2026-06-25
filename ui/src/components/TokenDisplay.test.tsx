@@ -17,4 +17,10 @@ describe("TokenDisplay", () => {
     // Both headline and the secondary line render the compact form.
     expect(screen.getAllByText("0x29F3…db85").length).toBeGreaterThanOrEqual(1);
   });
+
+  it("still shows name when symbol is missing (metadata resolves them independently)", () => {
+    render(<TokenDisplay address={A} name="Monerium EUR emoney" />);
+    expect(screen.getByText("Monerium EUR emoney")).toBeInTheDocument();
+    expect(screen.getAllByText("0x29F3…db85").length).toBeGreaterThanOrEqual(1);
+  });
 });
