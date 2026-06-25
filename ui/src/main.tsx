@@ -5,6 +5,8 @@ import App from "./App";
 import { Providers } from "./wallet/Providers";
 import { ThemeProvider } from "./theme/theme";
 import "./index.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
