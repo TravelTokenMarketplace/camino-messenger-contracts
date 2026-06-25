@@ -4,10 +4,12 @@ import { ERC20_ABI } from "../lib/erc20";
 import { shortAddress } from "../lib/format";
 import { EXTRA_TOKENS } from "../config/tokens";
 import { useActiveContracts } from "./useActiveContracts";
+import { useTokenMetadata } from "./useTokenMetadata";
 
 export interface TokenBalance {
   address: Address;
   symbol: string;
+  name?: string;
   decimals: number;
   balance: bigint;
   formatted: string;
@@ -37,27 +39,26 @@ export function useErc20Balances(account: Address): { tokens: TokenBalance[]; is
     addresses.push(a);
   }
 
-  const { data: multi, isLoading: multiLoading } = useReadContracts({
+  const { meta, isLoading: metaLoading } = useTokenMetadata(addresses);
+
+  const { data: balances, isLoading: balLoading } = useReadContracts({
     allowFailure: true,
-    contracts: addresses.flatMap((address) => [
-      { chainId, address, abi: ERC20_ABI, functionName: "symbol" } as const,
-      { chainId, address, abi: ERC20_ABI, functionName: "decimals" } as const,
-      { chainId, address, abi: ERC20_ABI, functionName: "balanceOf", args: [account] } as const,
-    ]),
+    contracts: addresses.map(
+      (address) => ({ chainId, address, abi: ERC20_ABI, functionName: "balanceOf", args: [account] }) as const,
+    ),
     query: { enabled: addresses.length > 0 },
   });
 
   const tokens: TokenBalance[] = [];
-  if (multi) {
+  if (balances) {
     addresses.forEach((address, i) => {
-      const symbolRes = multi[i * 3];
-      const decimalsRes = multi[i * 3 + 1];
-      const balanceRes = multi[i * 3 + 2];
+      const m = meta.get(address.toLowerCase());
+      const balanceRes = balances[i];
 
-      // Require balanceOf AND decimals: without a trustworthy decimals we'd
+      // Require balanceOf AND a trustworthy decimals: without decimals we'd
       // misformat the balance (e.g. a 6-decimal token shown as 18), so drop
-      // rather than guess. symbol is cosmetic and may fall back.
-      if (balanceRes?.status !== "success" || decimalsRes?.status !== "success") {
+      // rather than guess. symbol/name are cosmetic and may fall back.
+      if (balanceRes?.status !== "success" || m?.decimals === undefined) {
         if (import.meta.env.DEV) {
           // eslint-disable-next-line no-console
           console.warn(`[useErc20Balances] ${address} is not a usable ERC20 on chain ${chainId} — dropping.`);
@@ -65,19 +66,18 @@ export function useErc20Balances(account: Address): { tokens: TokenBalance[]; is
         return;
       }
 
-      const symbol = symbolRes?.status === "success" ? (symbolRes.result as string) : shortAddress(address);
-      const decimals = Number(decimalsRes.result);
       const balance = balanceRes.result as bigint;
       tokens.push({
         address,
-        symbol,
-        decimals,
+        symbol: m.symbol ?? shortAddress(address),
+        name: m.name,
+        decimals: m.decimals,
         balance,
-        formatted: formatUnits(balance, decimals),
+        formatted: formatUnits(balance, m.decimals),
         isZero: balance === 0n,
       });
     });
   }
 
-  return { tokens, isLoading: supportedLoading || multiLoading };
+  return { tokens, isLoading: supportedLoading || metaLoading || balLoading };
 }
