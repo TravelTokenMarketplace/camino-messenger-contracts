@@ -46,7 +46,10 @@ export function ConnectButton() {
         className="z-30 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg focus:outline-none dark:border-gray-700 dark:bg-gray-800"
       >
         <MenuItem>
-          <button onClick={copy} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-200 dark:data-[focus]:bg-gray-700">
+          <button
+            onClick={copy}
+            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-200 dark:data-[focus]:bg-gray-700"
+          >
             {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-gray-400" />}
             {copied ? "Copied" : "Copy address"}
           </button>
@@ -65,7 +68,10 @@ export function ConnectButton() {
         )}
         <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
         <MenuItem>
-          <button onClick={() => disconnect()} className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-red-600 data-[focus]:bg-red-50 dark:text-red-400 dark:data-[focus]:bg-red-950">
+          <button
+            onClick={() => disconnect()}
+            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-red-600 data-[focus]:bg-red-50 dark:text-red-400 dark:data-[focus]:bg-red-950"
+          >
             <LogOut className="h-4 w-4" /> Disconnect
           </button>
         </MenuItem>

@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useActiveContracts } from "./useActiveContracts";
 
-vi.mock("../wallet/activeChain", () => ({ useActiveChain: () => ({ activeChainId: 84532, setActiveChainId: vi.fn() }) }));
+vi.mock("../wallet/activeChain", () => ({
+  useActiveChain: () => ({ activeChainId: 84532, setActiveChainId: vi.fn() }),
+}));
 
 describe("useActiveContracts", () => {
   it("reports supported=true for a chain with contracts", () => {

@@ -12,7 +12,10 @@ interface CheckboxProps {
 /** Styled checkbox built on HeadlessUI, with an optional clickable label. */
 export function Checkbox({ checked, onChange, disabled, label }: CheckboxProps) {
   return (
-    <Field disabled={disabled} className="flex items-center gap-2 text-sm data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50">
+    <Field
+      disabled={disabled}
+      className="flex items-center gap-2 text-sm data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+    >
       <HCheckbox
         checked={checked}
         onChange={onChange}

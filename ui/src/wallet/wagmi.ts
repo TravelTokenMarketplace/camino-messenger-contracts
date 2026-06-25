@@ -27,7 +27,5 @@ if (viemChains.length === 0) {
 export const wagmiConfig = createConfig({
   chains: viemChains as [Chain, ...Chain[]],
   connectors: [injected()],
-  transports: Object.fromEntries(
-    ENABLED_CHAINS.map((c) => [c.id, http(c.rpcUrl)]),
-  ),
+  transports: Object.fromEntries(ENABLED_CHAINS.map((c) => [c.id, http(c.rpcUrl)])),
 });

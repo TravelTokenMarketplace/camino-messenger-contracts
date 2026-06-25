@@ -1,10 +1,5 @@
 import { type Address } from "viem";
-import {
-  BOOKINGTOKEN_ABI,
-  CMACCOUNT_ABI,
-  MANAGER_ABI,
-  getContractsForChain,
-} from "../contracts";
+import { BOOKINGTOKEN_ABI, CMACCOUNT_ABI, MANAGER_ABI, getContractsForChain } from "../contracts";
 import { useActiveChain } from "../wallet/activeChain";
 
 export function useActiveContracts() {

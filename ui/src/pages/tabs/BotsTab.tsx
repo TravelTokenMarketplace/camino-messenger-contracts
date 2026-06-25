@@ -61,7 +61,9 @@ function BotRoles({ account, bot, abi }: { account: Address; bot: Address; abi: 
         return (
           <Tooltip
             key={r}
-            content={has ? `Has ${r}` : `Missing ${r} — this bot may not function fully. Re-add or grant it in the Roles tab.`}
+            content={
+              has ? `Has ${r}` : `Missing ${r} — this bot may not function fully. Re-add or grant it in the Roles tab.`
+            }
           >
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
@@ -80,7 +82,19 @@ function BotRoles({ account, bot, abi }: { account: Address; bot: Address; abi: 
   );
 }
 
-function BotRow({ account, bot, abi, hasRole, onChanged }: { account: Address; bot: Address; abi: Abi; hasRole: boolean; onChanged: () => void }) {
+function BotRow({
+  account,
+  bot,
+  abi,
+  hasRole,
+  onChanged,
+}: {
+  account: Address;
+  bot: Address;
+  abi: Abi;
+  hasRole: boolean;
+  onChanged: () => void;
+}) {
   const { writeContractAsync } = useWriteContract();
   return (
     <li className="group flex flex-col gap-2 py-2.5">
@@ -91,7 +105,16 @@ function BotRow({ account, bot, abi, hasRole, onChanged }: { account: Address; b
         </span>
         {hasRole && (
           <RowAction>
-            <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} tooltip="Revokes all three bot roles from this address — sends a transaction to your wallet." write={() => writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [bot] })} onConfirmed={onChanged} />
+            <TxButton
+              label="Remove"
+              variant="danger"
+              icon={<Trash2 className="h-4 w-4" />}
+              tooltip="Revokes all three bot roles from this address — sends a transaction to your wallet."
+              write={() =>
+                writeContractAsync({ address: account, abi, functionName: "removeMessengerBot", args: [bot] })
+              }
+              onConfirmed={onChanged}
+            />
           </RowAction>
         )}
       </div>
@@ -127,8 +150,13 @@ export function BotsTab({ account }: { account: Address }) {
 
   return (
     <Card title="Messenger Bots">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">A bot is an address granted three roles — Messenger Bot, Booking Operator and Gas Withdrawer — and funded with native tokens for transaction fees. Each bot's roles are shown below; an amber badge means that role is missing.</p>
-      {isLoading || roleLoading ? <p>Loading…</p> : (
+      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+        A bot is an address granted three roles — Messenger Bot, Booking Operator and Gas Withdrawer — and funded with
+        native tokens for transaction fees. Each bot's roles are shown below; an amber badge means that role is missing.
+      </p>
+      {isLoading || roleLoading ? (
+        <p>Loading…</p>
+      ) : (
         <ul className="mb-4 divide-y dark:divide-gray-700">
           {members.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {members.map((b) => (
@@ -139,7 +167,12 @@ export function BotsTab({ account }: { account: Address }) {
       <RoleGate hasRole={hasRole} roleName="BOT_ADMIN_ROLE" action="Add bot">
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-end gap-2">
-            <Input className="min-w-[14rem] flex-1 font-mono" placeholder="Bot address 0x…" value={bot} onChange={(e) => setBot(e.target.value)} />
+            <Input
+              className="min-w-[14rem] flex-1 font-mono"
+              placeholder="Bot address 0x…"
+              value={bot}
+              onChange={(e) => setBot(e.target.value)}
+            />
             <div className="flex items-center gap-1.5">
               <Input
                 className={`w-36 ${gasInvalid ? "!border-red-500 focus:!border-red-500 focus:!ring-red-500" : ""}`}
@@ -148,18 +181,42 @@ export function BotsTab({ account }: { account: Address }) {
                 value={gas}
                 onChange={(e) => setGas(e.target.value)}
               />
-              <Tooltip content={`This amount is sent from the CM Account's own balance to the bot to cover its transaction fees${symbol ? ` (in ${symbol})` : ""}.`}>
-                <button type="button" aria-label="Gas money info" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+              <Tooltip
+                content={`This amount is sent from the CM Account's own balance to the bot to cover its transaction fees${symbol ? ` (in ${symbol})` : ""}.`}
+              >
+                <button
+                  type="button"
+                  aria-label="Gas money info"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
                   <Info className="h-4 w-4" />
                 </button>
               </Tooltip>
             </div>
-            <TxButton label="Add bot" icon={<Plus className="h-4 w-4" />} disabled={!bot || Boolean(gasError)} write={() => writeContractAsync({ address: account, abi, functionName: "addMessengerBot", args: [bot as Address, gasValue] })} onConfirmed={() => { setBot(""); setGas(""); refetch(); }} />
+            <TxButton
+              label="Add bot"
+              icon={<Plus className="h-4 w-4" />}
+              disabled={!bot || Boolean(gasError)}
+              write={() =>
+                writeContractAsync({
+                  address: account,
+                  abi,
+                  functionName: "addMessengerBot",
+                  args: [bot as Address, gasValue],
+                })
+              }
+              onConfirmed={() => {
+                setBot("");
+                setGas("");
+                refetch();
+              }}
+            />
           </div>
           {gasError && <p className="text-xs text-red-600">{gasError}</p>}
           {insufficient && (
             <p className="text-xs text-red-600">
-              Exceeds the CM Account balance ({accountBalance?.formatted} {symbol}). Fund the account first or the transaction will revert.
+              Exceeds the CM Account balance ({accountBalance?.formatted} {symbol}). Fund the account first or the
+              transaction will revert.
             </p>
           )}
         </div>

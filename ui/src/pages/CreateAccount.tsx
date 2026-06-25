@@ -57,11 +57,23 @@ export function CreateAccount() {
   return (
     <Card title="Create CM Account">
       <div className="grid max-w-md gap-3">
-        <label className="text-sm">Admin address
-          <Input className="mt-1 w-full font-mono" placeholder={address} value={admin} onChange={(e) => setAdmin(e.target.value)} />
+        <label className="text-sm">
+          Admin address
+          <Input
+            className="mt-1 w-full font-mono"
+            placeholder={address}
+            value={admin}
+            onChange={(e) => setAdmin(e.target.value)}
+          />
         </label>
-        <label className="text-sm">Upgrader address
-          <Input className="mt-1 w-full font-mono" placeholder={address} value={upgrader} onChange={(e) => setUpgrader(e.target.value)} />
+        <label className="text-sm">
+          Upgrader address
+          <Input
+            className="mt-1 w-full font-mono"
+            placeholder={address}
+            value={upgrader}
+            onChange={(e) => setUpgrader(e.target.value)}
+          />
         </label>
         <label className="text-sm">
           Initial funding <span className="text-gray-400">(optional)</span>
@@ -77,7 +89,13 @@ export function CreateAccount() {
           </span>
           {amountError && <span className="mt-1 block text-xs text-red-600">{amountError}</span>}
         </label>
-        <TxButton label="Create account" icon={<PlusCircle className="h-4 w-4" />} disabled={!address || !!amountError} write={write} onConfirmed={onConfirmed} />
+        <TxButton
+          label="Create account"
+          icon={<PlusCircle className="h-4 w-4" />}
+          disabled={!address || !!amountError}
+          write={write}
+          onConfirmed={onConfirmed}
+        />
       </div>
     </Card>
   );

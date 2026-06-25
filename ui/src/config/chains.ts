@@ -45,6 +45,4 @@ export const APP_CHAINS: AppChain[] = [
 ];
 
 // A chain is usable only if marked enabled AND its contracts are deployed.
-export const ENABLED_CHAINS: AppChain[] = APP_CHAINS.filter(
-  (c) => c.enabled && hasContracts(c.id),
-);
+export const ENABLED_CHAINS: AppChain[] = APP_CHAINS.filter((c) => c.enabled && hasContracts(c.id));

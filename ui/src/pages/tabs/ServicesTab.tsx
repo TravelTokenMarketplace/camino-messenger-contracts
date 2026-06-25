@@ -17,7 +17,16 @@ import { type ParsedService, groupServicesByPackage } from "../../lib/serviceNam
 import { useTx } from "../../tx/TxProvider";
 
 // Deterministic accent colour per package, for quick visual grouping.
-const PKG_DOTS = ["bg-indigo-500", "bg-emerald-500", "bg-amber-500", "bg-sky-500", "bg-rose-500", "bg-violet-500", "bg-teal-500", "bg-orange-500"];
+const PKG_DOTS = [
+  "bg-indigo-500",
+  "bg-emerald-500",
+  "bg-amber-500",
+  "bg-sky-500",
+  "bg-rose-500",
+  "bg-violet-500",
+  "bg-teal-500",
+  "bg-orange-500",
+];
 function pkgColor(pkg: string): string {
   let h = 0;
   for (let i = 0; i < pkg.length; i++) h = (h * 31 + pkg.charCodeAt(i)) >>> 0;
@@ -39,7 +48,9 @@ function ServiceLabel({ parsed }: { parsed: ParsedService }) {
   return (
     <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
       {parsed.version && (
-        <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{parsed.version}</span>
+        <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+          {parsed.version}
+        </span>
       )}
       <span className="break-all font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{parsed.name}</span>
     </span>
@@ -48,8 +59,24 @@ function ServiceLabel({ parsed }: { parsed: ParsedService }) {
 
 // Explicit single-overload fragments: the CMAccount ABI overloads these by
 // (string) and (bytes32), which makes viem's overload resolution ambiguous.
-const RESTRICTED_RATE_ABI = [{ type: "function", name: "getServiceRestrictedRate", stateMutability: "view", inputs: [{ type: "bytes32" }], outputs: [{ type: "bool" }] }] as const;
-const CAPABILITIES_ABI = [{ type: "function", name: "getServiceCapabilities", stateMutability: "view", inputs: [{ type: "bytes32" }], outputs: [{ type: "string[]" }] }] as const;
+const RESTRICTED_RATE_ABI = [
+  {
+    type: "function",
+    name: "getServiceRestrictedRate",
+    stateMutability: "view",
+    inputs: [{ type: "bytes32" }],
+    outputs: [{ type: "bool" }],
+  },
+] as const;
+const CAPABILITIES_ABI = [
+  {
+    type: "function",
+    name: "getServiceCapabilities",
+    stateMutability: "view",
+    inputs: [{ type: "bytes32" }],
+    outputs: [{ type: "string[]" }],
+  },
+] as const;
 
 interface ServiceInfo {
   hash: Hex;
@@ -112,16 +139,25 @@ function SupportedServiceRow({
         aria-expanded={open}
         className="flex w-full items-start gap-2 px-3 py-2 text-left"
       >
-        <ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`} />
+        <ChevronRight
+          className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`}
+        />
         <span className="min-w-0 flex-1">
           <ServiceLabel parsed={parsed} />
           {(service.restricted || service.capabilities.length > 0) && (
             <span className="mt-1 flex flex-wrap items-center gap-1">
               {service.restricted && (
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">Restricted rate</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                  Restricted rate
+                </span>
               )}
               {service.capabilities.map((c) => (
-                <span key={c} className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">{c}</span>
+                <span
+                  key={c}
+                  className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                >
+                  {c}
+                </span>
               ))}
             </span>
           )}
@@ -171,13 +207,21 @@ function SupportedServiceRow({
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
                   {service.capabilities.length === 0 && <span className="text-xs text-gray-400">None</span>}
                   {service.capabilities.map((c) => (
-                    <span key={c} className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                    <span
+                      key={c}
+                      className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                    >
                       {c}
                       <Tooltip content={`Remove capability "${c}" — sends a transaction to your wallet.`}>
                         <button
                           type="button"
                           disabled={busy}
-                          onClick={() => run(`Remove capability "${c}" · ${service.name}`, "removeServiceCapability", [service.name, c])}
+                          onClick={() =>
+                            run(`Remove capability "${c}" · ${service.name}`, "removeServiceCapability", [
+                              service.name,
+                              c,
+                            ])
+                          }
                           className="text-gray-400 hover:text-red-500 disabled:opacity-50"
                           aria-label={`Remove capability ${c}`}
                         >
@@ -193,7 +237,12 @@ function SupportedServiceRow({
                     onChange={(e) => setNewCap(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && newCap.trim()) {
-                        run(`Add capability "${newCap.trim()}" · ${service.name}`, "addServiceCapability", [service.name, newCap.trim()], () => setNewCap(""));
+                        run(
+                          `Add capability "${newCap.trim()}" · ${service.name}`,
+                          "addServiceCapability",
+                          [service.name, newCap.trim()],
+                          () => setNewCap(""),
+                        );
                       }
                     }}
                   />
@@ -201,7 +250,14 @@ function SupportedServiceRow({
                     <button
                       type="button"
                       disabled={busy || !newCap.trim()}
-                      onClick={() => run(`Add capability "${newCap.trim()}" · ${service.name}`, "addServiceCapability", [service.name, newCap.trim()], () => setNewCap(""))}
+                      onClick={() =>
+                        run(
+                          `Add capability "${newCap.trim()}" · ${service.name}`,
+                          "addServiceCapability",
+                          [service.name, newCap.trim()],
+                          () => setNewCap(""),
+                        )
+                      }
                       className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
                     >
                       Add
@@ -216,7 +272,9 @@ function SupportedServiceRow({
                   variant="danger"
                   icon={<Trash2 className="h-4 w-4" />}
                   tooltip="Removes this service from the account — sends a transaction to your wallet."
-                  write={() => writeContractAsync({ address: account, abi, functionName: "removeService", args: [service.name] })}
+                  write={() =>
+                    writeContractAsync({ address: account, abi, functionName: "removeService", args: [service.name] })
+                  }
                   onConfirmed={onChanged}
                 />
               </div>
@@ -230,21 +288,39 @@ function SupportedServiceRow({
   );
 }
 
-function SupportedServices({ account, abi, hasRole, registered }: { account: Address; abi: Abi; hasRole: boolean; registered: string[] }) {
+function SupportedServices({
+  account,
+  abi,
+  hasRole,
+  registered,
+}: {
+  account: Address;
+  abi: Abi;
+  hasRole: boolean;
+  registered: string[];
+}) {
   const { manager, managerAbi, chainId } = useActiveContracts();
   const { writeContractAsync } = useWriteContract();
   const serviceInputId = useId();
   // getSupportedServices() returns a (uint256,bool,string[])[] tuple that viem
   // cannot reliably decode, so list service hashes and resolve names + config
   // via per-hash getters instead.
-  const { data: hashesData, isLoading: hashesLoading, refetch: refetchHashes } = useReadContract({
+  const {
+    data: hashesData,
+    isLoading: hashesLoading,
+    refetch: refetchHashes,
+  } = useReadContract({
     chainId,
     address: account,
     abi,
     functionName: "getAllServiceHashes",
   });
   const hashes = (hashesData as Hex[] | undefined) ?? [];
-  const { data: nameResults, isLoading: namesLoading, refetch: refetchNames } = useReadContracts({
+  const {
+    data: nameResults,
+    isLoading: namesLoading,
+    refetch: refetchNames,
+  } = useReadContracts({
     contracts: hashes.map((h) => ({
       chainId,
       address: manager,
@@ -256,7 +332,11 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
     query: { enabled: hashes.length > 0 },
   });
   // Per-service config (restricted rate + capabilities), best-effort.
-  const { data: configResults, isLoading: configLoading, refetch: refetchConfig } = useReadContracts({
+  const {
+    data: configResults,
+    isLoading: configLoading,
+    refetch: refetchConfig,
+  } = useReadContracts({
     contracts: hashes.flatMap((h) => [
       { chainId, address: account, abi: RESTRICTED_RATE_ABI, functionName: "getServiceRestrictedRate", args: [h] },
       { chainId, address: account, abi: CAPABILITIES_ABI, functionName: "getServiceCapabilities", args: [h] },
@@ -274,7 +354,11 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
   // defaults (false / []) would otherwise render before config settles and could
   // drive the wrong action (e.g. inverted restricted-rate toggle).
   const isLoading = hashesLoading || (hashes.length > 0 && (namesLoading || configLoading));
-  const refetch = () => { void refetchHashes(); void refetchNames(); void refetchConfig(); };
+  const refetch = () => {
+    void refetchHashes();
+    void refetchNames();
+    void refetchConfig();
+  };
   const [openHash, setOpenHash] = useState<Hex | null>(null);
   const [name, setName] = useState("");
   const [restricted, setRestricted] = useState(false);
@@ -285,7 +369,9 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
 
   return (
     <Card title="Supported Services">
-      {isLoading ? <p>Loading…</p> : services.length === 0 ? (
+      {isLoading ? (
+        <p>Loading…</p>
+      ) : services.length === 0 ? (
         <p className="mb-4 py-2 text-sm text-gray-400">None</p>
       ) : (
         <div className="mb-4 space-y-5">
@@ -345,13 +431,27 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
                 icon={<Plus className="h-4 w-4" />}
                 disabled={!name.trim()}
                 tooltip="Adds a supported service to the account — sends a transaction to your wallet."
-                write={() => writeContractAsync({
-                  address: account,
-                  abi,
-                  functionName: "addService",
-                  args: [name.trim(), restricted, caps.split(",").map((c) => c.trim()).filter(Boolean)],
-                })}
-                onConfirmed={() => { setName(""); setRestricted(false); setCaps(""); void refetch(); }}
+                write={() =>
+                  writeContractAsync({
+                    address: account,
+                    abi,
+                    functionName: "addService",
+                    args: [
+                      name.trim(),
+                      restricted,
+                      caps
+                        .split(",")
+                        .map((c) => c.trim())
+                        .filter(Boolean),
+                    ],
+                  })
+                }
+                onConfirmed={() => {
+                  setName("");
+                  setRestricted(false);
+                  setCaps("");
+                  void refetch();
+                }}
               />
             </div>
           </div>
@@ -361,7 +461,17 @@ function SupportedServices({ account, abi, hasRole, registered }: { account: Add
   );
 }
 
-function WantedServices({ account, abi, hasRole, registered }: { account: Address; abi: Abi; hasRole: boolean; registered: string[] }) {
+function WantedServices({
+  account,
+  abi,
+  hasRole,
+  registered,
+}: {
+  account: Address;
+  abi: Abi;
+  hasRole: boolean;
+  registered: string[];
+}) {
   const { writeContractAsync } = useWriteContract();
   const { items, isLoading, refetch } = useContractList(account, abi, "getWantedServices");
   const [name, setName] = useState("");
@@ -369,7 +479,9 @@ function WantedServices({ account, abi, hasRole, registered }: { account: Addres
 
   return (
     <Card title="Wanted Services">
-      {isLoading ? <p>Loading…</p> : items.length === 0 ? (
+      {isLoading ? (
+        <p>Loading…</p>
+      ) : items.length === 0 ? (
         <p className="mb-4 py-2 text-sm text-gray-400">None</p>
       ) : (
         <div className="mb-4 space-y-5">
@@ -378,7 +490,10 @@ function WantedServices({ account, abi, hasRole, registered }: { account: Addres
               <PackageHeader pkg={g.pkg} count={g.items.length} />
               <ul className="space-y-2">
                 {g.items.map((s) => (
-                  <li key={s.name} className="group flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700/60">
+                  <li
+                    key={s.name}
+                    className="group flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700/60"
+                  >
                     <span className="flex min-w-0 items-center gap-2">
                       <ServiceLabel parsed={s.parsed} />
                       <CopyButton value={s.name} label="Copy full service name" />
@@ -390,7 +505,14 @@ function WantedServices({ account, abi, hasRole, registered }: { account: Addres
                           variant="danger"
                           icon={<Trash2 className="h-4 w-4" />}
                           tooltip="Removes this wanted service — sends a transaction to your wallet."
-                          write={() => writeContractAsync({ address: account, abi, functionName: "removeWantedServices", args: [[s.name]] })}
+                          write={() =>
+                            writeContractAsync({
+                              address: account,
+                              abi,
+                              functionName: "removeWantedServices",
+                              args: [[s.name]],
+                            })
+                          }
                           onConfirmed={refetch}
                         />
                       </RowAction>
@@ -416,8 +538,13 @@ function WantedServices({ account, abi, hasRole, registered }: { account: Addres
             icon={<Plus className="h-4 w-4" />}
             disabled={!name.trim()}
             tooltip="Adds a wanted service to the account — sends a transaction to your wallet."
-            write={() => writeContractAsync({ address: account, abi, functionName: "addWantedServices", args: [[name.trim()]] })}
-            onConfirmed={() => { setName(""); refetch(); }}
+            write={() =>
+              writeContractAsync({ address: account, abi, functionName: "addWantedServices", args: [[name.trim()]] })
+            }
+            onConfirmed={() => {
+              setName("");
+              refetch();
+            }}
           />
         </div>
       </RoleGate>

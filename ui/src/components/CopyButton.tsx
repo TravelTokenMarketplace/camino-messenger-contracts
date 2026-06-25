@@ -3,7 +3,15 @@ import { Check, Copy } from "lucide-react";
 import { Tooltip } from "./Tooltip";
 
 /** Small icon button that copies arbitrary text to the clipboard. */
-export function CopyButton({ value, label = "Copy", className = "" }: { value: string; label?: string; className?: string }) {
+export function CopyButton({
+  value,
+  label = "Copy",
+  className = "",
+}: {
+  value: string;
+  label?: string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy(e: React.MouseEvent) {

@@ -5,7 +5,13 @@ import { AddressDisplay } from "./AddressDisplay";
 
 export function ManagerSummary() {
   const { manager, bookingToken, managerAbi, chainId, supported } = useActiveContracts();
-  const { data: paused, isLoading: pausedLoading } = useReadContract({ chainId, address: manager, abi: managerAbi as Abi, functionName: "paused", query: { enabled: supported } });
+  const { data: paused, isLoading: pausedLoading } = useReadContract({
+    chainId,
+    address: manager,
+    abi: managerAbi as Abi,
+    functionName: "paused",
+    query: { enabled: supported },
+  });
 
   return (
     <aside className="h-fit rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">

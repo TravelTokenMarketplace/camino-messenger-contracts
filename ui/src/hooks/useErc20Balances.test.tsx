@@ -39,7 +39,13 @@ describe("useErc20Balances", () => {
     mockBalances = bal(1500000n);
     const { result } = renderHook(() => useErc20Balances(account));
     expect(result.current.tokens).toHaveLength(1);
-    expect(result.current.tokens[0]).toMatchObject({ symbol: "USDC", name: "USD Coin", decimals: 6, formatted: "1.5", isZero: false });
+    expect(result.current.tokens[0]).toMatchObject({
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+      formatted: "1.5",
+      isZero: false,
+    });
   });
 
   it("flags zero balances", () => {

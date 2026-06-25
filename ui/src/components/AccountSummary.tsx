@@ -22,7 +22,9 @@ export function AccountSummary({ account }: { account: Address }) {
 
   return (
     <aside className="h-fit rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Active account</h2>
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+        Active account
+      </h2>
 
       <div className="mb-4 text-sm">
         <AddressDisplay address={account} />
@@ -62,15 +64,17 @@ export function AccountSummary({ account }: { account: Address }) {
                   <div className="flex items-center justify-between gap-2">
                     <TokenDisplay address={t.address} symbol={t.symbol} name={t.name} className="min-w-0 text-sm" />
                     <Tooltip content={`${t.formatted} ${t.symbol}`}>
-                      <span className={`font-num tabular-nums whitespace-nowrap ${t.isZero ? "text-amber-700 dark:text-amber-300" : ""}`}>
+                      <span
+                        className={`font-num tabular-nums whitespace-nowrap ${t.isZero ? "text-amber-700 dark:text-amber-300" : ""}`}
+                      >
                         {formatAmount(t.formatted).display} {t.symbol}
                       </span>
                     </Tooltip>
                   </div>
                   {t.isZero && (
                     <p className="mt-0.5 flex items-start gap-1 text-xs text-amber-700 dark:text-amber-300">
-                      <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                      0 {t.symbol} — can't buy booking tokens paid in {t.symbol}.
+                      <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />0 {t.symbol} — can't buy booking tokens paid
+                      in {t.symbol}.
                     </p>
                   )}
                 </div>
@@ -81,7 +85,15 @@ export function AccountSummary({ account }: { account: Address }) {
         <div>
           <dt className="mb-1 text-gray-500 dark:text-gray-400">Your roles</dt>
           <dd className="flex flex-wrap gap-1">
-            {address ? (roles.length ? roles.map((r) => <RoleBadge key={r} role={r} />) : <span className="text-gray-400">None</span>) : <span className="text-gray-400">Connect wallet</span>}
+            {address ? (
+              roles.length ? (
+                roles.map((r) => <RoleBadge key={r} role={r} />)
+              ) : (
+                <span className="text-gray-400">None</span>
+              )
+            ) : (
+              <span className="text-gray-400">Connect wallet</span>
+            )}
           </dd>
         </div>
       </dl>

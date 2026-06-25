@@ -13,7 +13,15 @@ import { useActiveContracts } from "../hooks/useActiveContracts";
 import { useAccountRolesFor, useManagerAccounts } from "../hooks/useMyAccounts";
 import { shortRoleName } from "../lib/format";
 
-function AccountRow({ account, connected, onlyMine }: { account: Address; connected: Address | undefined; onlyMine: boolean }) {
+function AccountRow({
+  account,
+  connected,
+  onlyMine,
+}: {
+  account: Address;
+  connected: Address | undefined;
+  onlyMine: boolean;
+}) {
   const navigate = useNavigate();
   const roles = useAccountRolesFor(account, connected);
   if (onlyMine && roles.length === 0) return null;
@@ -63,17 +71,27 @@ export function Dashboard() {
 
       <Card title="Network status">
         <dl className="grid grid-cols-2 gap-2 text-sm">
-          <dt className="text-gray-500 dark:text-gray-400">Manager</dt><dd>{manager && <AddressDisplay address={manager} />}</dd>
-          <dt className="text-gray-500 dark:text-gray-400">Paused</dt><dd>{paused ? "Yes" : "No"}</dd>
-          <dt className="text-gray-500 dark:text-gray-400">Account implementation</dt><dd>{impl ? <AddressDisplay address={impl as string} /> : "—"}</dd>
+          <dt className="text-gray-500 dark:text-gray-400">Manager</dt>
+          <dd>{manager && <AddressDisplay address={manager} />}</dd>
+          <dt className="text-gray-500 dark:text-gray-400">Paused</dt>
+          <dd>{paused ? "Yes" : "No"}</dd>
+          <dt className="text-gray-500 dark:text-gray-400">Account implementation</dt>
+          <dd>{impl ? <AddressDisplay address={impl as string} /> : "—"}</dd>
         </dl>
       </Card>
 
       <Card title="CM Accounts" actions={<RefreshButton />}>
         <div className="mb-2">
-          <Checkbox checked={onlyMine} disabled={!address} onChange={setOnlyMine} label="Only accounts where I hold a role" />
+          <Checkbox
+            checked={onlyMine}
+            disabled={!address}
+            onChange={setOnlyMine}
+            label="Only accounts where I hold a role"
+          />
         </div>
-        {isLoading ? <p className="py-2 text-sm text-gray-400">Loading…</p> : (
+        {isLoading ? (
+          <p className="py-2 text-sm text-gray-400">Loading…</p>
+        ) : (
           <ul className="-mx-2">
             {accounts.length === 0 && <li className="px-2 py-2 text-sm text-gray-400">No accounts found.</li>}
             {accounts.map((a) => (

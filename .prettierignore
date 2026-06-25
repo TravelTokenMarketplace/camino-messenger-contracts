@@ -14,8 +14,11 @@ yarn.lock
 # Ignore abi
 /abi
 
-# Ignore UI
-/ui
+# UI: formatted with its own ui/.prettierrc (2-space). Only skip build output
+# and generated contract bindings; the rest of ui/ is covered by `yarn format`.
+/ui/node_modules
+/ui/dist
+/ui/src/contracts/generated
 
 # Ignore superpowers skill docs
 /docs/superpowers/

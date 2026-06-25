@@ -16,8 +16,6 @@ describe("TxButton", () => {
     const write = vi.fn().mockRejectedValue(new Error("user rejected"));
     render(<TxButton label="Do it" write={write} />);
     fireEvent.click(screen.getByRole("button", { name: /do it/i }));
-    await waitFor(() =>
-      expect(screen.getByText(/user rejected/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/user rejected/i)).toBeInTheDocument());
   });
 });

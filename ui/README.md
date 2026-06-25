@@ -19,22 +19,22 @@ redeployed.
 
 ## Scripts
 
-| Script        | Description                                              |
-| ------------- | ------------------------------------------------------- |
-| `yarn dev`    | Sync contracts, then start the Vite dev server.          |
-| `yarn build`  | Sync contracts, typecheck, and build to `dist/`.         |
-| `yarn preview`| Preview the production build locally.                    |
-| `yarn test`   | Run the Vitest suite.                                    |
-| `yarn sync`   | Regenerate `src/contracts/generated/` from repo outputs. |
+| Script         | Description                                              |
+| -------------- | -------------------------------------------------------- |
+| `yarn dev`     | Sync contracts, then start the Vite dev server.          |
+| `yarn build`   | Sync contracts, typecheck, and build to `dist/`.         |
+| `yarn preview` | Preview the production build locally.                    |
+| `yarn test`    | Run the Vitest suite.                                    |
+| `yarn sync`    | Regenerate `src/contracts/generated/` from repo outputs. |
 
 ## Networks
 
-| Network        | Chain ID | Status in UI                                |
-| -------------- | -------- | ------------------------------------------- |
-| Camino         | 500      | Enabled                                     |
-| Base           | 8453     | Enabled once its address file exists         |
-| Base Sepolia   | 84532    | Enabled                                     |
-| Columbus       | 501      | Defined but disabled (being phased out)      |
+| Network      | Chain ID | Status in UI                            |
+| ------------ | -------- | --------------------------------------- |
+| Camino       | 500      | Enabled                                 |
+| Base         | 8453     | Enabled once its address file exists    |
+| Base Sepolia | 84532    | Enabled                                 |
+| Columbus     | 501      | Defined but disabled (being phased out) |
 
 A network is only selectable if it is enabled **and** has deployed contracts in
 `../ignition/deployments/chain-<id>/deployed_addresses.json`.

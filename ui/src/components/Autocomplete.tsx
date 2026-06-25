@@ -1,11 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Combobox,
-  ComboboxButton,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from "@headlessui/react";
+import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import Fuse from "fuse.js";
 
@@ -29,7 +23,15 @@ const inputClass =
  * <datalist> — has a bounded, scrollable, themed dropdown. Free text is allowed
  * by default so values not in the list can still be entered.
  */
-export function Autocomplete({ value, onChange, options, placeholder, id, className, allowCustom = true }: AutocompleteProps) {
+export function Autocomplete({
+  value,
+  onChange,
+  options,
+  placeholder,
+  id,
+  className,
+  allowCustom = true,
+}: AutocompleteProps) {
   const [query, setQuery] = useState("");
   const fuse = useMemo(() => new Fuse(options, { threshold: 0.4, ignoreLocation: true }), [options]);
 

@@ -19,11 +19,7 @@ export const MANAGER_ROLES = [
   "SERVICE_REGISTRY_ADMIN_ROLE",
 ] as const;
 
-export const BOOKINGTOKEN_ROLES = [
-  "DEFAULT_ADMIN_ROLE",
-  "UPGRADER_ROLE",
-  "MIN_EXPIRATION_ADMIN_ROLE",
-] as const;
+export const BOOKINGTOKEN_ROLES = ["DEFAULT_ADMIN_ROLE", "UPGRADER_ROLE", "MIN_EXPIRATION_ADMIN_ROLE"] as const;
 
 export type RoleName =
   | (typeof ACCOUNT_ROLES)[number]

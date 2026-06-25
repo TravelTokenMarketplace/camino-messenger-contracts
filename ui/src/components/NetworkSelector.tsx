@@ -27,7 +27,7 @@ export function NetworkSelector() {
           ) : (
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
           )}
-          <span>{walletUnsupported ? "Unsupported network" : active?.name ?? "Network"}</span>
+          <span>{walletUnsupported ? "Unsupported network" : (active?.name ?? "Network")}</span>
           <ChevronsUpDown className="h-4 w-4 text-gray-400" />
         </ListboxButton>
         <ListboxOptions

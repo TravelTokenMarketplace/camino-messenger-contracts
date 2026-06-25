@@ -25,7 +25,9 @@ describe("AccountWorkspace", () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter initialEntries={[`/account/${addr}`]}>
-          <Routes><Route path="account/:address" element={<AccountWorkspace />} /></Routes>
+          <Routes>
+            <Route path="account/:address" element={<AccountWorkspace />} />
+          </Routes>
         </MemoryRouter>
       </QueryClientProvider>,
     );

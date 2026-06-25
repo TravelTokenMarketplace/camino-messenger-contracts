@@ -18,7 +18,9 @@ function Harness({ onConfirmed }: { onConfirmed: () => void }) {
     <div>
       <button onClick={() => void track({ label: "Do thing", write: async () => "0xhash", onConfirmed })}>go</button>
       {txs.map((t) => (
-        <span key={t.id} data-testid="tx">{t.label}:{t.state}</span>
+        <span key={t.id} data-testid="tx">
+          {t.label}:{t.state}
+        </span>
       ))}
     </div>
   );
@@ -37,7 +39,11 @@ function renderHarness(onConfirmed: () => void) {
 describe("TxProvider", () => {
   it("tracks a tx and only confirms after the receipt is mined", async () => {
     let resolveReceipt!: (r: { status: string }) => void;
-    waitMock.mockReturnValue(new Promise((res) => { resolveReceipt = res; }));
+    waitMock.mockReturnValue(
+      new Promise((res) => {
+        resolveReceipt = res;
+      }),
+    );
     const onConfirmed = vi.fn();
 
     renderHarness(onConfirmed);

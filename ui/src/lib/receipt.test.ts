@@ -9,10 +9,7 @@ describe("findCreatedAccount", () => {
     const addr = "0x1111111111111111111111111111111111111111";
     // CMAccountCreated has only an indexed arg, so the value lives in topics; data is empty.
     const topics = encodeEventTopics({ abi, eventName: "CMAccountCreated", args: { account: addr } });
-    const found = findCreatedAccount(
-      [{ data: "0x", topics }] as never,
-      abi as never,
-    );
+    const found = findCreatedAccount([{ data: "0x", topics }] as never, abi as never);
     expect(found?.toLowerCase()).toBe(addr);
   });
 

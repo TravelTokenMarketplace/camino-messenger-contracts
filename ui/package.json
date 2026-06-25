@@ -13,7 +13,9 @@
     "pretest": "yarn sync",
     "test": "vitest run",
     "pretest:watch": "yarn sync",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "lint:format": "prettier --check ."
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "5.2.8",

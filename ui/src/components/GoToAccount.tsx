@@ -33,9 +33,7 @@ export function GoToAccount() {
           Go <ArrowRight className="h-4 w-4" />
         </button>
       </div>
-      {trimmed.length > 0 && !valid && (
-        <span className="text-xs text-red-600">Enter a valid address.</span>
-      )}
+      {trimmed.length > 0 && !valid && <span className="text-xs text-red-600">Enter a valid address.</span>}
     </form>
   );
 }

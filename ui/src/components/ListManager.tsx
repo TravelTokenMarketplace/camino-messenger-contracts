@@ -29,7 +29,9 @@ export function ListManager(props: ListManagerProps) {
 
   return (
     <Card title={title}>
-      {isLoading ? <p>Loading…</p> : (
+      {isLoading ? (
+        <p>Loading…</p>
+      ) : (
         <ul className="mb-4 divide-y">
           {items.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
           {items.map((item) => (
@@ -37,7 +39,13 @@ export function ListManager(props: ListManagerProps) {
               <span className="min-w-0 font-mono text-sm">{props.renderItem ? props.renderItem(item) : item}</span>
               {hasRole && (
                 <RowAction>
-                  <TxButton label="Remove" variant="danger" icon={<Trash2 className="h-4 w-4" />} write={() => props.onRemove(item)} onConfirmed={props.onChanged} />
+                  <TxButton
+                    label="Remove"
+                    variant="danger"
+                    icon={<Trash2 className="h-4 w-4" />}
+                    write={() => props.onRemove(item)}
+                    onConfirmed={props.onChanged}
+                  />
                 </RowAction>
               )}
             </li>
@@ -47,11 +55,31 @@ export function ListManager(props: ListManagerProps) {
       <RoleGate hasRole={hasRole} roleName={roleName} action={addLabel}>
         <div className="flex items-end gap-2">
           {suggestions ? (
-            <Autocomplete className="flex-1" value={value} onChange={setValue} options={suggestions} placeholder={addPlaceholder} />
+            <Autocomplete
+              className="flex-1"
+              value={value}
+              onChange={setValue}
+              options={suggestions}
+              placeholder={addPlaceholder}
+            />
           ) : (
-            <Input className="flex-1 font-mono" placeholder={addPlaceholder} value={value} onChange={(e) => setValue(e.target.value)} />
+            <Input
+              className="flex-1 font-mono"
+              placeholder={addPlaceholder}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
           )}
-          <TxButton label={addLabel} icon={<Plus className="h-4 w-4" />} disabled={!value} write={() => props.onAdd(value)} onConfirmed={() => { setValue(""); props.onChanged?.(); }} />
+          <TxButton
+            label={addLabel}
+            icon={<Plus className="h-4 w-4" />}
+            disabled={!value}
+            write={() => props.onAdd(value)}
+            onConfirmed={() => {
+              setValue("");
+              props.onChanged?.();
+            }}
+          />
         </div>
       </RoleGate>
     </Card>

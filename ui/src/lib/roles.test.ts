@@ -26,11 +26,7 @@ describe("manager & booking token roles", () => {
   });
 
   it("booking token roles include admin, upgrader, min expiration admin", () => {
-    expect([...BOOKINGTOKEN_ROLES]).toEqual([
-      "DEFAULT_ADMIN_ROLE",
-      "UPGRADER_ROLE",
-      "MIN_EXPIRATION_ADMIN_ROLE",
-    ]);
+    expect([...BOOKINGTOKEN_ROLES]).toEqual(["DEFAULT_ADMIN_ROLE", "UPGRADER_ROLE", "MIN_EXPIRATION_ADMIN_ROLE"]);
   });
 
   it("hashes MIN_EXPIRATION_ADMIN_ROLE with keccak256", () => {

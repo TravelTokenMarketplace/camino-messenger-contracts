@@ -44,7 +44,7 @@ export function useManagerAccounts() {
     query: { enabled: Boolean(manager && cmRole) },
   });
 
-  const accounts = uniqueAddresses(((data as string[]) ?? [])) as Address[];
+  const accounts = uniqueAddresses((data as string[]) ?? []) as Address[];
   return { accounts, isLoading };
 }
 

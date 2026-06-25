@@ -34,10 +34,7 @@ export function TxButton({ label, disabled, write, onConfirmed, icon, variant = 
     }
   }
 
-  const color =
-    variant === "danger"
-      ? "bg-red-600 hover:bg-red-700"
-      : "bg-indigo-600 hover:bg-indigo-700";
+  const color = variant === "danger" ? "bg-red-600 hover:bg-red-700" : "bg-indigo-600 hover:bg-indigo-700";
 
   return (
     <div className="flex flex-col gap-1">

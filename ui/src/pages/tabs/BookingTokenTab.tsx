@@ -25,9 +25,27 @@ export function BookingTokenTab() {
 
   const { data: name } = useReadContract({ chainId, address: bookingToken, abi, functionName: "name", ...enabled });
   const { data: symbol } = useReadContract({ chainId, address: bookingToken, abi, functionName: "symbol", ...enabled });
-  const { data: version } = useReadContract({ chainId, address: bookingToken, abi, functionName: "version", ...enabled });
-  const { data: managerAddr, refetch: refetchManager } = useReadContract({ chainId, address: bookingToken, abi, functionName: "getManagerAddress", ...enabled });
-  const { data: minDiff, refetch: refetchMinDiff } = useReadContract({ chainId, address: bookingToken, abi, functionName: "getMinExpirationTimestampDiff", ...enabled });
+  const { data: version } = useReadContract({
+    chainId,
+    address: bookingToken,
+    abi,
+    functionName: "version",
+    ...enabled,
+  });
+  const { data: managerAddr, refetch: refetchManager } = useReadContract({
+    chainId,
+    address: bookingToken,
+    abi,
+    functionName: "getManagerAddress",
+    ...enabled,
+  });
+  const { data: minDiff, refetch: refetchMinDiff } = useReadContract({
+    chainId,
+    address: bookingToken,
+    abi,
+    functionName: "getMinExpirationTimestampDiff",
+    ...enabled,
+  });
 
   const { hasRole: isAdmin } = useHasRole(bookingToken, abi, "DEFAULT_ADMIN_ROLE");
   const { hasRole: canSetMin } = useHasRole(bookingToken, abi, "MIN_EXPIRATION_ADMIN_ROLE");
@@ -42,7 +60,9 @@ export function BookingTokenTab() {
       <Card title="Booking Token">
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-gray-500 dark:text-gray-400">Address</dt>
-          <dd><AddressDisplay address={bookingToken} /></dd>
+          <dd>
+            <AddressDisplay address={bookingToken} />
+          </dd>
           <dt className="text-gray-500 dark:text-gray-400">Name</dt>
           <dd>{(name as string) ?? "—"}</dd>
           <dt className="text-gray-500 dark:text-gray-400">Symbol</dt>
@@ -59,12 +79,29 @@ export function BookingTokenTab() {
         </dl>
         <RoleGate hasRole={isAdmin} roleName="DEFAULT_ADMIN_ROLE" action="set manager address">
           <div className="flex items-end gap-2">
-            <input className={`flex-1 ${inputClass}`} placeholder="0x…" value={newManager} onChange={(e) => setNewManager(e.target.value)} />
+            <input
+              className={`flex-1 ${inputClass}`}
+              placeholder="0x…"
+              value={newManager}
+              onChange={(e) => setNewManager(e.target.value)}
+            />
             <TxButton
-              label="Save" icon={<Save className="h-4 w-4" />} disabled={!isAddress(newManager.trim())}
+              label="Save"
+              icon={<Save className="h-4 w-4" />}
+              disabled={!isAddress(newManager.trim())}
               tooltip="Sets the manager address on the booking token — sends a transaction to your wallet."
-              write={() => writeContractAsync({ address: bookingToken, abi, functionName: "setManagerAddress", args: [newManager.trim() as Address] })}
-              onConfirmed={() => { setNewManager(""); refetchManager(); }}
+              write={() =>
+                writeContractAsync({
+                  address: bookingToken,
+                  abi,
+                  functionName: "setManagerAddress",
+                  args: [newManager.trim() as Address],
+                })
+              }
+              onConfirmed={() => {
+                setNewManager("");
+                refetchManager();
+              }}
             />
           </div>
         </RoleGate>
@@ -77,12 +114,32 @@ export function BookingTokenTab() {
         </dl>
         <RoleGate hasRole={canSetMin} roleName="MIN_EXPIRATION_ADMIN_ROLE" action="set min expiration diff">
           <div className="flex items-end gap-2">
-            <input className={`w-40 ${inputClass}`} type="number" min="0" step="1" placeholder="seconds" value={newMin} onChange={(e) => setNewMin(e.target.value)} />
+            <input
+              className={`w-40 ${inputClass}`}
+              type="number"
+              min="0"
+              step="1"
+              placeholder="seconds"
+              value={newMin}
+              onChange={(e) => setNewMin(e.target.value)}
+            />
             <TxButton
-              label="Save" icon={<Save className="h-4 w-4" />} disabled={!/^\d+$/.test(newMin.trim())}
+              label="Save"
+              icon={<Save className="h-4 w-4" />}
+              disabled={!/^\d+$/.test(newMin.trim())}
               tooltip="Sets the minimum reservation expiration difference — sends a transaction to your wallet."
-              write={() => writeContractAsync({ address: bookingToken, abi, functionName: "setMinExpirationTimestampDiff", args: [BigInt(newMin.trim())] })}
-              onConfirmed={() => { setNewMin(""); refetchMinDiff(); }}
+              write={() =>
+                writeContractAsync({
+                  address: bookingToken,
+                  abi,
+                  functionName: "setMinExpirationTimestampDiff",
+                  args: [BigInt(newMin.trim())],
+                })
+              }
+              onConfirmed={() => {
+                setNewMin("");
+                refetchMinDiff();
+              }}
             />
           </div>
         </RoleGate>

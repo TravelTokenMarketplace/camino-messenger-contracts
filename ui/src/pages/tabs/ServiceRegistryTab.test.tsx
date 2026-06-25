@@ -6,9 +6,10 @@ import { ServiceRegistryTab } from "./ServiceRegistryTab";
 vi.mock("wagmi", () => ({
   useAccount: () => ({ address: undefined }),
   useReadContract: ({ functionName }: { functionName: string }) => ({
-    data: functionName === "getAllRegisteredServiceNames"
-      ? ["cmp.services.accommodation.v1.AccommodationSearchService"]
-      : undefined,
+    data:
+      functionName === "getAllRegisteredServiceNames"
+        ? ["cmp.services.accommodation.v1.AccommodationSearchService"]
+        : undefined,
     isLoading: false,
     refetch: vi.fn(),
   }),

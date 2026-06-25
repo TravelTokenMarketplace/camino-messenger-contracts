@@ -34,9 +34,9 @@ export function AccountValidityNotice({ account }: { account: Address }) {
 
   return (
     <Notice title="Not a CM Account">
-      The manager on this network does not recognize this address as a CM Account
-      (it lacks the <code className="font-mono">CMACCOUNT_ROLE</code>). You can still
-      browse, but management actions will likely revert.
+      The manager on this network does not recognize this address as a CM Account (it lacks the{" "}
+      <code className="font-mono">CMACCOUNT_ROLE</code>). You can still browse, but management actions will likely
+      revert.
     </Notice>
   );
 }

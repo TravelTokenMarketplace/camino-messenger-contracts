@@ -21,7 +21,9 @@ describe("ManagerWorkspace", () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter initialEntries={["/manager"]}>
-          <Routes><Route path="manager" element={<ManagerWorkspace />} /></Routes>
+          <Routes>
+            <Route path="manager" element={<ManagerWorkspace />} />
+          </Routes>
         </MemoryRouter>
       </QueryClientProvider>,
     );

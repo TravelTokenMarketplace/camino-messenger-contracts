@@ -1,0 +1,4 @@
+node_modules
+dist
+# Build-time generated contract bindings — never hand-format (huge single lines).
+src/contracts/generated

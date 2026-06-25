@@ -24,8 +24,12 @@ export function PaymentTokensTab({ account }: { account: Address }) {
       hasRole={hasRole}
       addLabel="Add token"
       addPlaceholder="Token address 0x…"
-      onAdd={(v) => writeContractAsync({ address: account, abi, functionName: "addSupportedToken", args: [v as Address] })}
-      onRemove={(v) => writeContractAsync({ address: account, abi, functionName: "removeSupportedToken", args: [v as Address] })}
+      onAdd={(v) =>
+        writeContractAsync({ address: account, abi, functionName: "addSupportedToken", args: [v as Address] })
+      }
+      onRemove={(v) =>
+        writeContractAsync({ address: account, abi, functionName: "removeSupportedToken", args: [v as Address] })
+      }
       onChanged={refetch}
       renderItem={(v) => {
         const m = meta.get(v.toLowerCase());

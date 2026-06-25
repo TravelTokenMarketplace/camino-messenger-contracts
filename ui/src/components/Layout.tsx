@@ -15,10 +15,18 @@ export function Layout() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-white px-6 py-3 dark:border-gray-800 dark:bg-gray-950">
         <div className="flex items-center gap-4">
-          <Link to="/" className="font-bold">Camino Messenger</Link>
-          <NavLink to="/" end className={navLinkClass}>Dashboard</NavLink>
-          <NavLink to="/manager" className={navLinkClass}>Manager</NavLink>
-          <NavLink to="/create" className={navLinkClass}>Create Account</NavLink>
+          <Link to="/" className="font-bold">
+            Camino Messenger
+          </Link>
+          <NavLink to="/" end className={navLinkClass}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/manager" className={navLinkClass}>
+            Manager
+          </NavLink>
+          <NavLink to="/create" className={navLinkClass}>
+            Create Account
+          </NavLink>
         </div>
         <div className="flex items-center gap-3">
           <NetworkSelector />
