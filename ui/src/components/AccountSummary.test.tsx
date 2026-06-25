@@ -42,7 +42,8 @@ describe("AccountSummary ERC20 balances", () => {
     mockNative = { formatted: "1.0", symbol: "ETH", value: 1000000000000000000n };
     mockTokens = [tok({})];
     wrap(<AccountSummary account={account} />);
-    expect(screen.getByText(/1\.5 USDC/)).toBeInTheDocument();
+    // Tooltip renders a hidden duplicate of the amount; assert the visible (non-tooltip) span.
+    expect(screen.getByText(/1\.5 USDC/, { selector: 'span:not([role="tooltip"])' })).toBeInTheDocument();
   });
 
   it("warns when an ERC20 balance is zero", () => {
