@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { type Abi, type Address } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { AddressDisplay } from "../components/AddressDisplay";
@@ -9,8 +9,11 @@ import { GoToAccount } from "../components/GoToAccount";
 import { RefreshButton } from "../components/RefreshButton";
 import { Switch } from "../components/Switch";
 import { RoleBadge } from "../components/RoleBadge";
+import { ActivityList } from "../components/activity/ActivityList";
 import { useActiveContracts } from "../hooks/useActiveContracts";
+import { useEcosystemActivity } from "../hooks/useEcosystemActivity";
 import { useAccountRolesFor, useManagerAccounts } from "../hooks/useMyAccounts";
+import { explorerUrlFor } from "../config/chains";
 import { shortRoleName } from "../lib/format";
 
 function AccountRow({
@@ -52,6 +55,31 @@ function AccountRow({
   );
 }
 
+function RecentActivityCard({ chainId }: { chainId: number }) {
+  const activity = useEcosystemActivity();
+  return (
+    <Card
+      title="Recent activity"
+      actions={
+        <Link
+          to="/activity"
+          className="text-sm text-indigo-600 transition-colors hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+        >
+          View all →
+        </Link>
+      }
+    >
+      <ActivityList
+        limit={5}
+        explorerUrl={explorerUrlFor(chainId)}
+        events={activity.events}
+        isLoading={activity.isLoading}
+        error={activity.error}
+      />
+    </Card>
+  );
+}
+
 export function Dashboard() {
   const { manager, managerAbi, supported, chainId } = useActiveContracts();
   const abi = managerAbi as Abi;
@@ -79,6 +107,8 @@ export function Dashboard() {
           <dd>{impl ? <AddressDisplay address={impl as string} /> : "—"}</dd>
         </dl>
       </Card>
+
+      <RecentActivityCard chainId={chainId} />
 
       <Card
         title="CM Accounts"

@@ -1,5 +1,5 @@
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ArrowUpFromLine, Bot, Coins, KeyRound, Server, Users } from "lucide-react";
+import { Activity, ArrowUpFromLine, Bot, Coins, KeyRound, Server, Users } from "lucide-react";
 import { type Address } from "viem";
 import { AccountSummary } from "../components/AccountSummary";
 import { AccountValidityNotice } from "../components/AccountValidityNotice";
@@ -11,6 +11,7 @@ import { ServicesTab } from "./tabs/ServicesTab";
 import { RolesTab } from "./tabs/RolesTab";
 import { PubkeysTab } from "./tabs/PubkeysTab";
 import { WithdrawalsTab } from "./tabs/WithdrawalsTab";
+import { ActivityTab } from "./tabs/ActivityTab";
 
 const TABS = [
   { id: "bots", label: "Bots", Icon: Bot, Component: BotsTab },
@@ -19,6 +20,7 @@ const TABS = [
   { id: "roles", label: "Roles", Icon: Users, Component: RolesTab },
   { id: "pubkeys", label: "Pubkeys", Icon: KeyRound, Component: PubkeysTab },
   { id: "withdrawals", label: "Withdrawals", Icon: ArrowUpFromLine, Component: WithdrawalsTab },
+  { id: "activity", label: "Activity", Icon: Activity, Component: ActivityTab },
 ] as const;
 
 export function AccountWorkspace() {

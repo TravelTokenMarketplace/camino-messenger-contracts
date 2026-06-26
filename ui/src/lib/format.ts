@@ -11,6 +11,22 @@ export function explorerAddrUrl(base: string, addr: string): string {
   return `${base}/address/${addr}`;
 }
 
+/**
+ * Compact relative time from a unix-seconds timestamp: "just now", "5m ago",
+ * "2h ago", "3d ago". Falls back to "in the future" for clock-skewed values.
+ */
+export function formatRelativeTime(unixSeconds: number, now: number = Date.now()): string {
+  const diffSec = Math.floor(now / 1000) - unixSeconds;
+  if (diffSec < 0) return "in the future";
+  if (diffSec < 45) return "just now";
+  const mins = Math.floor(diffSec / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(diffSec / 3600);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(diffSec / 86400);
+  return `${days}d ago`;
+}
+
 /** Compact, human-friendly role label: "SERVICE_ADMIN_ROLE" -> "Service Admin". */
 export function shortRoleName(role: string): string {
   if (role === "DEFAULT_ADMIN_ROLE") return "Admin";

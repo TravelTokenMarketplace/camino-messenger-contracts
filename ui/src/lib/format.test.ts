@@ -1,5 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { shortAddress, shortRoleName, formatAmount } from "./format";
+import { shortAddress, shortRoleName, formatAmount, formatRelativeTime } from "./format";
+
+describe("formatRelativeTime", () => {
+  const now = 1_000_000_000_000; // fixed "now" in ms
+  const ago = (sec: number) => Math.floor(now / 1000) - sec;
+
+  it("says 'just now' for very recent times", () => {
+    expect(formatRelativeTime(ago(10), now)).toBe("just now");
+  });
+
+  it("formats minutes, hours and days", () => {
+    expect(formatRelativeTime(ago(5 * 60), now)).toBe("5m ago");
+    expect(formatRelativeTime(ago(2 * 3600), now)).toBe("2h ago");
+    expect(formatRelativeTime(ago(3 * 86400), now)).toBe("3d ago");
+  });
+
+  it("handles future / clock-skewed timestamps", () => {
+    expect(formatRelativeTime(ago(-60), now)).toBe("in the future");
+  });
+});
 
 describe("shortAddress", () => {
   it("truncates the middle", () => {
