@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { type ActivityCategory, type ActivityEvent } from "../../lib/activity/types";
+import { CATEGORY_STYLE } from "../../lib/activity/style";
 import { ActivityRow } from "./ActivityRow";
 
 interface ActivityListProps {
@@ -78,12 +79,13 @@ export function ActivityList({
                   key={cat}
                   type="button"
                   onClick={() => toggle(cat)}
-                  className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
                     on
                       ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/10 dark:text-indigo-300"
                       : "border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
                   }`}
                 >
+                  <span className={`h-1.5 w-1.5 rounded-full ${CATEGORY_STYLE[cat].dot}`} aria-hidden />
                   {cat}
                 </button>
               );
@@ -111,6 +113,7 @@ export function ActivityList({
             type="button"
             onClick={onLoadOlder}
             disabled={!hasNextPage || isFetchingNextPage}
+            title="Scans several batches further back through history"
             className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             {isFetchingNextPage ? "Loading…" : hasNextPage ? "Load older" : "No more history"}

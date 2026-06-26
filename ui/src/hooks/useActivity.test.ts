@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { __resetBatchMemory, compareEventsDesc, fetchActivityPage, type ActivitySourceInput } from "./useActivity";
+import {
+  __resetBatchMemory,
+  compareEventsDesc,
+  fetchActivityPage,
+  loadOlderBatches,
+  type ActivitySourceInput,
+} from "./useActivity";
 import { BOOKING_TOKEN_EVENTS } from "../lib/activity/catalog";
 import { type ActivityEvent } from "../lib/activity/types";
 
@@ -77,5 +83,23 @@ describe("fetchActivityPage", () => {
   it("propagates the error when even the floor range fails", async () => {
     const getLogs = vi.fn().mockRejectedValue(new Error("always fails"));
     await expect(fetchActivityPage(client(getLogs), sources, CHAIN, 100_000n)).rejects.toThrow("always fails");
+  });
+});
+
+describe("loadOlderBatches", () => {
+  it("pulls up to maxBatches pages in one call", async () => {
+    const fetchNextPage = vi.fn().mockResolvedValue({ hasNextPage: true });
+    await loadOlderBatches(fetchNextPage, 10);
+    expect(fetchNextPage).toHaveBeenCalledTimes(10);
+  });
+
+  it("stops early when there is no more history", async () => {
+    const fetchNextPage = vi
+      .fn()
+      .mockResolvedValueOnce({ hasNextPage: true })
+      .mockResolvedValueOnce({ hasNextPage: true })
+      .mockResolvedValueOnce({ hasNextPage: false });
+    await loadOlderBatches(fetchNextPage, 10);
+    expect(fetchNextPage).toHaveBeenCalledTimes(3);
   });
 });

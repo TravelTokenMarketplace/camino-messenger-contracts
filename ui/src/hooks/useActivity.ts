@@ -1,8 +1,8 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
 import { type AbiEvent, type Address, type PublicClient } from "viem";
-import { ACTIVITY_MIN_BATCH_BLOCKS, batchBlocksFor } from "../config/activity";
+import { ACTIVITY_BATCHES_PER_CLICK, ACTIVITY_MIN_BATCH_BLOCKS, batchBlocksFor } from "../config/activity";
 import { toActivityEvent } from "../lib/activity/catalog";
 import { type ActivityEvent, type ActivitySource } from "../lib/activity/types";
 
@@ -81,11 +81,27 @@ export async function fetchActivityPage(
   }
 }
 
+/**
+ * Pull up to `maxBatches` pages, stopping early once there is no further
+ * history. Extracted from the hook so the multi-batch loop is unit-testable.
+ */
+export async function loadOlderBatches(
+  fetchNextPage: () => Promise<{ hasNextPage: boolean }>,
+  maxBatches: number = ACTIVITY_BATCHES_PER_CLICK,
+): Promise<void> {
+  for (let i = 0; i < maxBatches; i++) {
+    const res = await fetchNextPage();
+    if (!res.hasNextPage) break;
+  }
+}
+
 export interface UseActivityResult {
   events: ActivityEvent[];
-  fetchNextPage: () => void;
+  /** Pull several batches further back in one call (see ACTIVITY_BATCHES_PER_CLICK). */
+  loadOlder: () => void;
   hasNextPage: boolean;
   isLoading: boolean;
+  /** True while a loadOlder() run (one or more batches) is in flight. */
   isFetchingNextPage: boolean;
   error: Error | null;
   /** Lowest block scanned across all loaded pages. */
@@ -127,12 +143,25 @@ export function useActivity({
   const pages = query.data?.pages ?? [];
   const oldestBlockLoaded = pages.length ? pages[pages.length - 1].fromBlock : undefined;
 
+  // One click pulls several batches so the user spans much more history at once.
+  // Sequential so each page's adaptive batch size carries into the next.
+  const { fetchNextPage } = query;
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+  const loadOlder = useCallback(async () => {
+    setIsLoadingOlder(true);
+    try {
+      await loadOlderBatches(fetchNextPage);
+    } finally {
+      setIsLoadingOlder(false);
+    }
+  }, [fetchNextPage]);
+
   return {
     events,
-    fetchNextPage: query.fetchNextPage,
+    loadOlder,
     hasNextPage: query.hasNextPage,
     isLoading: query.isLoading,
-    isFetchingNextPage: query.isFetchingNextPage,
+    isFetchingNextPage: isLoadingOlder || query.isFetchingNextPage,
     error: query.error as Error | null,
     oldestBlockLoaded,
   };

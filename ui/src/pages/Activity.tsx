@@ -21,7 +21,7 @@ export function Activity() {
         error={activity.error}
         hasNextPage={activity.hasNextPage}
         isFetchingNextPage={activity.isFetchingNextPage}
-        onLoadOlder={activity.fetchNextPage}
+        onLoadOlder={activity.loadOlder}
         oldestBlockLoaded={activity.oldestBlockLoaded}
       />
     </Card>

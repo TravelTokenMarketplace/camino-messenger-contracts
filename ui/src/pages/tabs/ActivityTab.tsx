@@ -16,7 +16,7 @@ export function ActivityTab({ account }: { account: Address }) {
       error={activity.error}
       hasNextPage={activity.hasNextPage}
       isFetchingNextPage={activity.isFetchingNextPage}
-      onLoadOlder={activity.fetchNextPage}
+      onLoadOlder={activity.loadOlder}
       oldestBlockLoaded={activity.oldestBlockLoaded}
       emptyHint="No activity for this account in the last 10,000 blocks."
     />

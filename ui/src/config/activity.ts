@@ -18,6 +18,13 @@ export const DEFAULT_BATCH_BLOCKS = 10_000n;
  */
 export const ACTIVITY_MIN_BATCH_BLOCKS = 500n;
 
+/**
+ * How many batches a single "Load older" click pulls, so the user looks much
+ * further back without clicking repeatedly. 10 × 10k blocks ≈ 100k blocks
+ * (~2 days on 2s-block chains like Base).
+ */
+export const ACTIVITY_BATCHES_PER_CLICK = 10;
+
 export function batchBlocksFor(chainId: number): bigint {
   return ACTIVITY_BATCH_BLOCKS[chainId] ?? DEFAULT_BATCH_BLOCKS;
 }

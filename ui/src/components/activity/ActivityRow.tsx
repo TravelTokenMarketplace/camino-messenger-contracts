@@ -1,5 +1,6 @@
 import { Activity as ActivityIcon, ExternalLink } from "lucide-react";
 import { lookupEntry } from "../../lib/activity/catalog";
+import { CATEGORY_STYLE } from "../../lib/activity/style";
 import { type ActivityEvent } from "../../lib/activity/types";
 import { explorerTxUrl, formatRelativeTime } from "../../lib/format";
 
@@ -10,7 +11,12 @@ export function ActivityRow({ event, explorerUrl }: { event: ActivityEvent; expl
 
   return (
     <li className="flex items-center gap-3 py-2">
-      <Icon className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" aria-hidden />
+      <span
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${CATEGORY_STYLE[event.category].icon}`}
+        title={event.category}
+      >
+        <Icon className="h-4 w-4" aria-hidden />
+      </span>
       <span className="min-w-0 break-words text-sm text-gray-800 dark:text-gray-200">{event.sentence}</span>
       <span className="ml-auto flex shrink-0 items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
         <time title={absolute}>{when}</time>
