@@ -21,18 +21,18 @@ export function NetworkSelector() {
   return (
     <Listbox value={activeChainId} onChange={onChange}>
       <div className="relative">
-        <ListboxButton className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700">
+        <ListboxButton className="inline-flex items-center gap-2 rounded-md border border-tarmac-300 bg-paper-raised px-3 py-1.5 text-sm transition-colors hover:bg-tarmac-50 dark:border-tarmac-700 dark:bg-tarmac-800 dark:text-tarmac-100 dark:hover:bg-tarmac-700">
           {walletUnsupported ? (
             <AlertTriangle className="h-4 w-4 text-red-500" />
           ) : (
-            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+            <span className="h-2 w-2 rounded-full bg-camino-500" aria-hidden />
           )}
           <span>{walletUnsupported ? "Unsupported network" : (active?.name ?? "Network")}</span>
-          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+          <ChevronsUpDown className="h-4 w-4 text-tarmac-400" />
         </ListboxButton>
         <ListboxOptions
           anchor="bottom end"
-          className="z-30 mt-1 w-52 rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg focus:outline-none dark:border-gray-700 dark:bg-gray-800"
+          className="z-30 mt-1 w-52 rounded-md border border-tarmac-200 bg-paper-raised py-1 text-sm shadow-lg focus:outline-none dark:border-tarmac-700 dark:bg-tarmac-800"
         >
           {walletUnsupported && (
             <div className="flex items-start gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400">
@@ -44,10 +44,10 @@ export function NetworkSelector() {
             <ListboxOption
               key={c.id}
               value={c.id}
-              className="flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-200 dark:data-[focus]:bg-gray-700"
+              className="flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 text-tarmac-700 data-[focus]:bg-tarmac-100 dark:text-tarmac-200 dark:data-[focus]:bg-tarmac-700"
             >
               <span>{c.name}</span>
-              {c.id === activeChainId && <Check className="h-4 w-4 text-indigo-500" />}
+              {c.id === activeChainId && <Check className="h-4 w-4 text-camino-500" />}
             </ListboxOption>
           ))}
         </ListboxOptions>

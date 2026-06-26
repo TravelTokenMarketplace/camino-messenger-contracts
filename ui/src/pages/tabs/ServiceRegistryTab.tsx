@@ -30,19 +30,19 @@ export function ServiceRegistryTab() {
 
   return (
     <Card title="Service Registry">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mb-3 text-xs text-tarmac-500 dark:text-tarmac-400">
         Services must be registered here before any CM Account can support or want them.
       </p>
       {isLoading ? (
-        <p className="py-2 text-sm text-gray-400">Loading…</p>
+        <p className="py-2 text-sm text-tarmac-400">Loading…</p>
       ) : names.length === 0 ? (
-        <p className="mb-4 py-2 text-sm text-gray-400">No services registered.</p>
+        <p className="mb-4 py-2 text-sm text-tarmac-400">No services registered.</p>
       ) : (
         <div className="mb-4 space-y-5">
           {groups.map((g) => (
             <div key={g.pkg}>
-              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                {g.pkg} <span className="text-gray-400">{g.items.length}</span>
+              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-tarmac-500 dark:text-tarmac-400">
+                {g.pkg} <span className="text-tarmac-400">{g.items.length}</span>
               </h4>
               <ul className="space-y-2">
                 {g.items.map((s) => {
@@ -50,15 +50,15 @@ export function ServiceRegistryTab() {
                   return (
                     <li
                       key={s.name}
-                      className="group flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700/60"
+                      className="group flex items-center justify-between gap-3 rounded-md border border-tarmac-100 px-3 py-2 dark:border-tarmac-700/60"
                     >
                       <span className="flex min-w-0 items-baseline gap-2">
                         {parsed.version && (
-                          <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                          <span className="rounded bg-camino-50 px-1.5 py-0.5 font-mono text-xs font-medium text-camino-700 dark:bg-camino-950 dark:text-camino-300">
                             {parsed.version}
                           </span>
                         )}
-                        <span className="break-all font-mono text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <span className="break-all font-mono text-sm font-medium text-tarmac-900 dark:text-tarmac-100">
                           {parsed.name}
                         </span>
                         <CopyButton value={s.name} label="Copy full service name" />

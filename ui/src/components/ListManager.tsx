@@ -33,7 +33,7 @@ export function ListManager(props: ListManagerProps) {
         <p>Loading…</p>
       ) : (
         <ul className="mb-4 divide-y">
-          {items.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
+          {items.length === 0 && <li className="py-2 text-sm text-tarmac-400">None</li>}
           {items.map((item) => (
             <li key={item} className="group flex items-center justify-between gap-3 py-2">
               <span className="min-w-0 font-mono text-sm">{props.renderItem ? props.renderItem(item) : item}</span>

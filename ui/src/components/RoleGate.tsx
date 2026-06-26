@@ -11,7 +11,7 @@ interface RoleGateProps {
 }
 
 export function RoleGate({ hasRole, isLoading, roleName, action, children }: RoleGateProps) {
-  if (isLoading) return <span className="text-xs text-gray-400">Checking permissions…</span>;
+  if (isLoading) return <span className="text-xs text-tarmac-400">Checking permissions…</span>;
   if (!hasRole) return <PermissionHint roleName={roleName} action={action} />;
   return <>{children}</>;
 }

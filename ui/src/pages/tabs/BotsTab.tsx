@@ -23,14 +23,14 @@ const BOT_ROLES: RoleName[] = ["MESSENGER_BOT_ROLE", "BOOKING_OPERATOR_ROLE", "G
 function BotBalance({ bot }: { bot: Address }) {
   const { chainId } = useActiveContracts();
   const { data } = useBalance({ address: bot, chainId });
-  if (!data) return <span className="text-xs text-gray-400">…</span>;
+  if (!data) return <span className="text-xs text-tarmac-400">…</span>;
   const isZero = data.value === 0n;
   return (
     <span
       className={`rounded px-2 py-0.5 text-xs font-medium ${
         isZero
           ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+          : "bg-camino-100 text-camino-700 dark:bg-camino-950 dark:text-camino-300"
       }`}
       title={isZero ? "Bot has no funds for transaction fees" : undefined}
     >
@@ -52,7 +52,7 @@ function BotRoles({ account, bot, abi }: { account: Address; bot: Address; abi: 
     allowFailure: true,
   });
 
-  if (isLoading) return <span className="text-xs text-gray-400">Checking roles…</span>;
+  if (isLoading) return <span className="text-xs text-tarmac-400">Checking roles…</span>;
 
   return (
     <span className="flex flex-wrap items-center gap-1">
@@ -68,7 +68,7 @@ function BotRoles({ account, bot, abi }: { account: Address; bot: Address; abi: 
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
                 has
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                  ? "bg-camino-100 text-camino-700 dark:bg-camino-950 dark:text-camino-300"
                   : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
               }`}
             >
@@ -150,15 +150,15 @@ export function BotsTab({ account }: { account: Address }) {
 
   return (
     <Card title="Messenger Bots">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mb-3 text-xs text-tarmac-500 dark:text-tarmac-400">
         A bot is an address granted three roles — Messenger Bot, Booking Operator and Gas Withdrawer — and funded with
         native tokens for transaction fees. Each bot's roles are shown below; an amber badge means that role is missing.
       </p>
       {isLoading || roleLoading ? (
         <p>Loading…</p>
       ) : (
-        <ul className="mb-4 divide-y dark:divide-gray-700">
-          {members.length === 0 && <li className="py-2 text-sm text-gray-400">None</li>}
+        <ul className="mb-4 divide-y dark:divide-tarmac-700">
+          {members.length === 0 && <li className="py-2 text-sm text-tarmac-400">None</li>}
           {members.map((b) => (
             <BotRow key={b} account={account} bot={b as Address} abi={abi} hasRole={hasRole} onChanged={refetch} />
           ))}
@@ -187,7 +187,7 @@ export function BotsTab({ account }: { account: Address }) {
                 <button
                   type="button"
                   aria-label="Gas money info"
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="text-tarmac-400 hover:text-tarmac-600 dark:hover:text-tarmac-200"
                 >
                   <Info className="h-4 w-4" />
                 </button>

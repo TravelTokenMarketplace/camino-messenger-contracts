@@ -26,7 +26,7 @@ export function RefreshButton({ label = "Refresh" }: { label?: string }) {
         type="button"
         onClick={refresh}
         aria-label={label}
-        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+        className="inline-flex items-center gap-1.5 rounded-md border border-tarmac-300 px-2 py-1 text-xs text-tarmac-600 transition-colors hover:bg-tarmac-50 dark:border-tarmac-700 dark:text-tarmac-300 dark:hover:bg-tarmac-800"
       >
         <RefreshCw className={`h-3.5 w-3.5 ${spinning ? "animate-spin" : ""}`} /> {label}
       </button>

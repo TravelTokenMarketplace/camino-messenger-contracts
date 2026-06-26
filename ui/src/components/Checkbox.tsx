@@ -19,7 +19,7 @@ export function Checkbox({ checked, onChange, disabled, label }: CheckboxProps) 
       <HCheckbox
         checked={checked}
         onChange={onChange}
-        className="group flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 data-[checked]:border-indigo-600 data-[checked]:bg-indigo-600 dark:border-gray-600 dark:bg-gray-900 dark:data-[checked]:border-indigo-500 dark:data-[checked]:bg-indigo-500"
+        className="group flex h-4 w-4 shrink-0 items-center justify-center rounded border border-tarmac-300 bg-paper-raised transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-camino-500 data-[checked]:border-camino-600 data-[checked]:bg-camino-600 dark:border-tarmac-600 dark:bg-tarmac-900 dark:data-[checked]:border-camino-500 dark:data-[checked]:bg-camino-500"
       >
         <Check className="h-3 w-3 text-white opacity-0 transition-opacity group-data-[checked]:opacity-100" />
       </HCheckbox>

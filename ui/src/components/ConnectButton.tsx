@@ -15,7 +15,7 @@ export function ConnectButton() {
   if (!isConnected || !address)
     return (
       <button
-        className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-white transition-colors hover:bg-indigo-700"
+        className="inline-flex items-center gap-1.5 rounded-md bg-camino-600 px-3 py-1.5 text-white transition-colors hover:bg-camino-700"
         onClick={() => connect({ connector: connectors[0] })}
       >
         <Wallet className="h-4 w-4" /> Connect Wallet
@@ -36,21 +36,21 @@ export function ConnectButton() {
 
   return (
     <Menu as="div" className="relative">
-      <MenuButton className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+      <MenuButton className="inline-flex items-center gap-1.5 rounded-md border border-tarmac-300 px-3 py-1.5 transition-colors hover:bg-tarmac-50 dark:border-tarmac-700 dark:hover:bg-tarmac-800">
         <Identicon address={address} />
         <span className="font-mono text-sm">{shortAddress(address)}</span>
-        <ChevronDown className="h-4 w-4 text-gray-400" />
+        <ChevronDown className="h-4 w-4 text-tarmac-400" />
       </MenuButton>
       <MenuItems
         anchor="bottom end"
-        className="z-30 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg focus:outline-none dark:border-gray-700 dark:bg-gray-800"
+        className="z-30 mt-1 w-48 rounded-md border border-tarmac-200 bg-paper-raised py-1 text-sm shadow-lg focus:outline-none dark:border-tarmac-700 dark:bg-tarmac-800"
       >
         <MenuItem>
           <button
             onClick={copy}
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-200 dark:data-[focus]:bg-gray-700"
+            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-tarmac-700 data-[focus]:bg-tarmac-100 dark:text-tarmac-200 dark:data-[focus]:bg-tarmac-700"
           >
-            {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-gray-400" />}
+            {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-tarmac-400" />}
             {copied ? "Copied" : "Copy address"}
           </button>
         </MenuItem>
@@ -60,13 +60,13 @@ export function ConnectButton() {
               href={explorerAddrUrl(explorer, address)}
               target="_blank"
               rel="noreferrer"
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-200 dark:data-[focus]:bg-gray-700"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-tarmac-700 data-[focus]:bg-tarmac-100 dark:text-tarmac-200 dark:data-[focus]:bg-tarmac-700"
             >
-              <ExternalLink className="h-4 w-4 text-gray-400" /> View on explorer
+              <ExternalLink className="h-4 w-4 text-tarmac-400" /> View on explorer
             </a>
           </MenuItem>
         )}
-        <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
+        <div className="my-1 border-t border-tarmac-100 dark:border-tarmac-700" />
         <MenuItem>
           <button
             onClick={() => disconnect()}

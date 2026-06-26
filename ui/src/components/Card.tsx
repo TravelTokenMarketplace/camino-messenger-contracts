@@ -1,15 +1,20 @@
 import { type ReactNode } from "react";
 
+/**
+ * A board panel — the flat, hairline-ruled surface that frames every section.
+ * The title is set as a small uppercase "eyebrow" so panels read like the
+ * labelled cells of a departures board rather than generic cards.
+ */
 export function Card({ title, actions, children }: { title?: string; actions?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-800">
+    <section className="board rounded-md">
       {(title || actions) && (
-        <div className="mb-3 flex items-center justify-between gap-3">
-          {title && <h2 className="text-lg font-semibold">{title}</h2>}
+        <div className="flex items-center justify-between gap-3 border-b border-tarmac-200/80 px-4 py-2.5 dark:border-tarmac-800">
+          {title && <h2 className="eyebrow">{title}</h2>}
           {actions}
         </div>
       )}
-      {children}
+      <div className="p-4">{children}</div>
     </section>
   );
 }

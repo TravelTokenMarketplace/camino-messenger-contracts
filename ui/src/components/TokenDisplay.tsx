@@ -27,10 +27,10 @@ export function TokenDisplay({
       <Identicon address={address} size={20} />
       <span className="flex min-w-0 flex-col">
         <span className="truncate font-medium leading-tight">{symbol ?? short}</span>
-        {name && <span className="truncate text-xs leading-tight text-gray-500 dark:text-gray-400">{name}</span>}
+        {name && <span className="truncate text-xs leading-tight text-tarmac-500 dark:text-tarmac-400">{name}</span>}
         <span className="flex items-center gap-1">
           <Tooltip content={address}>
-            <span className="font-mono text-[11px] leading-tight text-gray-500 dark:text-gray-400">{short}</span>
+            <span className="font-mono text-[11px] leading-tight text-tarmac-500 dark:text-tarmac-400">{short}</span>
           </Tooltip>
           <CopyButton value={address} label="Copy address" />
         </span>

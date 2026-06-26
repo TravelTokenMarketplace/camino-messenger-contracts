@@ -28,7 +28,7 @@ export function GoToAccount() {
         <button
           type="submit"
           disabled={!valid}
-          className="inline-flex items-center gap-1.5 rounded bg-indigo-600 px-3 py-1.5 text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded bg-camino-600 px-3 py-1.5 text-white transition-colors hover:bg-camino-700 disabled:opacity-50"
         >
           Go <ArrowRight className="h-4 w-4" />
         </button>

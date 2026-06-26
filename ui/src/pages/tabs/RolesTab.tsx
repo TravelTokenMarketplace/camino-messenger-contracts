@@ -8,7 +8,7 @@ export function RolesTab({ account }: { account: Address }) {
   const { cmAccountAbi } = useActiveContracts();
   return (
     <Card title="Roles">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mb-3 text-xs text-tarmac-500 dark:text-tarmac-400">
         Expand a role to see its members and grant or revoke it. Only one role is open at a time.
       </p>
       <RolesPanel address={account} abi={cmAccountAbi as Abi} roles={ACCOUNT_ROLES} enumerable />

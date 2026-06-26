@@ -37,15 +37,15 @@ export function AccountWorkspace() {
         <TxPanel />
       </div>
       <div className="flex min-w-0 flex-col gap-4">
-        <nav className="flex flex-wrap gap-x-4 gap-y-1 border-b text-sm dark:border-gray-800">
+        <nav className="flex flex-wrap gap-x-4 gap-y-1 border-b text-sm dark:border-tarmac-800">
           {TABS.map((t) => (
             <Link
               key={t.id}
               to={`?tab=${t.id}`}
               className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 pb-2 ${
                 active === t.id
-                  ? "border-indigo-600 dark:border-indigo-400 font-medium text-gray-900 dark:text-gray-100"
-                  : "border-transparent text-gray-500 dark:text-gray-400"
+                  ? "border-camino-600 dark:border-camino-400 font-medium text-tarmac-900 dark:text-tarmac-100"
+                  : "border-transparent text-tarmac-500 dark:text-tarmac-400"
               }`}
             >
               <t.Icon className="h-4 w-4" /> {t.label}

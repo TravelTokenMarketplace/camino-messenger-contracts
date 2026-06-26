@@ -59,22 +59,22 @@ export function BookingTokenTab() {
     <div className="grid gap-4">
       <Card title="Booking Token">
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-gray-500 dark:text-gray-400">Address</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Address</dt>
           <dd>
             <AddressDisplay address={bookingToken} />
           </dd>
-          <dt className="text-gray-500 dark:text-gray-400">Name</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Name</dt>
           <dd>{(name as string) ?? "—"}</dd>
-          <dt className="text-gray-500 dark:text-gray-400">Symbol</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Symbol</dt>
           <dd>{(symbol as string) ?? "—"}</dd>
-          <dt className="text-gray-500 dark:text-gray-400">Version</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Version</dt>
           <dd>{formatVersion(version)}</dd>
         </dl>
       </Card>
 
       <Card title="Manager address">
         <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-gray-500 dark:text-gray-400">Current</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Current</dt>
           <dd>{managerAddr ? <AddressDisplay address={managerAddr as Address} /> : "—"}</dd>
         </dl>
         <RoleGate hasRole={isAdmin} roleName="DEFAULT_ADMIN_ROLE" action="set manager address">
@@ -109,7 +109,7 @@ export function BookingTokenTab() {
 
       <Card title="Min expiration timestamp diff">
         <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-gray-500 dark:text-gray-400">Current</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Current</dt>
           <dd>{minDiff !== undefined ? `${minDiff} seconds` : "—"}</dd>
         </dl>
         <RoleGate hasRole={canSetMin} roleName="MIN_EXPIRATION_ADMIN_ROLE" action="set min expiration diff">

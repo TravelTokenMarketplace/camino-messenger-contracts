@@ -32,7 +32,7 @@ export function CopyButton({
         type="button"
         onClick={copy}
         aria-label={label}
-        className={`shrink-0 text-gray-400 transition-colors hover:text-gray-700 dark:hover:text-gray-200 ${className}`}
+        className={`shrink-0 text-tarmac-400 transition-colors hover:text-tarmac-700 dark:hover:text-tarmac-200 ${className}`}
       >
         {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
       </button>

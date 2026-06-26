@@ -76,7 +76,7 @@ export function CreateAccount() {
           />
         </label>
         <label className="text-sm">
-          Initial funding <span className="text-gray-400">(optional)</span>
+          Initial funding <span className="text-tarmac-400">(optional)</span>
           <Input
             className="mt-1 w-full"
             inputMode="decimal"
@@ -84,7 +84,7 @@ export function CreateAccount() {
             value={prefund}
             onChange={(e) => setPrefund(e.target.value)}
           />
-          <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+          <span className="mt-1 block text-xs text-tarmac-500 dark:text-tarmac-400">
             Sent to the new account on creation{symbol && ` (in ${symbol})`}.
           </span>
           {amountError && <span className="mt-1 block text-xs text-red-600">{amountError}</span>}

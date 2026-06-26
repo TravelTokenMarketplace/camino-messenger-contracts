@@ -15,7 +15,7 @@ interface AutocompleteProps {
 }
 
 const inputClass =
-  "w-full rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-16 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500";
+  "w-full rounded-md border border-tarmac-300 bg-paper-raised py-1.5 pl-3 pr-16 text-sm text-tarmac-900 placeholder-tarmac-400 transition-colors focus:border-camino-500 focus:outline-none focus:ring-1 focus:ring-camino-500 dark:border-tarmac-600 dark:bg-tarmac-900 dark:text-tarmac-100 dark:placeholder-tarmac-500";
 
 /**
  * Styled, fuzzy-searchable combobox. Opens on focus to reveal the available
@@ -58,15 +58,15 @@ export function Autocomplete({
             if (allowCustom) onChange(e.target.value);
           }}
         />
-        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-2 text-tarmac-400 hover:text-tarmac-600 dark:hover:text-tarmac-200">
           <ChevronsUpDown className="h-4 w-4" />
         </ComboboxButton>
 
-        <ComboboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg focus:outline-none dark:border-gray-700 dark:bg-gray-800">
+        <ComboboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-md border border-tarmac-200 bg-paper-raised py-1 text-sm shadow-lg focus:outline-none dark:border-tarmac-700 dark:bg-tarmac-800">
           {options.length === 0 ? (
-            <div className="px-3 py-2 text-gray-400">No registered services found on this network.</div>
+            <div className="px-3 py-2 text-tarmac-400">No registered services found on this network.</div>
           ) : filtered.length === 0 ? (
-            <div className="flex items-center gap-2 px-3 py-2 text-gray-400">
+            <div className="flex items-center gap-2 px-3 py-2 text-tarmac-400">
               <Search className="h-3.5 w-3.5" /> No match{q && ` for “${q}”`}.
             </div>
           ) : (
@@ -74,7 +74,7 @@ export function Autocomplete({
               <ComboboxOption
                 key={opt}
                 value={opt}
-                className="flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 text-gray-700 data-[focus]:bg-indigo-600 data-[focus]:text-white dark:text-gray-200"
+                className="flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 text-tarmac-700 data-[focus]:bg-camino-600 data-[focus]:text-white dark:text-tarmac-200"
               >
                 <span className="truncate font-mono">{opt}</span>
                 <Check className="h-4 w-4 shrink-0 opacity-0 group-data-[selected]:opacity-100 data-[selected]:opacity-100" />

@@ -18,8 +18,8 @@ import { useTx } from "../../tx/TxProvider";
 
 // Deterministic accent colour per package, for quick visual grouping.
 const PKG_DOTS = [
-  "bg-indigo-500",
-  "bg-emerald-500",
+  "bg-camino-500",
+  "bg-camino-500",
   "bg-amber-500",
   "bg-sky-500",
   "bg-rose-500",
@@ -37,8 +37,8 @@ function PackageHeader({ pkg, count }: { pkg: string; count: number }) {
   return (
     <div className="mb-1.5 flex items-center gap-2">
       <span className={`h-2 w-2 rounded-full ${pkgColor(pkg)}`} aria-hidden />
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{pkg}</h4>
-      <span className="text-xs text-gray-400">{count}</span>
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-tarmac-500 dark:text-tarmac-400">{pkg}</h4>
+      <span className="text-xs text-tarmac-400">{count}</span>
     </div>
   );
 }
@@ -48,11 +48,11 @@ function ServiceLabel({ parsed }: { parsed: ParsedService }) {
   return (
     <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
       {parsed.version && (
-        <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+        <span className="rounded bg-camino-50 px-1.5 py-0.5 font-mono text-xs font-medium text-camino-700 dark:bg-camino-950 dark:text-camino-300">
           {parsed.version}
         </span>
       )}
-      <span className="break-all font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{parsed.name}</span>
+      <span className="break-all font-mono text-sm font-medium text-tarmac-900 dark:text-tarmac-100">{parsed.name}</span>
     </span>
   );
 }
@@ -86,7 +86,7 @@ interface ServiceInfo {
 }
 
 const inputClass =
-  "rounded border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100";
+  "rounded border border-tarmac-300 bg-paper-raised px-2 py-1.5 text-sm focus:border-camino-500 focus:outline-none dark:border-tarmac-600 dark:bg-tarmac-900 dark:text-tarmac-100";
 
 function SupportedServiceRow({
   account,
@@ -131,7 +131,7 @@ function SupportedServiceRow({
   }
 
   return (
-    <li className="rounded-md border border-gray-100 dark:border-gray-700/60">
+    <li className="rounded-md border border-tarmac-100 dark:border-tarmac-700/60">
       {/* Header — click to expand the editing controls for this service. */}
       <button
         type="button"
@@ -140,7 +140,7 @@ function SupportedServiceRow({
         className="flex w-full items-start gap-2 px-3 py-2 text-left"
       >
         <ChevronRight
-          className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`}
+          className={`mt-0.5 h-4 w-4 shrink-0 text-tarmac-400 transition-transform ${open ? "rotate-90" : ""}`}
         />
         <span className="min-w-0 flex-1">
           <ServiceLabel parsed={parsed} />
@@ -154,7 +154,7 @@ function SupportedServiceRow({
               {service.capabilities.map((c) => (
                 <span
                   key={c}
-                  className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                  className="rounded bg-tarmac-100 px-2 py-0.5 text-xs text-tarmac-600 dark:bg-tarmac-700 dark:text-tarmac-300"
                 >
                   {c}
                 </span>
@@ -165,15 +165,15 @@ function SupportedServiceRow({
       </button>
 
       {open && (
-        <div className="space-y-3 border-t border-gray-100 px-3 py-3 dark:border-gray-700/60">
+        <div className="space-y-3 border-t border-tarmac-100 px-3 py-3 dark:border-tarmac-700/60">
           <div className="flex items-start gap-2">
-            <code className="min-w-0 break-all font-mono text-xs text-gray-500 dark:text-gray-400">{service.name}</code>
+            <code className="min-w-0 break-all font-mono text-xs text-tarmac-500 dark:text-tarmac-400">{service.name}</code>
             <CopyButton value={service.name} label="Copy full service name" />
           </div>
           {hasRole ? (
             <>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Rate</span>
+                <span className="text-xs font-medium text-tarmac-500 dark:text-tarmac-400">Rate</span>
                 <Tooltip
                   content={
                     service.restricted
@@ -194,7 +194,7 @@ function SupportedServiceRow({
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors disabled:opacity-50 ${
                       service.restricted
                         ? "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300"
-                        : "bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
+                        : "bg-tarmac-100 text-tarmac-500 hover:bg-tarmac-200 dark:bg-tarmac-700 dark:text-tarmac-400"
                     }`}
                   >
                     Restricted rate: {service.restricted ? "on" : "off"}
@@ -203,13 +203,13 @@ function SupportedServiceRow({
               </div>
 
               <div>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Capabilities</span>
+                <span className="text-xs font-medium text-tarmac-500 dark:text-tarmac-400">Capabilities</span>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  {service.capabilities.length === 0 && <span className="text-xs text-gray-400">None</span>}
+                  {service.capabilities.length === 0 && <span className="text-xs text-tarmac-400">None</span>}
                   {service.capabilities.map((c) => (
                     <span
                       key={c}
-                      className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                      className="inline-flex items-center gap-1 rounded bg-tarmac-100 px-2 py-0.5 text-xs text-tarmac-600 dark:bg-tarmac-700 dark:text-tarmac-300"
                     >
                       {c}
                       <Tooltip content={`Remove capability "${c}" — sends a transaction to your wallet.`}>
@@ -222,7 +222,7 @@ function SupportedServiceRow({
                               c,
                             ])
                           }
-                          className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+                          className="text-tarmac-400 hover:text-red-500 disabled:opacity-50"
                           aria-label={`Remove capability ${c}`}
                         >
                           <X className="h-3 w-3" />
@@ -258,7 +258,7 @@ function SupportedServiceRow({
                           () => setNewCap(""),
                         )
                       }
-                      className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
+                      className="rounded bg-tarmac-100 px-2 py-0.5 text-xs text-tarmac-600 hover:bg-tarmac-200 disabled:opacity-50 dark:bg-tarmac-700 dark:text-tarmac-300"
                     >
                       Add
                     </button>
@@ -280,7 +280,7 @@ function SupportedServiceRow({
               </div>
             </>
           ) : (
-            <p className="text-xs text-gray-400">You need the SERVICE_ADMIN_ROLE to edit this service.</p>
+            <p className="text-xs text-tarmac-400">You need the SERVICE_ADMIN_ROLE to edit this service.</p>
           )}
         </div>
       )}
@@ -372,7 +372,7 @@ function SupportedServices({
       {isLoading ? (
         <p>Loading…</p>
       ) : services.length === 0 ? (
-        <p className="mb-4 py-2 text-sm text-gray-400">None</p>
+        <p className="mb-4 py-2 text-sm text-tarmac-400">None</p>
       ) : (
         <div className="mb-4 space-y-5">
           {groups.map((g) => (
@@ -398,12 +398,12 @@ function SupportedServices({
         </div>
       )}
       <RoleGate hasRole={hasRole} roleName="SERVICE_ADMIN_ROLE" action="Add service">
-        <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
-          <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-200">Add a service</h3>
+        <div className="rounded-lg border border-tarmac-200 p-3 dark:border-tarmac-700">
+          <h3 className="mb-3 text-sm font-medium text-tarmac-700 dark:text-tarmac-200">Add a service</h3>
           <div className="grid gap-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                Service name <span className="font-normal text-gray-400">(must be registered in the manager)</span>
+              <span className="mb-1 block text-xs font-medium text-tarmac-500 dark:text-tarmac-400">
+                Service name <span className="font-normal text-tarmac-400">(must be registered in the manager)</span>
               </span>
               <Autocomplete
                 id={serviceInputId}
@@ -414,8 +414,8 @@ function SupportedServices({
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                Capabilities <span className="font-normal text-gray-400">(optional, comma separated)</span>
+              <span className="mb-1 block text-xs font-medium text-tarmac-500 dark:text-tarmac-400">
+                Capabilities <span className="font-normal text-tarmac-400">(optional, comma separated)</span>
               </span>
               <input
                 className={`w-full ${inputClass}`}
@@ -482,7 +482,7 @@ function WantedServices({
       {isLoading ? (
         <p>Loading…</p>
       ) : items.length === 0 ? (
-        <p className="mb-4 py-2 text-sm text-gray-400">None</p>
+        <p className="mb-4 py-2 text-sm text-tarmac-400">None</p>
       ) : (
         <div className="mb-4 space-y-5">
           {groups.map((g) => (
@@ -492,7 +492,7 @@ function WantedServices({
                 {g.items.map((s) => (
                   <li
                     key={s.name}
-                    className="group flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700/60"
+                    className="group flex items-center justify-between gap-3 rounded-md border border-tarmac-100 px-3 py-2 dark:border-tarmac-700/60"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <ServiceLabel parsed={s.parsed} />

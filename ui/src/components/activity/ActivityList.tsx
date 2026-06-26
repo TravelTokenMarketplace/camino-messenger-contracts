@@ -64,9 +64,9 @@ export function ActivityList({
       </p>
     );
   } else if (isLoading && isEmpty) {
-    body = <p className="py-2 text-sm text-gray-400 dark:text-gray-500">Loading…</p>;
+    body = <p className="py-2 text-sm text-tarmac-400 dark:text-tarmac-500">Loading…</p>;
   } else if (isEmpty) {
-    body = <p className="py-2 text-sm text-gray-400 dark:text-gray-500">{emptyHint}</p>;
+    body = <p className="py-2 text-sm text-tarmac-400 dark:text-tarmac-500">{emptyHint}</p>;
   } else {
     body = (
       <>
@@ -82,8 +82,8 @@ export function ActivityList({
                   onClick={() => toggle(cat)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
                     on
-                      ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/10 dark:text-indigo-300"
-                      : "border-gray-300 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+                      ? "border-camino-600 bg-camino-50 text-camino-700 dark:border-camino-400 dark:bg-camino-500/10 dark:text-camino-300"
+                      : "border-tarmac-300 text-tarmac-500 hover:bg-tarmac-50 dark:border-tarmac-700 dark:text-tarmac-400 dark:hover:bg-tarmac-800"
                   }`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${CATEGORY_STYLE[cat].dot}`} aria-hidden />
@@ -94,7 +94,7 @@ export function ActivityList({
           </div>
         )}
 
-        <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
+        <ul className="divide-y divide-tarmac-100 dark:divide-tarmac-700/50">
           {shown.map((e) => (
             <ActivityRow key={e.id} event={e} explorerUrl={explorerUrl} />
           ))}
@@ -108,14 +108,14 @@ export function ActivityList({
       {body}
 
       {onLoadOlder && (
-        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-400 dark:text-gray-500">
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-tarmac-400 dark:text-tarmac-500">
           <span>{oldestBlockLoaded != null && `Scanned back to block ${oldestBlockLoaded.toString()}`}</span>
           <button
             type="button"
             onClick={onLoadOlder}
             disabled={!hasNextPage || isFetchingNextPage}
             title="Scans several batches further back through history"
-            className="rounded-md border border-gray-300 px-2.5 py-1 text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="rounded-md border border-tarmac-300 px-2.5 py-1 text-tarmac-600 transition-colors hover:bg-tarmac-50 disabled:opacity-50 dark:border-tarmac-700 dark:text-tarmac-300 dark:hover:bg-tarmac-800"
           >
             {isFetchingNextPage ? "Loading…" : hasNextPage ? "Load older" : "No more history"}
           </button>

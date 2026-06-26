@@ -9,7 +9,7 @@ export function ManagerRolesTab() {
   if (!manager) return <Card title="Manager Roles">Connect to a supported network.</Card>;
   return (
     <Card title="Manager Roles">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
+      <p className="mb-3 text-xs text-tarmac-500 dark:text-tarmac-400">
         Expand a role to see its members and grant or revoke it. Grant/revoke requires the Admin role.
       </p>
       <RolesPanel address={manager} abi={managerAbi as Abi} roles={MANAGER_ROLES} enumerable />

@@ -38,7 +38,7 @@ function AddressSetting({
   return (
     <Card title={title}>
       <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-        <dt className="text-gray-500 dark:text-gray-400">Current</dt>
+        <dt className="text-tarmac-500 dark:text-tarmac-400">Current</dt>
         <dd>{isLoading ? "…" : current ? <AddressDisplay address={current} /> : "—"}</dd>
       </dl>
       <RoleGate hasRole={hasRole} roleName={roleName} action={action}>
@@ -106,7 +106,7 @@ export function ManagerConfigTab() {
     <div className="grid gap-4">
       <Card title="Account creation">
         <dl className="mb-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-          <dt className="text-gray-500 dark:text-gray-400">Status</dt>
+          <dt className="text-tarmac-500 dark:text-tarmac-400">Status</dt>
           <dd>{pausedLoading ? "…" : isPaused ? "Paused" : "Active"}</dd>
         </dl>
         <RoleGate hasRole={canPause} roleName="PAUSER_ROLE" action={isPaused ? "unpause manager" : "pause manager"}>

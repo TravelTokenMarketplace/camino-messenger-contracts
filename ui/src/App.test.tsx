@@ -32,7 +32,9 @@ describe("App", () => {
         </ThemeProvider>
       </QueryClientProvider>,
     );
-    expect(screen.getByText(/camino messenger/i)).toBeInTheDocument();
+    // Brand mark links home; its text spans two spans for the two-tone wordmark,
+    // so match on the link's accessible name rather than a single text node.
+    expect(screen.getByRole("link", { name: /camino messenger/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /connect/i })).toBeInTheDocument();
   });
 });
