@@ -17,12 +17,21 @@ import { type ActivityEvent, type ActivitySource, type CatalogEntry } from "./ty
 
 // Helpers for rendering args. Logs are decoded by viem, so args carry their
 // solidity types: uint -> bigint, address -> string, bool -> boolean. Indexed
-// `string` params arrive as a keccak hash (not the original string), so events
-// keyed on an indexed service name cannot show the human name — we omit it.
+// `string` params (e.g. a service name) arrive as a keccak hash, not the
+// original string. We render a short hash by default; useAccountActivity can
+// resolve the real name via the manager and inject it as `serviceLabel`, after
+// which renderSentence() is called again to upgrade the text.
 const addr = (v: unknown) => shortAddress(String(v));
 const id = (v: unknown) => `#${String(v)}`;
 const ether = (v: unknown) => formatEther(BigInt(v as bigint | number | string));
 const str = (v: unknown) => String(v);
+
+/** Human service label: the resolved name in quotes, else the short hash. */
+function serviceLabel(args: Record<string, unknown>): string {
+  const name = args.serviceLabel as string | undefined;
+  if (name) return `"${name}"`;
+  return `(${addr(args.serviceName)})`;
+}
 
 function entry(
   source: ActivitySource,
@@ -135,56 +144,56 @@ export const CATALOG: CatalogEntry[] = [
     "event ServiceAdded(string indexed serviceName)",
     "Services",
     Server,
-    () => `Supported service added`,
+    (a) => `Supported service ${serviceLabel(a)} added`,
   ),
   entry(
     "account",
     "event ServiceRemoved(string indexed serviceName)",
     "Services",
     Server,
-    () => `Supported service removed`,
+    (a) => `Supported service ${serviceLabel(a)} removed`,
   ),
   entry(
     "account",
     "event WantedServiceAdded(string indexed serviceName)",
     "Services",
     Server,
-    () => `Wanted service added`,
+    (a) => `Wanted service ${serviceLabel(a)} added`,
   ),
   entry(
     "account",
     "event WantedServiceRemoved(string indexed serviceName)",
     "Services",
     Server,
-    () => `Wanted service removed`,
+    (a) => `Wanted service ${serviceLabel(a)} removed`,
   ),
   entry(
     "account",
     "event ServiceRestrictedRateUpdated(string indexed serviceName, bool restrictedRate)",
     "Services",
     Server,
-    (a) => `Service restricted rate ${a.restrictedRate ? "enabled" : "disabled"}`,
+    (a) => `Service ${serviceLabel(a)} restricted rate ${a.restrictedRate ? "enabled" : "disabled"}`,
   ),
   entry(
     "account",
     "event ServiceCapabilitiesUpdated(string indexed serviceName)",
     "Services",
     Server,
-    () => `Service capabilities updated`,
+    (a) => `Service ${serviceLabel(a)} capabilities updated`,
   ),
   entry(
     "account",
     "event ServiceCapabilityAdded(string indexed serviceName, string capability)",
     "Services",
     Server,
-    (a) => `Service capability "${str(a.capability)}" added`,
+    (a) => `Service ${serviceLabel(a)} capability "${str(a.capability)}" added`,
   ),
   entry(
     "account",
     "event ServiceCapabilityRemoved(string indexed serviceName, string capability)",
     "Services",
     Server,
-    (a) => `Service capability "${str(a.capability)}" removed`,
+    (a) => `Service ${serviceLabel(a)} capability "${str(a.capability)}" removed`,
   ),
   entry(
     "account",
@@ -247,14 +256,14 @@ export const CATALOG: CatalogEntry[] = [
     "event GasMoneyWithdrawalUpdated(uint256 limit, uint256 period)",
     "Config",
     Fuel,
-    () => `Gas money limit updated`,
+    (a) => `Gas money limit updated to ${ether(a.limit)} per ${str(a.period)}s`,
   ),
   entry(
     "account",
     "event CMAccountUpgraded(address indexed oldImplementation, address indexed newImplementation)",
     "Config",
     ShieldCheck,
-    () => `Account implementation upgraded`,
+    (a) => `Account upgraded to implementation ${addr(a.newImplementation)}`,
   ),
 ];
 
@@ -263,6 +272,16 @@ const BY_KEY = new Map(CATALOG.map((e) => [`${e.source}:${e.eventName}`, e]));
 export function lookupEntry(source: ActivitySource, eventName: string): CatalogEntry | undefined {
   return BY_KEY.get(`${source}:${eventName}`);
 }
+
+/** Render an event's sentence from (possibly enriched) args. */
+export function renderSentence(source: ActivitySource, eventName: string, args: Record<string, unknown>): string {
+  return lookupEntry(source, eventName)?.render(args) ?? eventName;
+}
+
+/** Account events whose indexed `serviceName` is a hash we can resolve to a name. */
+export const SERVICE_HASH_EVENTS = new Set(
+  CATALOG.filter((e) => e.source === "account" && e.category === "Services").map((e) => e.eventName),
+);
 
 /** The viem ABI events for a source, ready to pass as `getLogs({ events })`. */
 export function eventsForSource(source: ActivitySource): AbiEvent[] {

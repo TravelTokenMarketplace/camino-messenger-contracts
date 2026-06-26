@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { ACCOUNT_EVENTS, BOOKING_TOKEN_EVENTS, MANAGER_EVENTS, lookupEntry, toActivityEvent } from "./catalog";
+import {
+  ACCOUNT_EVENTS,
+  BOOKING_TOKEN_EVENTS,
+  MANAGER_EVENTS,
+  SERVICE_HASH_EVENTS,
+  lookupEntry,
+  renderSentence,
+  toActivityEvent,
+} from "./catalog";
 
 const ACC = "0xaAaA000000000000000000000000000000000001";
 const BUYER = "0xbBbB000000000000000000000000000000000002";
@@ -39,8 +47,40 @@ describe("catalog rendering", () => {
     );
   });
 
-  it("omits the (hashed, indexed) service name for account service events", () => {
-    expect(render("account", "ServiceAdded", { serviceName: "0xdeadbeef" })).toBe("Supported service added");
+  it("falls back to a short service hash when the name isn't resolved", () => {
+    expect(
+      render("account", "ServiceAdded", {
+        serviceName: "0xabcd000000000000000000000000000000000000000000000000000000001234",
+      }),
+    ).toBe("Supported service (0xabcd…1234) added");
+  });
+
+  it("uses the resolved service name when injected via serviceLabel", () => {
+    expect(renderSentence("account", "ServiceAdded", { serviceName: "0xabcd…", serviceLabel: "cmp.x.v1.Foo" })).toBe(
+      'Supported service "cmp.x.v1.Foo" added',
+    );
+    expect(
+      renderSentence("account", "ServiceCapabilityAdded", {
+        serviceName: "0xabcd…",
+        serviceLabel: "cmp.x.v1.Foo",
+        capability: "luggage",
+      }),
+    ).toBe('Service "cmp.x.v1.Foo" capability "luggage" added');
+  });
+
+  it("renders detail for gas-money and upgrade config events", () => {
+    expect(render("account", "GasMoneyWithdrawalUpdated", { limit: 2_000000000000000000n, period: 86400n })).toBe(
+      "Gas money limit updated to 2 per 86400s",
+    );
+    expect(render("account", "CMAccountUpgraded", { oldImplementation: ACC, newImplementation: BUYER })).toBe(
+      "Account upgraded to implementation 0xbBbB…0002",
+    );
+  });
+
+  it("flags every account service event as resolvable", () => {
+    expect(SERVICE_HASH_EVENTS.has("ServiceAdded")).toBe(true);
+    expect(SERVICE_HASH_EVENTS.has("WantedServiceRemoved")).toBe(true);
+    expect(SERVICE_HASH_EVENTS.has("Deposit")).toBe(false);
   });
 
   it("exposes non-overlapping event sets per source", () => {
