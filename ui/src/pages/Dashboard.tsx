@@ -6,7 +6,6 @@ import { useAccount, useReadContract } from "wagmi";
 import { AddressDisplay } from "../components/AddressDisplay";
 import { Card } from "../components/Card";
 import { GoToAccount } from "../components/GoToAccount";
-import { RefreshButton } from "../components/RefreshButton";
 import { Switch } from "../components/Switch";
 import { RoleBadge } from "../components/RoleBadge";
 import { ActivityList } from "../components/activity/ActivityList";
@@ -113,15 +112,12 @@ export function Dashboard() {
       <Card
         title="CM Accounts"
         actions={
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={onlyMine}
-              disabled={!address}
-              onChange={setOnlyMine}
-              label="Only accounts where I hold a role"
-            />
-            <RefreshButton />
-          </div>
+          <Switch
+            checked={onlyMine}
+            disabled={!address}
+            onChange={setOnlyMine}
+            label="Only accounts where I hold a role"
+          />
         }
       >
         {isLoading ? (

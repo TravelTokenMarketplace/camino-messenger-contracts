@@ -1,5 +1,4 @@
 import { Card } from "../components/Card";
-import { RefreshButton } from "../components/RefreshButton";
 import { ActivityList } from "../components/activity/ActivityList";
 import { useEcosystemActivity } from "../hooks/useEcosystemActivity";
 import { useActiveContracts } from "../hooks/useActiveContracts";
@@ -12,7 +11,7 @@ export function Activity() {
   if (!supported) return <Card title="Activity">Connect to a supported network.</Card>;
 
   return (
-    <Card title="Ecosystem activity" actions={<RefreshButton />}>
+    <Card title="Ecosystem activity">
       <ActivityList
         showFilters
         explorerUrl={explorerUrlFor(chainId)}

@@ -2,7 +2,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { KeyRound, Server, Settings, Ticket } from "lucide-react";
 import { Card } from "../components/Card";
 import { ManagerSummary } from "../components/ManagerSummary";
-import { RefreshButton } from "../components/RefreshButton";
 import { TxPanel } from "../components/TxPanel";
 import { useActiveContracts } from "../hooks/useActiveContracts";
 import { ManagerConfigTab } from "./tabs/ManagerConfigTab";
@@ -32,26 +31,21 @@ export function ManagerWorkspace() {
         <TxPanel />
       </div>
       <div className="flex min-w-0 flex-col gap-4">
-        <div className="flex items-end justify-between gap-3 border-b text-sm dark:border-gray-800">
-          <nav className="flex flex-wrap gap-3">
-            {TABS.map((t) => (
-              <Link
-                key={t.id}
-                to={`?tab=${t.id}`}
-                className={`-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 ${
-                  active === t.id
-                    ? "border-indigo-600 dark:border-indigo-400 font-medium text-gray-900 dark:text-gray-100"
-                    : "border-transparent text-gray-500 dark:text-gray-400"
-                }`}
-              >
-                <t.Icon className="h-4 w-4" /> {t.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="pb-1.5">
-            <RefreshButton />
-          </div>
-        </div>
+        <nav className="flex flex-wrap gap-x-4 gap-y-1 border-b text-sm dark:border-gray-800">
+          {TABS.map((t) => (
+            <Link
+              key={t.id}
+              to={`?tab=${t.id}`}
+              className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 pb-2 ${
+                active === t.id
+                  ? "border-indigo-600 dark:border-indigo-400 font-medium text-gray-900 dark:text-gray-100"
+                  : "border-transparent text-gray-500 dark:text-gray-400"
+              }`}
+            >
+              <t.Icon className="h-4 w-4" /> {t.label}
+            </Link>
+          ))}
+        </nav>
         <Active />
       </div>
     </div>

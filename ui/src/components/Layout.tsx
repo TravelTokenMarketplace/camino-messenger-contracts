@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { ConnectButton } from "./ConnectButton";
 import { NetworkSelector } from "./NetworkSelector";
+import { RefreshButton } from "./RefreshButton";
 import { ThemeToggle } from "./ThemeToggle";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -32,6 +33,7 @@ export function Layout() {
           </NavLink>
         </div>
         <div className="flex items-center gap-3">
+          <RefreshButton />
           <NetworkSelector />
           <ThemeToggle />
           <ConnectButton />

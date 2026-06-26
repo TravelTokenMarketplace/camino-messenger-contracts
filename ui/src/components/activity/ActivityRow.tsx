@@ -3,6 +3,7 @@ import { lookupEntry } from "../../lib/activity/catalog";
 import { CATEGORY_STYLE } from "../../lib/activity/style";
 import { type ActivityEvent } from "../../lib/activity/types";
 import { explorerTxUrl, formatRelativeTime } from "../../lib/format";
+import { InlineSentence } from "./InlineSentence";
 
 export function ActivityRow({ event, explorerUrl }: { event: ActivityEvent; explorerUrl?: string }) {
   const Icon = lookupEntry(event.source, event.eventName)?.icon ?? ActivityIcon;
@@ -17,7 +18,9 @@ export function ActivityRow({ event, explorerUrl }: { event: ActivityEvent; expl
       >
         <Icon className="h-4 w-4" aria-hidden />
       </span>
-      <span className="min-w-0 break-words text-sm text-gray-800 dark:text-gray-200">{event.sentence}</span>
+      <span className="min-w-0 break-words text-sm text-gray-800 dark:text-gray-200">
+        <InlineSentence sentence={event.sentence} args={event.args} />
+      </span>
       <span className="ml-auto flex shrink-0 items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
         <time title={absolute}>{when}</time>
         {explorerUrl && (
