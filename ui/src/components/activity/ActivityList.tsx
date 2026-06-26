@@ -64,9 +64,9 @@ export function ActivityList({
       </p>
     );
   } else if (isLoading && isEmpty) {
-    body = <p className="py-2 text-sm text-gray-400">Loading…</p>;
+    body = <p className="py-2 text-sm text-gray-400 dark:text-gray-500">Loading…</p>;
   } else if (isEmpty) {
-    body = <p className="py-2 text-sm text-gray-400">{emptyHint}</p>;
+    body = <p className="py-2 text-sm text-gray-400 dark:text-gray-500">{emptyHint}</p>;
   } else {
     body = (
       <>
@@ -78,6 +78,7 @@ export function ActivityList({
                 <button
                   key={cat}
                   type="button"
+                  aria-pressed={on}
                   onClick={() => toggle(cat)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
                     on
@@ -107,7 +108,7 @@ export function ActivityList({
       {body}
 
       {onLoadOlder && (
-        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-400">
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-gray-400 dark:text-gray-500">
           <span>{oldestBlockLoaded != null && `Scanned back to block ${oldestBlockLoaded.toString()}`}</span>
           <button
             type="button"

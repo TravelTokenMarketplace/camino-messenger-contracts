@@ -30,6 +30,19 @@ export function __resetBatchMemory() {
   lastWorkingBatch.clear();
 }
 
+/**
+ * Whether a getLogs failure looks like an RPC block-range / result-size cap
+ * (worth retrying with a smaller batch) rather than a transient fault — a
+ * timeout, 429, 503 — or a bad request, which should surface immediately instead
+ * of triggering a pointless halving spiral.
+ */
+export function isRangeLimitError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  // "block range too large", "max block range exceeded", "more than N results",
+  // "query exceeds limit" — but NOT "429 Too Many Requests" (transient throttle).
+  return /\b(range|results?|limit|exceed(?:s|ed)?|too\s+(?:large|wide|big))\b/i.test(msg);
+}
+
 /** Newest first: higher block, then higher logIndex. */
 export function compareEventsDesc(a: ActivityEvent, b: ActivityEvent): number {
   if (a.blockNumber !== b.blockNumber) return a.blockNumber > b.blockNumber ? -1 : 1;
@@ -74,7 +87,9 @@ export async function fetchActivityPage(
       const events = dedupeById(perSource.flat()).sort(compareEventsDesc);
       return { events, fromBlock };
     } catch (err) {
-      if (size <= ACTIVITY_MIN_BATCH_BLOCKS) throw err;
+      // Only a range/size cap is worth retrying smaller; rethrow everything else
+      // (timeouts, throttling, provider outages) so it isn't masked as "too wide".
+      if (!isRangeLimitError(err) || size <= ACTIVITY_MIN_BATCH_BLOCKS) throw err;
       const halved = size / 2n;
       size = halved < ACTIVITY_MIN_BATCH_BLOCKS ? ACTIVITY_MIN_BATCH_BLOCKS : halved;
     }

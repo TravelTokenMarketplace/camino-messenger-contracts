@@ -142,8 +142,8 @@ existing `RefreshButton`/invalidation refreshes it. No polling timers.
 
 ### Timestamps
 
-- `useBlockTimestamps(blockNumbers)` dedupes the block numbers present in loaded
-  events, fetches via `Promise.all(getBlock)`, and caches each result per
+- `useBlockTimestamps(chainId, blockNumbers)` dedupes the block numbers present in
+  loaded events, fetches each via `getBlock`, and caches the result per
   `(chainId, blockNumber)` so the Dashboard card, Activity page, and account tab
   never refetch the same block.
 - Rendered with a new `formatRelativeTime(unixSeconds)` helper in `lib/format.ts`.
@@ -158,7 +158,7 @@ existing `RefreshButton`/invalidation refreshes it. No polling timers.
   with their ecosystem catalog subsets.
 - `useAccountActivity(address)` — composes `useActivity` over the single account
   address with the full account catalog subset.
-- `useBlockTimestamps(blockNumbers)` — as above.
+- `useBlockTimestamps(chainId, blockNumbers)` — as above.
 
 ## UI surfaces
 
@@ -179,9 +179,10 @@ existing `RefreshButton`/invalidation refreshes it. No polling timers.
 - A `getLogs` batch that fails even at the `500n` floor renders an inline
   "Couldn't load activity from this RPC" with a retry action. It must **not**
   crash the Dashboard card — the card degrades to the error state in place.
-- Empty result for the loaded range → "No activity in the last 10,000 blocks —
-  Load older to look further back." (Account tab / page wording adjusted to the
-  loaded range.) This makes the rolling-window nature explicit.
+- Empty result for the loaded range → "No activity in the last 10,000 blocks."
+  (the account tab uses "No activity for this account in the last 10,000 blocks.").
+  The "Load older" control stays visible below so the user can page further back,
+  making the rolling-window nature explicit.
 
 ## Testing (Vitest, existing patterns)
 

@@ -19,7 +19,7 @@ export function formatRelativeTime(unixSeconds: number, now: number = Date.now()
   const diffSec = Math.floor(now / 1000) - unixSeconds;
   if (diffSec < 0) return "in the future";
   if (diffSec < 45) return "just now";
-  const mins = Math.floor(diffSec / 60);
+  const mins = Math.max(1, Math.floor(diffSec / 60));
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(diffSec / 3600);
   if (hours < 24) return `${hours}h ago`;

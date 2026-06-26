@@ -1,4 +1,4 @@
-import { type AbiEvent, type Log, formatEther, parseAbiItem } from "viem";
+import { type Abi, type AbiEvent, type Log, formatEther } from "viem";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -12,6 +12,7 @@ import {
   UserPlus,
   XCircle,
 } from "lucide-react";
+import { BOOKINGTOKEN_ABI, CMACCOUNT_ABI, MANAGER_ABI } from "../../contracts";
 import { shortAddress } from "../format";
 import { type ActivityEvent, type ActivitySource, type CatalogEntry } from "./types";
 
@@ -33,15 +34,33 @@ function serviceLabel(args: Record<string, unknown>): string {
   return `(${addr(args.serviceName)})`;
 }
 
+// The catalog references events by name; the ABI surface itself is the single
+// source of truth. Resolving each event from the generated ABIs (rather than
+// re-typing `parseAbiItem(...)` signatures) keeps the getLogs filter and decode
+// aligned with the contracts — if a signature changes upstream, `yarn sync`
+// regenerates the ABI and this picks it up instead of drifting silently.
+const ABI_BY_SOURCE: Record<ActivitySource, Abi> = {
+  manager: MANAGER_ABI as Abi,
+  bookingToken: BOOKINGTOKEN_ABI as Abi,
+  account: CMACCOUNT_ABI as Abi,
+};
+
+function abiEvent(source: ActivitySource, eventName: string): AbiEvent {
+  const found = ABI_BY_SOURCE[source].find(
+    (item): item is AbiEvent => item.type === "event" && item.name === eventName,
+  );
+  if (!found) throw new Error(`Activity catalog: event "${eventName}" not found in ${source} ABI`);
+  return found;
+}
+
 function entry(
   source: ActivitySource,
-  signature: string,
+  eventName: string,
   category: CatalogEntry["category"],
   icon: CatalogEntry["icon"],
   render: CatalogEntry["render"],
 ): CatalogEntry {
-  const event = parseAbiItem(signature) as AbiEvent;
-  return { source, eventName: event.name, event, category, icon, render };
+  return { source, eventName, event: abiEvent(source, eventName), category, icon, render };
 }
 
 /**
@@ -51,216 +70,132 @@ function entry(
  */
 export const CATALOG: CatalogEntry[] = [
   // ── Manager (ecosystem, contract-level) ──────────────────────────────────
-  entry(
-    "manager",
-    "event CMAccountCreated(address indexed account)",
-    "Accounts",
-    UserPlus,
-    (a) => `CM Account ${addr(a.account)} created`,
-  ),
-  entry(
-    "manager",
-    "event ServiceRegistered(string serviceName, bytes32 serviceHash)",
-    "Services",
-    Server,
-    (a) => `Service "${str(a.serviceName)}" registered`,
-  ),
-  entry(
-    "manager",
-    "event ServiceUnregistered(string serviceName, bytes32 serviceHash)",
-    "Services",
-    Server,
-    (a) => `Service "${str(a.serviceName)}" unregistered`,
-  ),
+  entry("manager", "CMAccountCreated", "Accounts", UserPlus, (a) => `CM Account ${addr(a.account)} created`),
+  entry("manager", "ServiceRegistered", "Services", Server, (a) => `Service "${str(a.serviceName)}" registered`),
+  entry("manager", "ServiceUnregistered", "Services", Server, (a) => `Service "${str(a.serviceName)}" unregistered`),
 
   // ── BookingToken (ecosystem, contract-level) ─────────────────────────────
   entry(
     "bookingToken",
-    "event TokenReserved(uint256 indexed tokenId, address indexed reservedFor, address indexed supplier, uint256 expirationTimestamp, uint256 price, address paymentToken, uint256 offchainPaymentCurrency, bool cancellable)",
+    "TokenReserved",
     "Bookings",
     Ticket,
     (a) => `Booking token ${id(a.tokenId)} reserved for ${addr(a.reservedFor)}`,
   ),
   entry(
     "bookingToken",
-    "event TokenBought(uint256 indexed tokenId, address indexed buyer)",
+    "TokenBought",
     "Bookings",
     Ticket,
     (a) => `Booking token ${id(a.tokenId)} bought by ${addr(a.buyer)}`,
   ),
   entry(
     "bookingToken",
-    "event TokenReservationExpired(uint256 indexed tokenId)",
+    "TokenReservationExpired",
     "Bookings",
     Ticket,
     (a) => `Booking token ${id(a.tokenId)} reservation expired`,
   ),
   entry(
     "bookingToken",
-    "event CancellationPending(uint256 indexed tokenId, address indexed initialProposer, address indexed currentProposer, uint256 refundAmount, bool ownerAccepted, bool supplierAccepted, uint32 timesCountered, uint32 timesRejected)",
+    "CancellationPending",
     "Cancellations",
     XCircle,
     (a) => `Cancellation proposed for booking token ${id(a.tokenId)}`,
   ),
   entry(
     "bookingToken",
-    "event CancellationFinalized(uint256 indexed tokenId)",
+    "CancellationFinalized",
     "Cancellations",
     XCircle,
     (a) => `Cancellation finalized for booking token ${id(a.tokenId)}`,
   ),
   entry(
     "bookingToken",
-    "event CancellationWithdrawn(uint256 indexed tokenId, uint16 withdrawalReason, uint16 withdrawalVersion)",
+    "CancellationWithdrawn",
     "Cancellations",
     XCircle,
     (a) => `Cancellation withdrawn for booking token ${id(a.tokenId)}`,
   ),
   entry(
     "bookingToken",
-    "event CancellationRejected(uint256 indexed tokenId, uint16 rejectionReason, uint16 rejectionVersion)",
+    "CancellationRejected",
     "Cancellations",
     XCircle,
     (a) => `Cancellation rejected for booking token ${id(a.tokenId)}`,
   ),
 
   // ── CM Account (account detail tab — everything) ─────────────────────────
+  entry("account", "MessengerBotAdded", "Bots", Bot, (a) => `Messenger bot ${addr(a.bot)} added`),
+  entry("account", "MessengerBotRemoved", "Bots", Bot, (a) => `Messenger bot ${addr(a.bot)} removed`),
+  entry("account", "ServiceAdded", "Services", Server, (a) => `Supported service ${serviceLabel(a)} added`),
+  entry("account", "ServiceRemoved", "Services", Server, (a) => `Supported service ${serviceLabel(a)} removed`),
+  entry("account", "WantedServiceAdded", "Services", Server, (a) => `Wanted service ${serviceLabel(a)} added`),
+  entry("account", "WantedServiceRemoved", "Services", Server, (a) => `Wanted service ${serviceLabel(a)} removed`),
   entry(
     "account",
-    "event MessengerBotAdded(address indexed bot)",
-    "Bots",
-    Bot,
-    (a) => `Messenger bot ${addr(a.bot)} added`,
-  ),
-  entry(
-    "account",
-    "event MessengerBotRemoved(address indexed bot)",
-    "Bots",
-    Bot,
-    (a) => `Messenger bot ${addr(a.bot)} removed`,
-  ),
-  entry(
-    "account",
-    "event ServiceAdded(string indexed serviceName)",
-    "Services",
-    Server,
-    (a) => `Supported service ${serviceLabel(a)} added`,
-  ),
-  entry(
-    "account",
-    "event ServiceRemoved(string indexed serviceName)",
-    "Services",
-    Server,
-    (a) => `Supported service ${serviceLabel(a)} removed`,
-  ),
-  entry(
-    "account",
-    "event WantedServiceAdded(string indexed serviceName)",
-    "Services",
-    Server,
-    (a) => `Wanted service ${serviceLabel(a)} added`,
-  ),
-  entry(
-    "account",
-    "event WantedServiceRemoved(string indexed serviceName)",
-    "Services",
-    Server,
-    (a) => `Wanted service ${serviceLabel(a)} removed`,
-  ),
-  entry(
-    "account",
-    "event ServiceRestrictedRateUpdated(string indexed serviceName, bool restrictedRate)",
+    "ServiceRestrictedRateUpdated",
     "Services",
     Server,
     (a) => `Service ${serviceLabel(a)} restricted rate ${a.restrictedRate ? "enabled" : "disabled"}`,
   ),
   entry(
     "account",
-    "event ServiceCapabilitiesUpdated(string indexed serviceName)",
+    "ServiceCapabilitiesUpdated",
     "Services",
     Server,
     (a) => `Service ${serviceLabel(a)} capabilities updated`,
   ),
   entry(
     "account",
-    "event ServiceCapabilityAdded(string indexed serviceName, string capability)",
+    "ServiceCapabilityAdded",
     "Services",
     Server,
     (a) => `Service ${serviceLabel(a)} capability "${str(a.capability)}" added`,
   ),
   entry(
     "account",
-    "event ServiceCapabilityRemoved(string indexed serviceName, string capability)",
+    "ServiceCapabilityRemoved",
     "Services",
     Server,
     (a) => `Service ${serviceLabel(a)} capability "${str(a.capability)}" removed`,
   ),
+  entry("account", "PaymentTokenAdded", "Tokens", Coins, (a) => `Payment token ${addr(a.token)} added`),
+  entry("account", "PaymentTokenRemoved", "Tokens", Coins, (a) => `Payment token ${addr(a.token)} removed`),
   entry(
     "account",
-    "event PaymentTokenAdded(address indexed token)",
-    "Tokens",
-    Coins,
-    (a) => `Payment token ${addr(a.token)} added`,
-  ),
-  entry(
-    "account",
-    "event PaymentTokenRemoved(address indexed token)",
-    "Tokens",
-    Coins,
-    (a) => `Payment token ${addr(a.token)} removed`,
-  ),
-  entry(
-    "account",
-    "event OffChainPaymentSupportUpdated(bool supportsOffChainPayment)",
+    "OffChainPaymentSupportUpdated",
     "Config",
     ShieldCheck,
     (a) => `Off-chain payment support ${a.supportsOffChainPayment ? "enabled" : "disabled"}`,
   ),
+  entry("account", "PublicKeyAdded", "Pubkeys", KeyRound, (a) => `Public key ${addr(a.pubKeyAddress)} added`),
+  entry("account", "PublicKeyRemoved", "Pubkeys", KeyRound, (a) => `Public key ${addr(a.pubKeyAddress)} removed`),
+  entry("account", "Deposit", "Funds", ArrowDownToLine, (a) => `Deposit of ${ether(a.amount)} from ${addr(a.sender)}`),
   entry(
     "account",
-    "event PublicKeyAdded(address indexed pubKeyAddress)",
-    "Pubkeys",
-    KeyRound,
-    (a) => `Public key ${addr(a.pubKeyAddress)} added`,
-  ),
-  entry(
-    "account",
-    "event PublicKeyRemoved(address indexed pubKeyAddress)",
-    "Pubkeys",
-    KeyRound,
-    (a) => `Public key ${addr(a.pubKeyAddress)} removed`,
-  ),
-  entry(
-    "account",
-    "event Deposit(address indexed sender, uint256 amount)",
-    "Funds",
-    ArrowDownToLine,
-    (a) => `Deposit of ${ether(a.amount)} from ${addr(a.sender)}`,
-  ),
-  entry(
-    "account",
-    "event Withdraw(address indexed receiver, uint256 amount)",
+    "Withdraw",
     "Funds",
     ArrowUpFromLine,
     (a) => `Withdrawal of ${ether(a.amount)} to ${addr(a.receiver)}`,
   ),
   entry(
     "account",
-    "event GasMoneyWithdrawal(address indexed withdrawer, uint256 amount)",
+    "GasMoneyWithdrawal",
     "Funds",
     Fuel,
     (a) => `Gas money withdrawal of ${ether(a.amount)} by ${addr(a.withdrawer)}`,
   ),
   entry(
     "account",
-    "event GasMoneyWithdrawalUpdated(uint256 limit, uint256 period)",
+    "GasMoneyWithdrawalUpdated",
     "Config",
     Fuel,
     (a) => `Gas money limit updated to ${ether(a.limit)} per ${str(a.period)}s`,
   ),
   entry(
     "account",
-    "event CMAccountUpgraded(address indexed oldImplementation, address indexed newImplementation)",
+    "CMAccountUpgraded",
     "Config",
     ShieldCheck,
     (a) => `Account upgraded to implementation ${addr(a.newImplementation)}`,

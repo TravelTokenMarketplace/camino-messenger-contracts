@@ -80,9 +80,17 @@ describe("fetchActivityPage", () => {
     expect(page2.fromBlock).toBe(90_000n - 2500n + 1n);
   });
 
-  it("propagates the error when even the floor range fails", async () => {
-    const getLogs = vi.fn().mockRejectedValue(new Error("always fails"));
-    await expect(fetchActivityPage(client(getLogs), sources, CHAIN, 100_000n)).rejects.toThrow("always fails");
+  it("propagates a range error once it fails even at the floor range", async () => {
+    const getLogs = vi.fn().mockRejectedValue(new Error("block range too large"));
+    await expect(fetchActivityPage(client(getLogs), sources, CHAIN, 100_000n)).rejects.toThrow("range");
+    // 10000 -> 5000 -> 2500 -> 1250 -> 625 -> 500 floor: six attempts, then give up.
+    expect(getLogs).toHaveBeenCalledTimes(6);
+  });
+
+  it("does not halve on a non-range error — it surfaces immediately", async () => {
+    const getLogs = vi.fn().mockRejectedValue(new Error("429 Too Many Requests"));
+    await expect(fetchActivityPage(client(getLogs), sources, CHAIN, 100_000n)).rejects.toThrow("429");
+    expect(getLogs).toHaveBeenCalledTimes(1);
   });
 });
 

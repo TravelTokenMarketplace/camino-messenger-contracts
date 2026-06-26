@@ -10,12 +10,14 @@ interface ActiveChainCtx {
 const Ctx = createContext<ActiveChainCtx | undefined>(undefined);
 
 // Prefer Base Sepolia (the cheap testnet) as the default when no wallet is
-// connected; fall back to the first enabled chain if it isn't available.
+// connected; fall back to the first enabled chain if it isn't available. Stay
+// strictly within ENABLED_CHAINS — never default to a chain with no contracts.
 const PREFERRED_DEFAULT_CHAIN_ID = 84532; // Base Sepolia
-const DEFAULT_CHAIN_ID =
-  ENABLED_CHAINS.find((c) => c.id === PREFERRED_DEFAULT_CHAIN_ID)?.id ??
-  ENABLED_CHAINS[0]?.id ??
-  PREFERRED_DEFAULT_CHAIN_ID;
+const DEFAULT_CHAIN_ID = ENABLED_CHAINS.find((c) => c.id === PREFERRED_DEFAULT_CHAIN_ID)?.id ?? ENABLED_CHAINS[0]?.id;
+
+if (DEFAULT_CHAIN_ID === undefined) {
+  throw new Error("No enabled chains are configured (see config/chains.ts).");
+}
 
 /**
  * Tracks the chain the app reads from. When no wallet is connected the user can

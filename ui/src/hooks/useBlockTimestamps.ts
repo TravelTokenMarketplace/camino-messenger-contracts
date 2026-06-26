@@ -28,8 +28,11 @@ export function useBlockTimestamps(chainId: number, blockNumbers: bigint[]): Map
     queries: unique.map((bn) => ({
       queryKey: ["block-timestamp", chainId, bn.toString()],
       enabled: Boolean(client),
+      // Timestamps are immutable, so never refetch; but each block is its own
+      // query key, so cap retention to keep the cache from growing unbounded as
+      // the user pages further back.
       staleTime: Infinity,
-      gcTime: Infinity,
+      gcTime: 5 * 60 * 1000,
       queryFn: async () => {
         const block = await client!.getBlock({ blockNumber: bn });
         return Number(block.timestamp);
