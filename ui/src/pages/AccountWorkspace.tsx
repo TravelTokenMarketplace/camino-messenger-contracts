@@ -39,12 +39,12 @@ export function AccountWorkspace() {
       </div>
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex items-end justify-between gap-3 border-b text-sm dark:border-gray-800">
-          <nav className="flex flex-wrap gap-3">
+          <nav className="flex min-w-0 flex-1 gap-3 overflow-x-auto">
             {TABS.map((t) => (
               <Link
                 key={t.id}
                 to={`?tab=${t.id}`}
-                className={`-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 ${
+                className={`-mb-px inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 pb-2 ${
                   active === t.id
                     ? "border-indigo-600 dark:border-indigo-400 font-medium text-gray-900 dark:text-gray-100"
                     : "border-transparent text-gray-500 dark:text-gray-400"
@@ -54,7 +54,7 @@ export function AccountWorkspace() {
               </Link>
             ))}
           </nav>
-          <div className="pb-1.5">
+          <div className="shrink-0 pb-1.5">
             <RefreshButton />
           </div>
         </div>
