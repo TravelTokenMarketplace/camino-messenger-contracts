@@ -6,11 +6,21 @@ import { Identicon } from "./Identicon";
 interface AddressDisplayProps {
   address: string;
   truncate?: boolean;
+  /** Leading/trailing chars kept when `truncate` is set (default 6/4). */
+  lead?: number;
+  tail?: number;
   className?: string;
   showIcon?: boolean;
 }
 
-export function AddressDisplay({ address, truncate = false, className = "", showIcon = true }: AddressDisplayProps) {
+export function AddressDisplay({
+  address,
+  truncate = false,
+  lead = 6,
+  tail = 4,
+  className = "",
+  showIcon = true,
+}: AddressDisplayProps) {
   const [copied, setCopied] = useState(false);
 
   async function copy(e: React.MouseEvent) {
@@ -29,13 +39,15 @@ export function AddressDisplay({ address, truncate = false, className = "", show
   return (
     <span className={`inline-flex items-center gap-1.5 font-mono ${className}`}>
       {showIcon && <Identicon address={address} />}
-      <span className="break-all">{truncate ? shortAddress(address) : address}</span>
+      <span className={truncate ? "whitespace-nowrap" : "break-all"}>
+        {truncate ? shortAddress(address, lead, tail) : address}
+      </span>
       <button
         type="button"
         onClick={copy}
         title="Copy address"
         aria-label="Copy address"
-        className="shrink-0 text-gray-400 transition-colors hover:text-gray-700 dark:hover:text-gray-200"
+        className="shrink-0 text-tarmac-400 transition-colors hover:text-tarmac-700 dark:hover:text-tarmac-200"
       >
         {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
       </button>

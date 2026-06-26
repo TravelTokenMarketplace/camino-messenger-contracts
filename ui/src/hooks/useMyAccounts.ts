@@ -49,6 +49,35 @@ export function useManagerAccounts() {
 }
 
 /**
+ * Footprint counts for a single CM Account, batched in one multicall: how many
+ * services it supports, payment tokens it accepts, and public keys it has
+ * registered. Gives each dashboard row substance at a glance. Counts only — the
+ * array getters decode reliably for length even where tuple getters don't (see
+ * CLAUDE.md), so we read the hash/address arrays and take `.length`.
+ */
+export function useAccountStats(account: Address) {
+  const { cmAccountAbi } = useActiveContracts();
+  const { activeChainId } = useActiveChain();
+  const abi = cmAccountAbi as Abi;
+
+  const { data, isLoading } = useReadContracts({
+    contracts: [
+      { chainId: activeChainId, address: account, abi, functionName: "getAllServiceHashes" },
+      { chainId: activeChainId, address: account, abi, functionName: "getSupportedTokens" },
+      { chainId: activeChainId, address: account, abi, functionName: "getPublicKeysAddresses" },
+    ],
+    allowFailure: true,
+  });
+
+  const len = (i: number) => {
+    const r = data?.[i];
+    return r?.status === "success" && Array.isArray(r.result) ? (r.result as unknown[]).length : undefined;
+  };
+
+  return { services: len(0), tokens: len(1), pubkeys: len(2), isLoading };
+}
+
+/**
  * For a single CM Account, returns which account-level roles the given address
  * holds. Uses a multicall batch of hasRole() reads (plain eth_call).
  */

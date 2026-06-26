@@ -1,6 +1,6 @@
-export function shortAddress(a: string): string {
-  if (a.length < 10) return a;
-  return `${a.slice(0, 6)}…${a.slice(-4)}`;
+export function shortAddress(a: string, lead = 6, tail = 4): string {
+  if (a.length <= lead + tail + 1) return a;
+  return `${a.slice(0, lead)}…${a.slice(-tail)}`;
 }
 
 export function explorerTxUrl(base: string, hash: string): string {
