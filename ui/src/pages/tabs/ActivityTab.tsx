@@ -18,7 +18,7 @@ export function ActivityTab({ account }: { account: Address }) {
       isFetchingNextPage={activity.isFetchingNextPage}
       onLoadOlder={activity.fetchNextPage}
       oldestBlockLoaded={activity.oldestBlockLoaded}
-      emptyHint="No activity for this account in the last 10,000 blocks — Load older to look further back."
+      emptyHint="No activity for this account in the last 10,000 blocks."
     />
   );
 }
