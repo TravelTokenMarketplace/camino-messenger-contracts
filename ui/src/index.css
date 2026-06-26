@@ -4,11 +4,61 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    @apply bg-paper text-tarmac-900 antialiased dark:bg-tarmac-950 dark:text-tarmac-100;
   }
+
+  /* Display face carries the signage personality — titles and the brand mark. */
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+
   input,
   select,
   textarea {
-    @apply dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100;
+    @apply dark:border-tarmac-700 dark:bg-tarmac-800 dark:text-tarmac-100;
+  }
+
+  /* Keyboard focus reads as a board indicator, not a generic blue ring. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-camino-500 ring-offset-2 ring-offset-paper dark:ring-offset-tarmac-950;
+  }
+}
+
+@layer components {
+  /* Section eyebrow: the small uppercase label that titles a board panel. */
+  .eyebrow {
+    @apply font-mono text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-tarmac-400;
+  }
+
+  /* A board panel: the flat, hairline-ruled surface that frames data. */
+  .board {
+    @apply border border-tarmac-200 bg-paper-raised shadow-board dark:border-tarmac-800 dark:bg-tarmac-900;
+  }
+}
+
+@layer utilities {
+  /* Hairline grid texture for the manifest hero — faint tarmac rules. */
+  .board-grid {
+    background-image:
+      linear-gradient(to right, rgba(70, 90, 110, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(70, 90, 110, 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .dark .board-grid {
+    background-image:
+      linear-gradient(to right, rgba(159, 176, 190, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(159, 176, 190, 0.05) 1px, transparent 1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

@@ -37,6 +37,16 @@ If service reads break with decode errors, the usual cause is a stale `../abi/` 
 - **Inputs** use the shared `Input` component / `inputClass`; selects and menus use HeadlessUI (`NetworkSelector`, `ConnectButton`, `Checkbox`, `Autocomplete`).
 - **Dark mode** is Tailwind `class` strategy; every color needs a `dark:` variant.
 
+## Design system ("transit-board terminal")
+
+Identity is a departures board crossed with a financial terminal — dense, legible, operator-trustworthy. All tokens live in `tailwind.config.js`; **use the semantic tokens, never raw `gray-*`/`indigo-*`**.
+
+- **Color:** `tarmac` (blue-black ink / dark surfaces, full 50–950 scale), `paper` + `paper-raised` (cool light bg, deliberately not cream), `camino` (brand teal — means **active / confirmed / "go"**), `departure` (amber — means **pending / in-transit**), `signal` (danger; only `DEFAULT`/`fg`/`dark`, no numeric scale — keep error reds as plain `red-*`). The teal↔amber pairing is semantic, not decorative.
+- **Type:** `font-display` (Space Grotesk — titles, brand, big numerals; used sparingly), `font-sans` (IBM Plex Sans — body/UI, the default), `font-mono`/`font-num` (IBM Plex Mono — all on-chain data: addresses, hashes, amounts). Fonts are self-hosted via `@fontsource/*`, imported in `main.tsx`.
+- **Component utilities** (in `index.css`): `.board` (hairline-ruled panel surface — `Card`/`TxPanel` use it), `.eyebrow` (small uppercase mono section label — Card titles render as this), `.board-grid` (faint grid texture for the Dashboard manifest hero).
+- **Signature:** `TxPanel` renders a split-flap status chip — pending tx flips on amber (`animate-flap`) and resolves to teal `CONFIRMED`. Keep this the one loud element; everything else stays quiet. Respect `prefers-reduced-motion` (handled globally in `index.css`).
+- The activity category palette in `lib/activity/style.ts` is an intentionally varied categorical system (each event type a distinct hue) — don't flatten it to brand colors.
+
 ## Gotchas
 
 - **Don't use `eth_getLogs` over large ranges** (free-tier RPCs reject it). Enumerate accounts via `CMACCOUNT_ROLE` members and lists via role members / array getters, not events.

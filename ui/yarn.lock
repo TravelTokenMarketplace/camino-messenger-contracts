@@ -589,10 +589,25 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.11.tgz#a269e055e40e2f45873bae9d1a2fdccbd314ea3f"
   integrity sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==
 
+"@fontsource/ibm-plex-mono@^5.2.7":
+  version "5.2.7"
+  resolved "https://registry.yarnpkg.com/@fontsource/ibm-plex-mono/-/ibm-plex-mono-5.2.7.tgz#ef5b6f052115fdf6666208a5f8a0f13fcd7ba1fd"
+  integrity sha512-MKAb8qV+CaiMQn2B0dIi1OV3565NYzp3WN5b4oT6LTkk+F0jR6j0ZN+5BKJiIhffDC3rtBULsYZE65+0018z9w==
+
+"@fontsource/ibm-plex-sans@^5.2.8":
+  version "5.2.8"
+  resolved "https://registry.yarnpkg.com/@fontsource/ibm-plex-sans/-/ibm-plex-sans-5.2.8.tgz#308c9e15b2c903989e1ca8adddffb0f6c09dc056"
+  integrity sha512-eztSXjDhPhcpxNIiGTgMebdLP9qS4rWkysuE1V7c+DjOR0qiezaiDaTwQE7bTnG5HxAY/8M43XKDvs3cYq6ZYQ==
+
 "@fontsource/jetbrains-mono@5.2.8":
   version "5.2.8"
   resolved "https://registry.yarnpkg.com/@fontsource/jetbrains-mono/-/jetbrains-mono-5.2.8.tgz#56a1bbb8a36a47fe480d3e90b30b520c89853aa5"
   integrity sha512-6w8/SG4kqvIMu7xd7wt6x3idn1Qux3p9N62s6G3rfldOUYHpWcc2FKrqf+Vo44jRvqWj2oAtTHrZXEP23oSKwQ==
+
+"@fontsource/space-grotesk@^5.2.10":
+  version "5.2.10"
+  resolved "https://registry.yarnpkg.com/@fontsource/space-grotesk/-/space-grotesk-5.2.10.tgz#36eef6a105be125d1025c206eb48f1a3d37ad512"
+  integrity sha512-XNXEbT74OIITPqw2H6HXwPDp85fy43uxfBwFR5PU+9sLnjuLj12KlhVM9nZVN6q6dlKjkuN8JisW/OBxwxgUew==
 
 "@gemini-wallet/core@0.3.2":
   version "0.3.2"
