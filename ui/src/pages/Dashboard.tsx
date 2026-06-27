@@ -36,7 +36,7 @@ function Stat({ value, icon: Icon, label, to }: { value?: number; icon: typeof L
   // `hidden sm:flex` sits on the grid cell itself so the column drops cleanly on
   // mobile instead of leaving an empty placeholder behind.
   return (
-    <Link to={to} {...stopRow} aria-label={label} className="hidden justify-end rounded-sm sm:flex">
+    <Link to={to} {...stopRow} aria-label={`${label}: ${value ?? 0}`} className="hidden justify-end rounded-sm sm:flex">
       <Tooltip content={label}>
         <span
           className={`inline-flex items-center gap-1 font-mono text-xs tabular-nums transition-colors hover:text-camino-600 dark:hover:text-camino-400 ${
@@ -93,9 +93,11 @@ function AccountRow({
   onlyMine: boolean;
 }) {
   const navigate = useNavigate();
-  const roles = useAccountRolesFor(account, connected);
+  const { roles, isLoading: rolesLoading } = useAccountRolesFor(account, connected);
   const stats = useAccountStats(account);
-  if (onlyMine && roles.length === 0) return null;
+  // Only hide once the role read has settled — `roles` is `[]` while pending,
+  // which would otherwise drop every row on the first pass when the filter is on.
+  if (onlyMine && !rolesLoading && roles.length === 0) return null;
 
   return (
     <li
@@ -137,10 +139,10 @@ function AccountListHeader() {
 function ManifestCell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1 px-4 py-3">
-      <span className="eyebrow">{label}</span>
-      <span className="font-display text-2xl font-semibold tabular-nums text-tarmac-900 dark:text-tarmac-50">
+      <dt className="eyebrow">{label}</dt>
+      <dd className="font-display text-2xl font-semibold tabular-nums text-tarmac-900 dark:text-tarmac-50">
         {children}
-      </span>
+      </dd>
     </div>
   );
 }
@@ -201,12 +203,12 @@ function Manifest({
           <span className="text-base">{paused === undefined ? "…" : active ? "Active" : "Paused"}</span>
         </ManifestCell>
         <div className="flex flex-col gap-1 px-4 py-3">
-          <span className="eyebrow">Manager</span>
-          <span className="text-sm">{manager ? <AddressDisplay address={manager} /> : "—"}</span>
+          <dt className="eyebrow">Manager</dt>
+          <dd className="text-sm">{manager ? <AddressDisplay address={manager} /> : "—"}</dd>
         </div>
         <div className="flex flex-col gap-1 px-4 py-3">
-          <span className="eyebrow">Implementation</span>
-          <span className="text-sm">{impl ? <AddressDisplay address={impl} /> : "—"}</span>
+          <dt className="eyebrow">Implementation</dt>
+          <dd className="text-sm">{impl ? <AddressDisplay address={impl} /> : "—"}</dd>
         </div>
       </dl>
     </section>

@@ -17,7 +17,7 @@ export function AccountSummary({ account }: { account: Address }) {
   const { data: bal } = useBalance({ address: account, chainId });
   const { tokens } = useErc20Balances(account);
   const nativeZero = bal ? bal.value === 0n : false;
-  const roles = useAccountRolesFor(account, address);
+  const { roles } = useAccountRolesFor(account, address);
   const chainName = APP_CHAINS.find((c) => c.id === chainId)?.name;
 
   return (
@@ -65,7 +65,9 @@ export function AccountSummary({ account }: { account: Address }) {
                     <TokenDisplay address={t.address} symbol={t.symbol} name={t.name} className="min-w-0 text-sm" />
                     <Tooltip content={`${t.formatted} ${t.symbol}`}>
                       <span
-                        className={`font-num tabular-nums whitespace-nowrap ${t.isZero ? "text-amber-700 dark:text-amber-300" : ""}`}
+                        className={`font-num tabular-nums whitespace-nowrap ${
+                          t.isZero ? "text-amber-700 dark:text-amber-300" : ""
+                        }`}
                       >
                         {formatAmount(t.formatted).display} {t.symbol}
                       </span>
@@ -89,10 +91,10 @@ export function AccountSummary({ account }: { account: Address }) {
               roles.length ? (
                 roles.map((r) => <RoleBadge key={r} role={r} />)
               ) : (
-                <span className="text-tarmac-400">None</span>
+                <span className="text-tarmac-400 dark:text-tarmac-500">None</span>
               )
             ) : (
-              <span className="text-tarmac-400">Connect wallet</span>
+              <span className="text-tarmac-400 dark:text-tarmac-500">Connect wallet</span>
             )}
           </dd>
         </div>

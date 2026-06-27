@@ -79,14 +79,17 @@ export function useAccountStats(account: Address) {
 
 /**
  * For a single CM Account, returns which account-level roles the given address
- * holds. Uses a multicall batch of hasRole() reads (plain eth_call).
+ * holds. Uses a multicall batch of hasRole() reads (plain eth_call). Returns
+ * `isLoading` so callers can distinguish "no roles" from "not resolved yet" —
+ * filtering on `roles.length === 0` before the read settles would wrongly drop
+ * every row.
  */
 export function useAccountRolesFor(account: Address, address: Address | undefined) {
   const { cmAccountAbi } = useActiveContracts();
   const { activeChainId } = useActiveChain();
   const abi = cmAccountAbi as Abi;
 
-  const { data } = useReadContracts({
+  const { data, isLoading } = useReadContracts({
     contracts: ACCOUNT_ROLES.map((r) => ({
       chainId: activeChainId,
       address: account,
@@ -99,5 +102,5 @@ export function useAccountRolesFor(account: Address, address: Address | undefine
   });
 
   const roles = ACCOUNT_ROLES.filter((_, i) => data?.[i]?.result === true);
-  return roles;
+  return { roles, isLoading };
 }

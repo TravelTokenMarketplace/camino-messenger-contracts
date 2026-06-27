@@ -14,7 +14,7 @@ vi.mock("wagmi", () => ({
 vi.mock("../hooks/useActiveContracts", () => ({
   useActiveContracts: () => ({ chainId: 84532 }),
 }));
-vi.mock("../hooks/useMyAccounts", () => ({ useAccountRolesFor: () => [] }));
+vi.mock("../hooks/useMyAccounts", () => ({ useAccountRolesFor: () => ({ roles: [], isLoading: false }) }));
 vi.mock("../hooks/useErc20Balances", () => ({ useErc20Balances: () => ({ tokens: mockTokens, isLoading: false }) }));
 
 const account = "0x1111111111111111111111111111111111111111" as const;

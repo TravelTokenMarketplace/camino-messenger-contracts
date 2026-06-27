@@ -76,7 +76,7 @@ export function CreateAccount() {
           />
         </label>
         <label className="text-sm">
-          Initial funding <span className="text-tarmac-400">(optional)</span>
+          Initial funding <span className="text-tarmac-400 dark:text-tarmac-500">(optional)</span>
           <Input
             className="mt-1 w-full"
             inputMode="decimal"

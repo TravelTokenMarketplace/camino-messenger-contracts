@@ -27,7 +27,7 @@ export function PubkeysTab({ account }: { account: Address }) {
         <p>Loading…</p>
       ) : (
         <ul className="mb-4 divide-y">
-          {items.length === 0 && <li className="py-2 text-sm text-tarmac-400">None</li>}
+          {items.length === 0 && <li className="py-2 text-sm text-tarmac-400 dark:text-tarmac-500">None</li>}
           {items.map((k) => (
             <li key={k} className="group flex items-center justify-between gap-3 py-2">
               <AddressDisplay address={k} className="text-sm" />
