@@ -1,9 +1,25 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
 import { type AbiEvent, type Address, type PublicClient } from "viem";
-import { ACTIVITY_BATCHES_PER_CLICK, ACTIVITY_MIN_BATCH_BLOCKS, batchBlocksFor } from "../config/activity";
+import {
+  ACTIVITY_BATCHES_PER_CLICK,
+  ACTIVITY_CACHE_VERSION,
+  ACTIVITY_CATCHUP_MAX_BATCHES,
+  ACTIVITY_CONFIRMATIONS,
+  ACTIVITY_MIN_BATCH_BLOCKS,
+  batchBlocksFor,
+} from "../config/activity";
 import { toActivityEvent } from "../lib/activity/catalog";
+import {
+  eventsInRange,
+  isRangeCovered,
+  mergeSegment,
+  readCache,
+  writeCache,
+  type CacheEntry,
+  type Segment,
+} from "../lib/activity/cache";
 import { compareEventsDesc, dedupeById } from "../lib/activity/sort";
 import { type ActivityEvent, type ActivitySource } from "../lib/activity/types";
 
@@ -15,7 +31,7 @@ export interface ActivitySourceInput {
   events: AbiEvent[];
 }
 
-interface ActivityPage {
+export interface ActivityPage {
   events: ActivityEvent[];
   /** Lowest block actually scanned for this page. */
   fromBlock: bigint;
@@ -82,6 +98,49 @@ export async function fetchActivityPage(
   }
 }
 
+/** The adaptive batch size currently in effect for a chain (remembered, else configured). */
+export function currentBatchSize(chainId: number): bigint {
+  return lastWorkingBatch.get(chainId) ?? batchBlocksFor(chainId);
+}
+
+export interface CachedFetchDeps {
+  readSegments: () => Segment[];
+  persist: (seg: Segment) => void;
+}
+
+/**
+ * Cache-aware page fetch. If the batch window is fully confirmed and already
+ * covered by the persisted cache, serve it without an RPC call. Otherwise scan
+ * via fetchActivityPage and persist the confirmed sub-range (≤ confirmedTip) and
+ * its confirmed events. The unconfirmed tail is never persisted.
+ */
+export async function fetchActivityPageCached(
+  client: Pick<PublicClient, "getLogs">,
+  sources: ActivitySourceInput[],
+  chainId: number,
+  toBlock: bigint,
+  confirmedTip: bigint,
+  deps: CachedFetchDeps,
+): Promise<ActivityPage> {
+  const size = currentBatchSize(chainId);
+  const windowFrom = toBlock > size - 1n ? toBlock - size + 1n : 0n;
+
+  if (toBlock <= confirmedTip && isRangeCovered(deps.readSegments(), windowFrom, toBlock)) {
+    const events = eventsInRange(deps.readSegments(), windowFrom, toBlock).sort(compareEventsDesc);
+    return { events, fromBlock: windowFrom };
+  }
+
+  const page = await fetchActivityPage(client, sources, chainId, toBlock);
+
+  // Persist only the confirmed slice [page.fromBlock, min(toBlock, confirmedTip)].
+  const persistHigh = toBlock < confirmedTip ? toBlock : confirmedTip;
+  if (persistHigh >= page.fromBlock) {
+    const confirmedEvents = page.events.filter((e) => e.blockNumber <= confirmedTip);
+    deps.persist({ low: page.fromBlock, high: persistHigh, events: confirmedEvents });
+  }
+  return page;
+}
+
 /**
  * Pull up to `maxBatches` pages, stopping early once there is no further
  * history. Extracted from the hook so the multi-batch loop is unit-testable.
@@ -124,22 +183,37 @@ export function useActivity({
   const client = usePublicClient({ chainId });
   const sourcesKey = useMemo(() => sources.map((s) => `${s.source}:${s.address}`).join(","), [sources]);
 
+  // Synchronous hydrate from persisted cache so deep history renders instantly.
+  // Re-reads when the (chainId, sources) key changes.
+  const hydrated = useMemo<ActivityEvent[]>(() => {
+    const entry = readCache(chainId, sourcesKey);
+    return entry ? dedupeById(entry.segments.flatMap((s) => s.events)).sort(compareEventsDesc) : [];
+  }, [chainId, sourcesKey]);
+
   const query = useInfiniteQuery({
     queryKey: ["activity", chainId, sourcesKey],
     enabled: Boolean(client) && sources.length > 0,
     initialPageParam: undefined as bigint | undefined,
     queryFn: async ({ pageParam }) => {
       const c = client!;
-      const toBlock = pageParam ?? (await c.getBlockNumber());
-      return fetchActivityPage(c, sources, chainId, toBlock);
+      const tip = await c.getBlockNumber();
+      const toBlock = pageParam ?? tip;
+      const confirmedTip = tip > ACTIVITY_CONFIRMATIONS ? tip - ACTIVITY_CONFIRMATIONS : 0n;
+      return fetchActivityPageCached(c, sources, chainId, toBlock, confirmedTip, {
+        readSegments: () => readCache(chainId, sourcesKey)?.segments ?? [],
+        persist: (seg) => {
+          const entry: CacheEntry = readCache(chainId, sourcesKey) ?? { version: ACTIVITY_CACHE_VERSION, segments: [] };
+          writeCache(chainId, sourcesKey, { ...entry, segments: mergeSegment(entry.segments, seg) });
+        },
+      });
     },
     getNextPageParam: (lastPage) => (lastPage.fromBlock > 0n ? lastPage.fromBlock - 1n : undefined),
   });
 
   const events = useMemo(() => {
-    const all = (query.data?.pages ?? []).flatMap((p) => p.events);
-    return dedupeById(all).sort(compareEventsDesc);
-  }, [query.data]);
+    const fromQuery = (query.data?.pages ?? []).flatMap((p) => p.events);
+    return dedupeById([...fromQuery, ...hydrated]).sort(compareEventsDesc);
+  }, [query.data, hydrated]);
 
   const pages = query.data?.pages ?? [];
   const oldestBlockLoaded = pages.length ? pages[pages.length - 1].fromBlock : undefined;
@@ -156,6 +230,17 @@ export function useActivity({
       setIsLoadingOlder(false);
     }
   }, [fetchNextPage]);
+
+  // Bounded auto catch-up on return: bridge cached-high -> tip without a click.
+  const caughtUpKey = useRef<string | null>(null);
+  useEffect(() => {
+    const key = `${chainId}:${sourcesKey}`;
+    if (hydrated.length === 0) return; // first-ever visit: behave as before (page 0 only)
+    if (caughtUpKey.current === key) return; // once per key
+    if (!query.isSuccess || query.isFetchingNextPage) return; // wait for page 0
+    caughtUpKey.current = key;
+    void loadOlderBatches(query.fetchNextPage, ACTIVITY_CATCHUP_MAX_BATCHES);
+  }, [hydrated, query.isSuccess, query.isFetchingNextPage, query.fetchNextPage, chainId, sourcesKey]);
 
   return {
     events,

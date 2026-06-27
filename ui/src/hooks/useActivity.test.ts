@@ -2,10 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   __resetBatchMemory,
   compareEventsDesc,
+  currentBatchSize,
   fetchActivityPage,
+  fetchActivityPageCached,
   loadOlderBatches,
   type ActivitySourceInput,
 } from "./useActivity";
+import { type Segment } from "../lib/activity/cache";
 import { BOOKING_TOKEN_EVENTS } from "../lib/activity/catalog";
 import { type ActivityEvent } from "../lib/activity/types";
 
@@ -91,6 +94,64 @@ describe("fetchActivityPage", () => {
     const getLogs = vi.fn().mockRejectedValue(new Error("429 Too Many Requests"));
     await expect(fetchActivityPage(client(getLogs), sources, CHAIN, 100_000n)).rejects.toThrow("429");
     expect(getLogs).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("fetchActivityPageCached", () => {
+  // In-memory cache deps so these stay pure (no localStorage).
+  function memCache(initial: Segment[] = []) {
+    let segments = initial;
+    return {
+      deps: { readSegments: () => segments, persist: (seg: Segment) => (segments = [...segments, seg]) },
+      get: () => segments,
+    };
+  }
+
+  it("serves a confirmed, fully-covered batch from cache without calling getLogs", async () => {
+    const size = currentBatchSize(CHAIN); // 10000 (no prior failures)
+    const from = 100_000n - size + 1n;
+    // Minimal ActivityEvent — only id/blockNumber/logIndex matter to this path.
+    const cached = { id: "0xcafe#0", blockNumber: 100_000n, logIndex: 0 } as ActivityEvent;
+    const { deps } = memCache([{ low: from, high: 100_000n, events: [cached] }]);
+    const getLogs = vi.fn();
+
+    const page = await fetchActivityPageCached(client(getLogs), sources, CHAIN, 100_000n, 200_000n, deps);
+
+    expect(getLogs).not.toHaveBeenCalled();
+    expect(page.fromBlock).toBe(from);
+    expect(page.events.map((e) => e.blockNumber)).toEqual([100_000n]);
+  });
+
+  it("scans and persists the confirmed range when not covered", async () => {
+    const getLogs = vi.fn().mockResolvedValue([log(1n, 95_000n, 0)]);
+    const mem = memCache();
+
+    await fetchActivityPageCached(client(getLogs), sources, CHAIN, 100_000n, 200_000n, mem.deps);
+
+    expect(getLogs).toHaveBeenCalledTimes(1);
+    expect(mem.get()).toHaveLength(1);
+    expect(mem.get()[0].high).toBe(100_000n); // toBlock <= confirmedTip -> full range persisted
+  });
+
+  it("does not persist the unconfirmed tail and filters unconfirmed events", async () => {
+    // toBlock 100000 is above confirmedTip 99000: persist only [fromBlock, 99000].
+    const getLogs = vi.fn().mockResolvedValue([log(1n, 99_500n, 0), log(2n, 98_000n, 0)]);
+    const mem = memCache();
+
+    await fetchActivityPageCached(client(getLogs), sources, CHAIN, 100_000n, 99_000n, mem.deps);
+
+    expect(mem.get()).toHaveLength(1);
+    expect(mem.get()[0].high).toBe(99_000n);
+    expect(mem.get()[0].events.map((e) => e.blockNumber)).toEqual([98_000n]); // 99_500 (unconfirmed) excluded
+  });
+
+  it("persists nothing when the whole batch is unconfirmed", async () => {
+    const getLogs = vi.fn().mockResolvedValue([log(1n, 100_000n, 0)]);
+    const mem = memCache();
+
+    await fetchActivityPageCached(client(getLogs), sources, CHAIN, 100_000n, 50_000n, mem.deps);
+
+    expect(mem.get()).toHaveLength(0); // fromBlock (90001) > confirmedTip (50000)
   });
 });
 
