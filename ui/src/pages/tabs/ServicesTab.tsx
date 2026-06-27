@@ -52,7 +52,9 @@ function ServiceLabel({ parsed }: { parsed: ParsedService }) {
           {parsed.version}
         </span>
       )}
-      <span className="break-all font-mono text-sm font-medium text-tarmac-900 dark:text-tarmac-100">{parsed.name}</span>
+      <span className="break-all font-mono text-sm font-medium text-tarmac-900 dark:text-tarmac-100">
+        {parsed.name}
+      </span>
     </span>
   );
 }
@@ -167,7 +169,9 @@ function SupportedServiceRow({
       {open && (
         <div className="space-y-3 border-t border-tarmac-100 px-3 py-3 dark:border-tarmac-700/60">
           <div className="flex items-start gap-2">
-            <code className="min-w-0 break-all font-mono text-xs text-tarmac-500 dark:text-tarmac-400">{service.name}</code>
+            <code className="min-w-0 break-all font-mono text-xs text-tarmac-500 dark:text-tarmac-400">
+              {service.name}
+            </code>
             <CopyButton value={service.name} label="Copy full service name" />
           </div>
           {hasRole ? (

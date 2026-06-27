@@ -12,7 +12,10 @@ export function NetworkBadge() {
           : "border-signal/40 bg-signal/10 text-signal-fg dark:text-signal-dark"
       }`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${supported ? "bg-camino-500" : "bg-signal animate-lamp"}`} aria-hidden />
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${supported ? "bg-camino-500" : "bg-signal animate-lamp"}`}
+        aria-hidden
+      />
       {supported ? name : "Unsupported network"}
     </span>
   );

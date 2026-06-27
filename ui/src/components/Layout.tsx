@@ -18,9 +18,7 @@ function NavItem({ to, end, children }: { to: string; end?: boolean; children: R
       {({ isActive }) => (
         <span className="relative inline-block py-0.5">
           {children}
-          {isActive && (
-            <span className="absolute -bottom-[3px] left-0 right-0 h-[2px] bg-camino-500" aria-hidden />
-          )}
+          {isActive && <span className="absolute -bottom-[3px] left-0 right-0 h-[2px] bg-camino-500" aria-hidden />}
         </span>
       )}
     </NavLink>

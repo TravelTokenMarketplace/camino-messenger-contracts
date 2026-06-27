@@ -31,17 +31,7 @@ const stopRow = {
 };
 
 /** One right-aligned stat number, linking to its tab; faint when zero/loading. */
-function Stat({
-  value,
-  icon: Icon,
-  label,
-  to,
-}: {
-  value?: number;
-  icon: typeof Layers;
-  label: string;
-  to: string;
-}) {
+function Stat({ value, icon: Icon, label, to }: { value?: number; icon: typeof Layers; label: string; to: string }) {
   const dim = value === undefined || value === 0;
   // `hidden sm:flex` sits on the grid cell itself so the column drops cleanly on
   // mobile instead of leaving an empty placeholder behind.
