@@ -28,3 +28,12 @@ export const ACTIVITY_BATCHES_PER_CLICK = 10;
 export function batchBlocksFor(chainId: number): bigint {
   return ACTIVITY_BATCH_BLOCKS[chainId] ?? DEFAULT_BATCH_BLOCKS;
 }
+
+/** Bump when the persisted cache shape changes; older entries are discarded on read. */
+export const ACTIVITY_CACHE_VERSION = 1;
+
+/**
+ * Max events kept per cache entry. When exceeded, the oldest events are dropped
+ * (see capEntry) to stay well under the ~5MB localStorage origin budget.
+ */
+export const ACTIVITY_CACHE_MAX_EVENTS = 2000;

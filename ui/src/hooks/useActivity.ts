@@ -4,7 +4,10 @@ import { usePublicClient } from "wagmi";
 import { type AbiEvent, type Address, type PublicClient } from "viem";
 import { ACTIVITY_BATCHES_PER_CLICK, ACTIVITY_MIN_BATCH_BLOCKS, batchBlocksFor } from "../config/activity";
 import { toActivityEvent } from "../lib/activity/catalog";
+import { compareEventsDesc, dedupeById } from "../lib/activity/sort";
 import { type ActivityEvent, type ActivitySource } from "../lib/activity/types";
+
+export { compareEventsDesc, dedupeById };
 
 export interface ActivitySourceInput {
   source: ActivitySource;
@@ -41,23 +44,6 @@ export function isRangeLimitError(err: unknown): boolean {
   // "block range too large", "max block range exceeded", "more than N results",
   // "query exceeds limit" — but NOT "429 Too Many Requests" (transient throttle).
   return /\b(range|results?|limit|exceed(?:s|ed)?|too\s+(?:large|wide|big))\b/i.test(msg);
-}
-
-/** Newest first: higher block, then higher logIndex. */
-export function compareEventsDesc(a: ActivityEvent, b: ActivityEvent): number {
-  if (a.blockNumber !== b.blockNumber) return a.blockNumber > b.blockNumber ? -1 : 1;
-  return b.logIndex - a.logIndex;
-}
-
-function dedupeById(events: ActivityEvent[]): ActivityEvent[] {
-  const seen = new Set<string>();
-  const out: ActivityEvent[] = [];
-  for (const e of events) {
-    if (seen.has(e.id)) continue;
-    seen.add(e.id);
-    out.push(e);
-  }
-  return out;
 }
 
 /**
