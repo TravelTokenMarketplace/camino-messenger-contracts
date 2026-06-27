@@ -265,10 +265,10 @@ describe("useActivity hook", () => {
     mockGetLogs.mockResolvedValue([]);
 
     const wrapper = makeWrapper();
-    const { result, rerender } = renderHook(
-      ({ chainId }: { chainId: number }) => useActivity({ sources, chainId }),
-      { wrapper, initialProps: { chainId: CHAIN } },
-    );
+    const { result, rerender } = renderHook(({ chainId }: { chainId: number }) => useActivity({ sources, chainId }), {
+      wrapper,
+      initialProps: { chainId: CHAIN },
+    });
 
     // Wait for page 0 to succeed; then catch-up fires (hydrated.length > 0 and key unset).
     // Catch-up fetches additional pages → getBlockNumber is called more than once.

@@ -61,7 +61,7 @@ Pure, unit-testable functions:
 
 - `readCache(chainId, sourcesKey): CacheEntry | null`
 - `writeCache(chainId, sourcesKey, entry): void`
-- `mergeSegment(entry, segment): CacheEntry` — insert a freshly-scanned range,
+- `mergeSegment(segments, segment): Segment[]` — insert a freshly-scanned range,
   coalescing overlapping/adjacent segments; events deduped by `id`.
 - `capEntry(entry, maxEvents): CacheEntry` — evict oldest events past the bound,
   shrinking the oldest segment's `low` accordingly.
@@ -75,8 +75,8 @@ back to a live scan.
 
 - `ACTIVITY_CONFIRMATIONS` (e.g. `64n`) — only blocks `≤ tip − confirmations`
   are persisted; the tail above is live-only.
-- `ACTIVITY_CATCHUP_MAX_BLOCKS` — auto-catch-up cap; reuse the existing
-  `ACTIVITY_BATCHES_PER_CLICK × batch` span (~100k blocks).
+- `ACTIVITY_CATCHUP_MAX_BATCHES` — auto-catch-up cap; reuse the existing
+  `ACTIVITY_BATCHES_PER_CLICK` count (~100k-block span).
 - `ACTIVITY_CACHE_MAX_EVENTS` (e.g. `2000`) per entry — when exceeded, drop
   oldest events to stay well under the localStorage budget.
 - `ACTIVITY_CACHE_VERSION` — schema version for invalidation on shape changes.
@@ -87,7 +87,7 @@ On mount, for the active `(chainId, sources)`:
 
 1. **Hydrate** events synchronously from cache → feed renders instantly.
 2. **Catch-up**: compute `confirmedTip = tip − confirmations`. Scan
-   `(cachedHigh, confirmedTip]` forward, capped at `ACTIVITY_CATCHUP_MAX_BLOCKS`,
+   `(cachedHigh, confirmedTip]` forward, capped at `ACTIVITY_CATCHUP_MAX_BATCHES`,
    reusing `fetchActivityPage`'s adaptive batch sizing. Merge the scanned range
    into the cache and prepend its events to the view.
 3. **Live tail**: always scan `(confirmedTip, tip]` fresh; show but never

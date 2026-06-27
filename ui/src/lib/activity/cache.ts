@@ -32,6 +32,14 @@ export function deserializeEntry(json: string): CacheEntry | null {
   try {
     const parsed = JSON.parse(json, reviver) as CacheEntry;
     if (!parsed || parsed.version !== ACTIVITY_CACHE_VERSION || !Array.isArray(parsed.segments)) return null;
+    // Validate segment shape: a partial/pre-tag write could pass the version
+    // check yet carry non-bigint bounds that later throw in mergeSegment's
+    // `low <= high + 1n` on the persist path — corruption must degrade to a live
+    // scan, never break the feed.
+    const shapeOk = parsed.segments.every(
+      (s) => s && typeof s.low === "bigint" && typeof s.high === "bigint" && Array.isArray(s.events),
+    );
+    if (!shapeOk) return null;
     return parsed;
   } catch {
     return null;
@@ -99,7 +107,10 @@ export function capEntry(entry: CacheEntry, maxEvents: number): CacheEntry {
       out.push(seg);
       continue;
     }
-    if (seg.events.length === 0) { out.push(seg); continue; } // empty coverage carries no evictable events
+    if (seg.events.length === 0) {
+      out.push(seg);
+      continue;
+    } // empty coverage carries no evictable events
     if (excess >= seg.events.length) {
       excess -= seg.events.length; // whole segment evicted
       continue;

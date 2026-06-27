@@ -60,6 +60,16 @@ describe("serializeEntry / deserializeEntry", () => {
     const stale = serializeEntry({ ...entry(ev(1n, 0, 1n)), version: ACTIVITY_CACHE_VERSION + 1 });
     expect(deserializeEntry(stale)).toBeNull();
   });
+
+  it("returns null when a segment has non-bigint bounds (would later throw in mergeSegment)", () => {
+    // Right version + segments array, but low/high are plain numbers (e.g. an
+    // entry written before the $bigint tagging, or a partial write).
+    const malformed = JSON.stringify({
+      version: ACTIVITY_CACHE_VERSION,
+      segments: [{ low: 1, high: 100, events: [] }],
+    });
+    expect(deserializeEntry(malformed)).toBeNull();
+  });
 });
 
 describe("readCache / writeCache", () => {
@@ -83,7 +93,12 @@ describe("readCache / writeCache", () => {
   });
 
   it("totalEvents counts across segments", () => {
-    expect(totalEvents({ version: ACTIVITY_CACHE_VERSION, segments: [{ low: 1n, high: 9n, events: [ev(1n, 0, 1n), ev(2n, 0, 2n)] }] })).toBe(2);
+    expect(
+      totalEvents({
+        version: ACTIVITY_CACHE_VERSION,
+        segments: [{ low: 1n, high: 9n, events: [ev(1n, 0, 1n), ev(2n, 0, 2n)] }],
+      }),
+    ).toBe(2);
   });
 });
 
@@ -164,7 +179,10 @@ describe("capEntry", () => {
 });
 
 describe("coverage helpers", () => {
-  const segs = [{ low: 10n, high: 20n, events: [ev(15n, 0, 1n)] }, { low: 100n, high: 200n, events: [ev(150n, 0, 2n)] }];
+  const segs = [
+    { low: 10n, high: 20n, events: [ev(15n, 0, 1n)] },
+    { low: 100n, high: 200n, events: [ev(150n, 0, 2n)] },
+  ];
 
   it("cachedHigh returns the highest covered block", () => {
     expect(cachedHigh({ version: ACTIVITY_CACHE_VERSION, segments: segs })).toBe(200n);
