@@ -1,4 +1,5 @@
 import { ACTIVITY_CACHE_MAX_EVENTS, ACTIVITY_CACHE_VERSION } from "../../config/activity";
+import { compareEventsDesc, dedupeById } from "./sort";
 import { type ActivityEvent } from "./types";
 
 /** A fully-scanned, inclusive block range `[low, high]` and the events found in it (newest-first). */
@@ -58,9 +59,73 @@ export function readCache(chainId: number, sourcesKey: string): CacheEntry | nul
   return entry;
 }
 
-// TEMP stub — replaced in Task 2.
-function capEntry(entry: CacheEntry, _maxEvents: number): CacheEntry {
-  return entry;
+function sortDesc(events: ActivityEvent[]): ActivityEvent[] {
+  return dedupeById([...events]).sort(compareEventsDesc);
+}
+
+/**
+ * Insert a freshly-scanned segment, coalescing any segments that overlap or
+ * touch it (`low <= high + 1`). Returned segments are sorted ascending by `low`;
+ * each segment's events are deduped and newest-first.
+ */
+export function mergeSegment(segments: Segment[], seg: Segment): Segment[] {
+  const all = [...segments, seg].sort((a, b) => (a.low < b.low ? -1 : 1));
+  const merged: Segment[] = [];
+  for (const s of all) {
+    const last = merged[merged.length - 1];
+    if (last && s.low <= last.high + 1n) {
+      last.low = s.low < last.low ? s.low : last.low;
+      last.high = s.high > last.high ? s.high : last.high;
+      last.events = sortDesc([...last.events, ...s.events]);
+    } else {
+      merged.push({ low: s.low, high: s.high, events: sortDesc(s.events) });
+    }
+  }
+  return merged;
+}
+
+/**
+ * Bound total events by dropping the oldest first. Within a trimmed segment the
+ * surviving `low` is raised to the lowest kept event's block — we no longer claim
+ * coverage of blocks whose events we discarded. Emptied segments are removed.
+ */
+export function capEntry(entry: CacheEntry, maxEvents: number): CacheEntry {
+  if (totalEvents(entry) <= maxEvents) return entry;
+  const ascending = [...entry.segments].sort((a, b) => (a.low < b.low ? -1 : 1));
+  let excess = totalEvents(entry) - maxEvents;
+  const out: Segment[] = [];
+  for (const seg of ascending) {
+    if (excess <= 0) {
+      out.push(seg);
+      continue;
+    }
+    if (excess >= seg.events.length) {
+      excess -= seg.events.length; // whole segment evicted
+      continue;
+    }
+    const kept = seg.events.slice(0, seg.events.length - excess); // events are newest-first; keep the head
+    excess = 0;
+    out.push({ low: kept[kept.length - 1].blockNumber, high: seg.high, events: kept });
+  }
+  return { ...entry, segments: out };
+}
+
+/** Highest block covered by any segment, or null when empty. */
+export function cachedHigh(entry: CacheEntry | null): bigint | null {
+  if (!entry || entry.segments.length === 0) return null;
+  return entry.segments.reduce((hi, s) => (s.high > hi ? s.high : hi), entry.segments[0].high);
+}
+
+/** True when a single segment fully spans `[from, to]`. */
+export function isRangeCovered(segments: Segment[], from: bigint, to: bigint): boolean {
+  return segments.some((s) => s.low <= from && s.high >= to);
+}
+
+/** Events with `from <= blockNumber <= to`, across all segments (unsorted). */
+export function eventsInRange(segments: Segment[], from: bigint, to: bigint): ActivityEvent[] {
+  const out: ActivityEvent[] = [];
+  for (const s of segments) for (const e of s.events) if (e.blockNumber >= from && e.blockNumber <= to) out.push(e);
+  return out;
 }
 
 export function writeCache(chainId: number, sourcesKey: string, entry: CacheEntry): void {
