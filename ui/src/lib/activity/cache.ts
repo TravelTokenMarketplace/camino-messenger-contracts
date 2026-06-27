@@ -99,6 +99,7 @@ export function capEntry(entry: CacheEntry, maxEvents: number): CacheEntry {
       out.push(seg);
       continue;
     }
+    if (seg.events.length === 0) { out.push(seg); continue; } // empty coverage carries no evictable events
     if (excess >= seg.events.length) {
       excess -= seg.events.length; // whole segment evicted
       continue;

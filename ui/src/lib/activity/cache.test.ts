@@ -142,6 +142,25 @@ describe("capEntry", () => {
     const e = { version: ACTIVITY_CACHE_VERSION, segments: [{ low: 1n, high: 10n, events: [ev(5n, 0, 1n)] }] };
     expect(capEntry(e, 100)).toBe(e);
   });
+
+  it("preserves empty (no-event) segments while still evicting events from event-bearing ones", () => {
+    const e: CacheEntry = {
+      version: ACTIVITY_CACHE_VERSION,
+      segments: [
+        { low: 1n, high: 10n, events: [] }, // empty coverage — must survive eviction
+        { low: 20n, high: 30n, events: [ev(25n, 0, 1n), ev(26n, 0, 2n)] },
+        { low: 100n, high: 110n, events: [ev(105n, 0, 3n)] },
+      ],
+    };
+    // Cap to 1 event: the two events in the second segment are the oldest; drop the earlier one.
+    const capped = capEntry(e, 1);
+    // The empty segment must still be present.
+    expect(capped.segments.find((s) => s.low === 1n && s.high === 10n)).toBeDefined();
+    // The last-segment event (newest) must survive.
+    expect(capped.segments.find((s) => s.events.some((ev) => ev.blockNumber === 105n))).toBeDefined();
+    // Total events must equal 1.
+    expect(capped.segments.reduce((n, s) => n + s.events.length, 0)).toBe(1);
+  });
 });
 
 describe("coverage helpers", () => {

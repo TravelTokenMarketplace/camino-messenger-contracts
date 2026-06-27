@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { createElement } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   __resetBatchMemory,
   compareEventsDesc,
@@ -6,11 +9,25 @@ import {
   fetchActivityPage,
   fetchActivityPageCached,
   loadOlderBatches,
+  useActivity,
   type ActivitySourceInput,
 } from "./useActivity";
-import { type Segment } from "../lib/activity/cache";
+import { writeCache, type CacheEntry, type Segment } from "../lib/activity/cache";
+import { ACTIVITY_CACHE_VERSION } from "../config/activity";
 import { BOOKING_TOKEN_EVENTS } from "../lib/activity/catalog";
 import { type ActivityEvent } from "../lib/activity/types";
+
+// ---------------------------------------------------------------------------
+// Wagmi mock — scoped to this module so hook tests can control usePublicClient.
+// Pure-function tests (fetchActivityPage, fetchActivityPageCached, etc.) don't
+// call usePublicClient and are unaffected by this mock.
+// ---------------------------------------------------------------------------
+const mockGetBlockNumber = vi.hoisted(() => vi.fn());
+const mockGetLogs = vi.hoisted(() => vi.fn());
+
+vi.mock("wagmi", () => ({
+  usePublicClient: () => ({ getBlockNumber: mockGetBlockNumber, getLogs: mockGetLogs }),
+}));
 
 const CHAIN = 84532;
 const ADDR = "0xbookingtoken000000000000000000000000beef";
@@ -170,5 +187,125 @@ describe("loadOlderBatches", () => {
       .mockResolvedValueOnce({ hasNextPage: false });
     await loadOlderBatches(fetchNextPage, 10);
     expect(fetchNextPage).toHaveBeenCalledTimes(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// useActivity hook — wiring tests (hydrate + catch-up).
+// Each test gets a fresh QueryClient and clean localStorage.
+// ---------------------------------------------------------------------------
+
+/** Minimal valid ActivityEvent for pre-seeding the cache. */
+function hookEvent(blockNumber: bigint, logIndex: number, tokenId: bigint): ActivityEvent {
+  return {
+    id: `${blockNumber}#${logIndex}`,
+    source: "bookingToken",
+    category: "Bookings",
+    contract: ADDR as `0x${string}`,
+    blockNumber,
+    logIndex,
+    txHash: `0xtest${blockNumber}${logIndex}` as `0x${string}`,
+    eventName: "TokenBought",
+    args: { tokenId, buyer: "0x0000000000000000000000000000000000000001" as `0x${string}` },
+    sentence: "bought",
+  };
+}
+
+/** Cache entry covering [1, 100] with one event at block 100. */
+function seedEntry(): CacheEntry {
+  return { version: ACTIVITY_CACHE_VERSION, segments: [{ low: 1n, high: 100n, events: [hookEvent(100n, 0, 7n)] }] };
+}
+
+/** Fresh QueryClient + Provider wrapper per test so query state never leaks. */
+function makeWrapper() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) => createElement(QueryClientProvider, { client: qc }, children);
+}
+
+// sourcesKey derived the same way the hook does it internally
+const SOURCES_KEY = `bookingToken:${ADDR}`;
+
+describe("useActivity hook", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    mockGetBlockNumber.mockReset();
+    mockGetLogs.mockReset();
+    __resetBatchMemory();
+  });
+
+  it("a. hydrate: cached events appear on initial render without waiting for RPC", () => {
+    // Pre-seed cache so readCache returns data synchronously in the hook's useMemo.
+    writeCache(CHAIN, SOURCES_KEY, seedEntry());
+
+    // Allow the query to start (it won't be awaited for this assertion).
+    mockGetBlockNumber.mockResolvedValue(200n);
+    mockGetLogs.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useActivity({ sources, chainId: CHAIN }), { wrapper: makeWrapper() });
+
+    // Hydrated events are folded in synchronously on the first render — no await.
+    // Guards the useMemo hydrate + the merge into the events array.
+    const found = result.current.events.find((e) => e.blockNumber === 100n);
+    expect(found).toBeDefined();
+    expect((found?.args as { tokenId?: bigint }).tokenId).toBe(7n);
+  });
+
+  it("b. catch-up: fires once per key and re-arms when chainId changes", async () => {
+    // Use a chain ID distinct from CHAIN to test re-arm.
+    const CHAIN_B = 8453;
+
+    // Pre-seed both keys so hydrated.length > 0, which is the catch-up gate.
+    writeCache(CHAIN, SOURCES_KEY, seedEntry());
+    writeCache(CHAIN_B, SOURCES_KEY, seedEntry());
+
+    // Large enough tip so fromBlock > 0 after page 0, meaning hasNextPage=true
+    // and catch-up actually fetches additional pages.
+    const TIP = 50_000n;
+    mockGetBlockNumber.mockResolvedValue(TIP);
+    mockGetLogs.mockResolvedValue([]);
+
+    const wrapper = makeWrapper();
+    const { result, rerender } = renderHook(
+      ({ chainId }: { chainId: number }) => useActivity({ sources, chainId }),
+      { wrapper, initialProps: { chainId: CHAIN } },
+    );
+
+    // Wait for page 0 to succeed; then catch-up fires (hydrated.length > 0 and key unset).
+    // Catch-up fetches additional pages → getBlockNumber is called more than once.
+    // Guards: caughtUpKey stays unset until page 0 succeeds, then loadOlderBatches runs.
+    await waitFor(() => expect(mockGetBlockNumber.mock.calls.length).toBeGreaterThan(1), { timeout: 5000 });
+
+    // Let catch-up drain so isFetchingNextPage settles before we record the count.
+    await waitFor(() => expect(result.current.isFetchingNextPage).toBe(false), { timeout: 5000 });
+    const countAfterChainA = mockGetBlockNumber.mock.calls.length;
+
+    // Re-render with the same chainId — caughtUpKey is already set, so no new batches.
+    // Guards: the once-per-key guard on caughtUpKey ref.
+    rerender({ chainId: CHAIN });
+    await waitFor(() => expect(result.current.isFetchingNextPage).toBe(false), { timeout: 2000 });
+    expect(mockGetBlockNumber.mock.calls.length).toBe(countAfterChainA);
+
+    // Switch to a new chain — fresh key, caughtUpKey must re-arm.
+    // Guards: key change clears the once-per-key guard (new key !== caughtUpKey.current).
+    rerender({ chainId: CHAIN_B });
+    await waitFor(() => expect(mockGetBlockNumber.mock.calls.length).toBeGreaterThan(countAfterChainA + 1), {
+      timeout: 5000,
+    });
+  });
+
+  it("c. first-ever visit (empty cache) does not trigger auto catch-up", async () => {
+    // No cache seeded — hydrated will be [] and the catch-up gate returns early.
+    mockGetBlockNumber.mockResolvedValue(50_000n);
+    mockGetLogs.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useActivity({ sources, chainId: CHAIN }), { wrapper: makeWrapper() });
+
+    // Wait for page 0 to complete and isFetchingNextPage to clear.
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
+    await waitFor(() => expect(result.current.isFetchingNextPage).toBe(false), { timeout: 3000 });
+
+    // Exactly one getBlockNumber call (for page 0 only); catch-up must not have fired.
+    // Guards: the `if (hydrated.length === 0) return` guard in the catch-up effect.
+    expect(mockGetBlockNumber).toHaveBeenCalledTimes(1);
   });
 });

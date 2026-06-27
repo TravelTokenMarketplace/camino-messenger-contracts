@@ -125,8 +125,9 @@ export async function fetchActivityPageCached(
   const size = currentBatchSize(chainId);
   const windowFrom = toBlock > size - 1n ? toBlock - size + 1n : 0n;
 
-  if (toBlock <= confirmedTip && isRangeCovered(deps.readSegments(), windowFrom, toBlock)) {
-    const events = eventsInRange(deps.readSegments(), windowFrom, toBlock).sort(compareEventsDesc);
+  const segments = deps.readSegments();
+  if (toBlock <= confirmedTip && isRangeCovered(segments, windowFrom, toBlock)) {
+    const events = eventsInRange(segments, windowFrom, toBlock).sort(compareEventsDesc);
     return { events, fromBlock: windowFrom };
   }
 
