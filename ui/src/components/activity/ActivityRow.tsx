@@ -13,7 +13,9 @@ export function ActivityRow({ event, explorerUrl }: { event: ActivityEvent; expl
   return (
     <li className="flex items-center gap-3 py-2">
       <span
-        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${CATEGORY_STYLE[event.category].icon}`}
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          CATEGORY_STYLE[event.category].icon
+        }`}
         title={event.category}
       >
         <Icon className="h-4 w-4" aria-hidden />

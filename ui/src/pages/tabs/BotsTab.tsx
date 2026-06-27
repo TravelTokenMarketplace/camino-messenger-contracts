@@ -182,7 +182,9 @@ export function BotsTab({ account }: { account: Address }) {
                 onChange={(e) => setGas(e.target.value)}
               />
               <Tooltip
-                content={`This amount is sent from the CM Account's own balance to the bot to cover its transaction fees${symbol ? ` (in ${symbol})` : ""}.`}
+                content={`This amount is sent from the CM Account's own balance to the bot to cover its transaction fees${
+                  symbol ? ` (in ${symbol})` : ""
+                }.`}
               >
                 <button
                   type="button"
