@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //
 // Camino Messenger Gas Money Manager
 

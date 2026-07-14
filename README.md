@@ -420,7 +420,7 @@ configuration and start running the bot.
 
 ## License
 
-The Camino Messenger Contracts are licensed under the terms of the [Camino Messenger License](LICENSE.md).
+The Camino Messenger Contracts are licensed under the terms of the [GNU Lesser General Public License v3.0 or later](LICENSE.md).
 
 ## Data Protection
 

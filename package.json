@@ -2,9 +2,9 @@
     "name": "messenger-contracts",
     "version": "1.0.0",
     "description": "Camino Messenger Contracts",
-    "repository": "git@github.com:havan/messenger-contracts.git",
+    "repository": "git@github.com:TravelTokenMarketplace/camino-messenger-contracts.git",
     "author": "\"Ekrem Seren\" <ekrem.seren@gmail.com>",
-    "license": "UNLICENSED",
+    "license": "LGPL-3.0-or-later",
     "scripts": {
         "test": "REPORT_GAS=true yarn hardhat test",
         "compile": "yarn hardhat compile",
