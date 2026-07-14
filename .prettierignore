@@ -22,3 +22,6 @@ yarn.lock
 
 # Ignore superpowers skill docs
 /docs/superpowers/
+
+# Ignore license file
+LICENSE.md
